@@ -1,0 +1,126 @@
+<!-- One component to display trans in 2 columns and allow all tran actions -->
+<div class="row" *ngIf="editMode">
+  <div class="col-md-2"> {{ tranRec.TranDate }}      </div>
+  <div class="col-md-1"> {{ tranRec.TranType }}     </div>
+  <div class="col-md-3"> {{ tranRec.Description }}  </div>
+  <div class="col-md-1"> {{ tranRec.Amount }}     </div>
+  <div class="col-md-4"> {{ tranRec.TranExtra }}     </div>
+  <button class="btn btn-success btn-toggle col-md-1" type="button"
+    (click)="expandedView = !expandedView"> {{expandedView ? 'Coll' : 'Exp'}}</button>
+</div>
+<div class="row col-md-12" *ngIf="expandedView || newRow">
+  <form (ngSubmit)="onAddRecord(true)" #recordForm="ngForm">
+    <div class="row">
+      <div class="col-md-6 border-right">
+          <div class="form-group form-check">
+            <label for="account">Account</label>
+            <select class="form-control" id="account" name="account"
+                [(ngModel)]="tranRec.Account">
+                <option *ngFor="let account of accounts" [value]="account"
+                    [selected]="account == tranRec.Account">{{ account }}</option>
+            </select>
+          </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="date">Tran Date</label>
+          <input type="date" class="form-control" [(ngModel)]="tranRec.TranDate"
+              name="date" ngModel placeholder="Date" (blur)="onFilterProjects(false)" required>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="description">Tran Description</label>
+          <input type="text" id="description" class="form-control" [(ngModel)]="tranRec.Description"
+              name="description" ngModel placeholder="Tran Description" list="descrips">
+          <datalist id="descrips">
+            <option *ngFor="let descrip of descripInfo"> {{ descrip.description }}</option>
+          </datalist>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group form-check">
+          <label for="tranType">Tran Type</label>
+          <select class="form-control" id="tranType" name="tranType"
+              [(ngModel)]="tranRec.TranType">
+              <option *ngFor="let tranType of tranTypes" [value]="tranType"
+                  [selected]="tranType == tranRec.TranType">{{ tranType }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="amount"> Amount (neg for outflow)</label>
+          <input type="number" class="form-control" [(ngModel)]="tranRec.Amount"
+              name="amount" ngModel placeholder="Amount" required
+              (blur)="onCheckValAbs()">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="extra">TranExtra ExpCategory/ck# or Xfer partner or Income/non</label>
+          <input type="text" class="form-control" [(ngModel)]="tranRec.TranExtra"
+              name="extra" ngModel placeholder="Tran Extra">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group form-check">
+          <label for="house">House</label>
+          <select class="form-control" id="house" name="house"
+            [(ngModel)]="tranRec.House" (change)="onFilterProjects(true)">
+            <option *ngFor="let house of houses" [value]="house"
+                [selected]="house == tranRec.House">{{ house }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group form-check">
+          <label for="project">Project</label>
+          <select class="form-control" id="project" name="project"
+              [(ngModel)]="tranRec.Project">
+              <option *ngFor="let project of filteredProjects" [value]="project.ProjectId"
+                  [selected]="project.ProjectId == tranRec.Project">
+                    {{ project.House }} {{ project.Description }} </option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group form-check">
+          <label for="taxcat">Tax Category</label>
+          <select class="form-control" id="taxcat" name="taxcat"
+              [(ngModel)]="tranRec.TaxCat" (focus)="onSetTaxcat()">
+              <option *ngFor="let taxcat of taxCats" [value]="taxcat"
+                  [selected]="taxcat == tranRec.TaxCat">{{ taxcat }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="annotation">Tran Annotation</label>
+          <input type="text" class="form-control" [(ngModel)]="tranRec.Annotation"
+              name="annotation" ngModel placeholder="Annotation">
+        </div>
+      </div>
+    </div>
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="submit"
+          [disabled]="!recordForm.valid">{{ tranDB ? 'Update' : 'Add' }}</button>
+      <button class="btn btn-primary col-md-2" type="button" *ngIf="newRow"
+          [disabled]="!recordForm.valid || editMode" (click)="onAddRecord(false)">Add/Keep</button>
+      <button class="btn btn-danger col-md-2" type="button"
+          [disabled]="!editMode" (click)="onDeleteRecord()">Delete</button>
+      <button class="btn btn-primary col-md-2" type="button" (click)="onCancel()">Cancel</button>
+      <button class="btn btn-success col-md-2" type="button" *ngIf="hideLabel !== ''"
+        (click)="onHideRecord()">{{ hideLabel }}</button>
+    </div>
+  </form>
+</div>
+<div> {{ statusMsg }} </div>

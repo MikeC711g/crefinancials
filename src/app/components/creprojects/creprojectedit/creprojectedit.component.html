@@ -1,0 +1,57 @@
+<div class="row" *ngIf="editMode">
+  <div class="col-md-2">{{ curProj.StartDt }}</div>
+  <div class="col-md-2">{{ curProj.House }}</div>
+  <div class="col-md-6">{{ curProj.Description }}</div>
+  <button class="btn btn-success btn-toggle col-md-1" type="button"
+    (click)="expandedView = !expandedView"> {{expandedView ? 'Coll' : 'Exp'}}</button>
+</div>
+<div class="row col-md-12" *ngIf="expandedView || !editMode">
+  <form (ngSubmit)="onAddProject()" #projectForm="ngForm">
+    <div class="row">
+      <div class="form-group form-check col-md-6 border-right">
+        <label for="stDate">Start Date</label>
+          <input type="date" class="form-control" [(ngModel)]="curProj.StartDt"
+                 name="stDate" ngModel placeholder="Start Date" required>
+      </div>
+      <div class="form-group form-check col-md-6">
+        <label for="endDate">End Date</label>
+          <input type="date" class="form-control" [(ngModel)]="curProj.EndDt"
+                 name="endDate" ngModel placeholder="End Date">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group form-check col-md-6 border-right">
+        <label for="house">House</label>
+        <select class="form-control" id="house" name="house"
+            [(ngModel)]="curProj.House">
+            <option *ngFor="let house of houses" [value]="house"
+                [selected]="house == curProj.House">{{ house }}</option>
+        </select>
+      </div>
+      <div class="form-group form-check col-md-6">
+        <label for="dfltCategory">Default Category</label>
+        <select class="form-control" id="dfltCategory" name="dfltCategory"
+            [(ngModel)]="curProj.DfltCategory">
+            <option *ngFor="let category of categories" [value]="category"
+                [selected]="category == curProj.DfltCategory">{{ category }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-md-12">
+        <label for="description">Tran Description</label>
+        <textarea type="text" id="description" class="form-control" [(ngModel)]="curProj.Description"
+                  rows="2" name="description" ngModel placeholder="Project Description" required></textarea>
+      </div>
+    </div>
+  <div class="row">
+    <button class="btn btn-success col-md-3" type="submit"
+        [disabled]="!projectForm.valid"> {{ editMode ? 'Update' : 'Add' }}</button>
+    <button class="btn btn-danger col-md-3" type="button"
+        [disabled]="!editMode" (click)="onDeleteProject()">Delete</button>
+    <button class="btn btn-primary col-md-3" type="button" (click)="onCancel()">
+      Cancel</button>
+  </div>
+  </form>
+</div>
+<div> {{ statusMsg }} </div>

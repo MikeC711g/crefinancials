@@ -1,0 +1,76 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="col-md-6">
+      <div class="row">
+        <label for="startDate">Enter Start Date</label>
+        <input type="date" id="startDate" name="startDate" #startDate />
+      </div>
+      <div class="row">
+        <label for="account">Account</label>
+        <select class="form-control" id="account" name="account" #account>
+          <option *ngFor="let account of accounts" [value]="account"
+            >{{ account }}</option>
+        </select>
+      </div>
+      <div class="row">
+        <input type="file" #csvFile name="csvFile" id="csvFile"
+          (change)="csvRead($event, account.value)" accept=".csv" />
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="row">
+        <label for="endDate">Enter End Date</label>
+        <input type="date" id="endDate" name="endDate" #endDate />
+      </div>
+      <div class="row">
+        <button class="btn btn-primary col-md-2" type="button"
+        (click)="onQueryDates(startDate.value, endDate.value, account.value)">Search DB</button>
+        <div class="col-md-2"></div>
+        <!--     <select class="select-option"  #csvSelect
+          (change)="onRetrieveFromCSV(csvSelect.value)">
+          <option class="option" *ngFor="let option of csvFiles"
+            [value]="option.valueOf()"> {{ option.valueOf() }}
+          </option>
+        </select>  -->
+        <button class="btn btn-secondary col-md-2" type="button"
+          (click)="onRefreshParms(startDate.value, endDate.value)">Refresh Globals</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-success col-md-2"  type="button"
+          (click)="newRow = true" >Create Row</button>
+      </div>
+      <div> {{ statusMsg }} </div>
+    </div>
+  </div>
+  <div class="col-md-12" *ngIf="newRow">
+    <hr>
+    <app-cretranedit (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranedit>
+  </div>
+  <div class="col-md-12">
+    <!-- <div class="row" *ngIf="!!csvTranRecs && csvTranRecs?.length > 0;else noTrans"> -->
+      <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTrans">
+          <button class="btn btn-success btn-toggle col-md-2" type="button"
+          (click)="expandDebits = !expandDebits"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
+          <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
+          <ul *ngIf="expandDebits">
+            <li *ngFor="let tran of debitTranRecs">
+              <app-cretranedit [tranRec]="tran" [tranDB]="tranDB"
+              (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranedit></li>
+          </ul>
+      </div>
+      <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTrans">
+          <button class="btn btn-success btn-toggle col-md-2" type="button"
+          (click)="expandCredits = !expandCredits"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
+          <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
+          <ul *ngIf="expandCredits">
+            <li *ngFor="let tran of creditTranRecs">
+              <app-cretranedit [tranRec]="tran" [tranDB]="tranDB"
+                (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranedit></li>
+          </ul>
+    </div>
+    <ng-template #noTrans>
+      <hr />
+      <h5>There are no transactions to list</h5>
+    </ng-template>
+  </div>
+</div>

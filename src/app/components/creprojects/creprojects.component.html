@@ -1,0 +1,37 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="row">
+      <label for="startDate">Enter Start Date</label>
+      <input type="date" id="startDate" name="startDate" #startDate />
+    </div>
+    <div class="row">
+      <label for="endDate">Enter End Date</label>
+      <input type="date" id="endDate" name="endDate" #endDate />
+    </div>
+    <div class="row">
+      <button
+        class="btn btn-primary col-md-3" type="button"
+        (click)="onQueryProjects(startDate.value, endDate.value)">Search
+      </button>
+      <button class="btn btn-secondary col-md-3"  type="button" (click)="newRow = true" > New </button>
+      </div>
+    <div> {{ statusMsg }} </div>
+    <div class="col-md-12" *ngIf="newRow">
+      <hr>
+      <app-creprojectedit (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+    </div>
+    <hr>
+    <div class="row" *ngIf="!!projects && projects.length > 0; else noProjects">
+        <ul>
+          <li *ngFor="let project of projects">
+            <app-creprojectedit [curProj]="project"
+              (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit></li>
+        </ul>
+    </div>
+    <ng-template #noProjects>
+      <hr />
+      <h5>There are no projects to list</h5>
+    </ng-template>
+  </div>
+</div>
+
