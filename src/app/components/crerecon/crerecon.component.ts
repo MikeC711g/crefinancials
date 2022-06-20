@@ -1,11 +1,11 @@
 import { ReturnState } from './../../models/returnState.model';
 import { Reconciliations } from './../../models/reconciliations.model';
 import { DescripInfo } from './../../models/descripInfo.model';
-import { RecordService } from 'src/app/services/record.service';
+import { RecordService } from '../../services/record.service';
 import { Subscription } from 'rxjs';
-import { MsgInfo } from 'src/app/models/MsgInfo.model';
+import { MsgInfo } from '../../models/MsgInfo.model';
 import { TranRec } from './../../models/TranRec.model';
-import { Project } from 'src/app/models/project.model';
+import { Project } from '../../models/project.model';
 import { Component, OnInit } from '@angular/core';
 
 /*************************************************************************************
@@ -174,6 +174,7 @@ export class CrereconComponent implements OnInit {
   repopArrays(): void {
     this.creditTranRecs = [] ; this.debitTranRecs = [] ;   this.hiddenTranRecs = [] ;// Clear arrays
     for (const curTran of this.csvTranRecs) {
+      console.log('curTran: ', curTran) ;
       if (curTran.ReconKey !== '') { continue ; }   // This tram in another reconciliation
       if (curTran.Amount <= 0) {
         this.debitTranRecs.push(curTran) ;
