@@ -1,0 +1,187 @@
+<!-- One component to display trans in 2 columns and allow all tran actions -->
+<div class="row" *ngIf="editMode || !expandedView || isChild">
+  <div class="col-md-2" data-cy="te-ldt"> {{ tranRec.TranDate }} </div>
+  <div class="col-md-1" data-cy="te-ltt"> {{ tranRec.TranType }}     </div>
+  <div class="col-md-3" data-cy="te-ltd"> {{ tranRec.Category }}  </div>
+  <div class="col-md-1" data-cy="te-lta"> {{ tranRec.Amount }}     </div>
+  <div class="col-md-3" data-cy="te-lte"> {{ tranRec.TranExtra }} </div>
+  <div class="col-md-1" data-cy="te-ltndb" *ngIf="!isInDB"> NIDB </div>
+  <div class="col-md-1" data-cy="te-ltp" *ngIf="isParent">
+    <img class="img-responsive" src="assets/images/splitIcon.png" style="width: 16px; height: 16px;">
+  </div>
+  <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="te-exb"
+    (click)="expandedView = !expandedView">
+     <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+       style="width: 16px; height: 16px;" *ngIf="!expandedView">
+     <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+      style="width: 16px; height: 16px;" *ngIf="expandedView">
+  </button>
+</div>
+<div class="row col-md-12" *ngIf="expandedView || (newRow && !isChild) || (isChild && newExpand && newRow)">
+  <form (ngSubmit)="onAddRecord()" #recordForm="ngForm">
+    <div class="row" *ngIf="!isChild">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="account">Account</label>
+          <select class="form-control" id="account" name="account" data-cy="cta-account"
+            [(ngModel)]="tranRec.Account" required (change)="chgData()" #account="ngModel">
+              <option [value]="''" [selected]="!tranRec.Account">-- select an option --</option>
+              <option *ngFor="let account of accounts" [value]="account.RKey"
+                [selected]="account.RKey === tranRec.Account">{{ account.RKey }}</option>
+          </select>
+        </div>
+        <div [hidden]="account.valid || !account.touched"
+          class="alert alert-danger"> Account selection is required </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" class="form-control" [(ngModel)]="tranRec.TranDate" #tranDate="ngModel"
+            name="date" id="date" ngModel placeholder="Date" data-cy="cta-tranDate" (change)="chgData()">
+        </div>
+        <div [hidden]="tranDate.valid || !tranDate.touched"
+          class="alert alert-danger"> TranDate is required </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select class="form-control" id="category" name="category" data-cy="cta-category"
+            [(ngModel)]="tranRec.Category" (change)="chgData()" required #category="ngModel">
+            <option [value]="''" [selected]="!tranRec.Category">-- select an option --</option>
+            <option *ngFor="let category of categoryTaxcat" [value]="category.RKey"
+              [selected]="category.RKey === tranRec.Category">{{ category.RKey }}</option>
+          </select>
+        </div>
+        <div [hidden]="category.valid || !category.touched"
+          class="alert alert-danger"> Category selection is required </div>
+      </div>
+      <div class="col-md-6" *ngIf="!isParent">
+        <div class="form-group">
+          <label for="tranType">Type</label>
+          <select class="form-control" id="tranType" name="tranType" (change)="chgData()"
+              [(ngModel)]="tranRec.TranType" required data-cy="cta-tranType" #tranType="ngModel">
+              <option [value]="''" [selected]="!tranRec.TranType">-- select an option --</option>
+              <option *ngFor="let tranType of tranTypes" [value]="tranType">{{ tranType }}</option>
+          </select>
+        </div>
+        <div [hidden]="tranType.valid || !tranType.touched"
+          class="alert alert-danger"> Transaction type selection is required </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="amount"> Amount (neg for outflow)</label>
+          <input type="number" class="form-control" [(ngModel)]="tranRec.Amount" #amount="ngModel"
+            name="amount" id="amount" ngModel placeholder="Amount" required data-cy="cta-amount"
+            (change)="chgData() ; onCheckValAbs()">
+        </div>
+        <div [hidden]="amount.valid || !amount.touched"
+          class="alert alert-danger"> Amount is required </div>
+        </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="extra">Notes</label>
+          <input type="text" class="form-control" [(ngModel)]="tranRec.TranExtra"
+            name="extra" id="extra" ngModel placeholder="Tran Extra" data-cy="cta-tranExtra"
+            (change)="chgData()">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="house">House</label>
+          <select class="form-control" id="house" name="house" data-cy="cta-house"
+            [(ngModel)]="tranRec.House" (change)="chgData()">
+            <option [value]="''" [selected]="!tranRec.House">-- select an option --</option>
+            <option *ngFor="let house of houses" [value]="house.name"
+              [disabled]="house.inactiveDt && tranRec.TranDate > house.inactiveDt"
+              [selected]="house.name == tranRec.House">{{ house.name }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="project">Project</label>
+          <select class="form-control" id="project" name="project" data-cy="cta-project"
+            [(ngModel)]="tranRec.Project" (focus)="onFilterProjects()" (change)="chgData()">
+            <option [value]="''" [selected]="!tranRec.Project">-- select an option --</option>
+            <option *ngFor="let project of filteredProjects" [value]="project.ProjectId"
+              [selected]="project.ProjectId == tranRec.Project">
+              {{ project.House }} {{ project.Description }} </option>
+          </select>
+          <div class="row">
+            <button class="btn btn-success" type="button"
+              (click)="newProj=true">New Project</button>
+              <app-creprojectedit *ngIf="newProj"
+                (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+          </div>
+            </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 border-right" *ngIf="!isParent">
+        <div class="form-group">
+          <label for="taxcat">Tax Category</label>
+          <select class="form-control" id="taxcat" name="taxcat" data-cy="cta-taxCat" required
+            [(ngModel)]="tranRec.TaxCat" (focus)="onPreSetTaxcat()" (change)="chgData()"
+            #taxcat="ngModel">
+            <option [value]="''" [selected]="!tranRec.TaxCat">-- select an option --</option>
+            <option *ngFor="let taxcat of taxCats" [value]="taxcat.RKey"
+              [selected]="taxcat.RKey == tranRec.TaxCat">{{ taxcat.RVal }}</option>
+          </select>
+        </div>
+        <div [hidden]="taxcat.valid || !taxcat.touched"
+          class="alert alert-danger"> Tax category selection is required </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="annotation">Detailed description</label>
+          <input type="text" class="form-control" [(ngModel)]="tranRec.Annotation"
+              name="annotation" id="annotation" ngModel placeholder="Annotation"
+              (change)="chgData()" data-cy="cta-annot">
+        </div>
+      </div>
+    </div>
+    <div class="row col-md-12" *ngIf="isParent">
+      <h4 class="col-md-4">Child Transactions</h4>
+      <ul>
+        <li *ngFor="let splitChild of splitChildren">
+          <app-cretranall [tranRec]="splitChild" [newExpand]="childExpand"
+          [isChild]="true"
+          (tranMod)="onChildMod($event.action, $event.tranRec)"></app-cretranall></li>
+      </ul>
+      <div class="row col-md12">
+        <div class="col-md-9" data-cy="tpe-paa">
+          {{ allocdAmt }} Allocated of {{ tranRec.Amount }} Leaving {{ deltaAmt }}
+        </div>
+      </div>
+    </div>
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="submit" data-cy="te-dbs"
+         [disabled]="!recordForm.valid || tranRec.TranDate === '' || (isParent && allocdAmt !== tranRec.Amount) ||
+            (tranRec.ReconKey !== '' && !isGlobalAdmin)">
+          {{ isInDB ? 'Update' : 'Add' }}</button>
+      <button class="btn btn-danger col-md-2" type="button" data-cy="te-dbd"
+          [disabled]="!editMode || (tranRec.ReconKey !== '' && !isGlobalAdmin)"
+          (click)="onDeleteRecord()">Delete</button>
+      <button class="btn btn-primary col-md-2" type="button" data-cy="te-dbc"
+        (click)="onCancel()">Cancel</button>
+      <button class="btn btn-success col-md-2" type="button" data-cy="te-dbh"
+        *ngIf="hideLabel !== ''" (click)="onHideRecord()">{{ hideLabel }}</button>
+      <button class="btn btn-primary col-md-2" type="button" *ngIf="isParent"
+        [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin"
+        (click)="childExpand = true ; onAddSplitChild()">Add Child</button>
+      <button class="btn btn-primary col-md-2" type="button" *ngIf="!isChild"
+        [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin"
+        (click)="parentChange()">{{ isParent ? 'Unsplit Transaction' : 'Split Transaction' }} </button>
+    </div>
+  </form>
+</div>
+<div data-cy="te-dsm">
+  <app-cremessages [dispMsgs]="dispMsgs"
+    (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+</div>

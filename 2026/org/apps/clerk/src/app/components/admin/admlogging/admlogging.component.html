@@ -1,0 +1,11 @@
+<div class="row">
+  <div class="col-md-3"> {{ className }}  </div>
+  <div class="col-md-2">
+    <label for="logLevel">Default Level</label>
+    <select class="form-control" id="logLevel" name="logLevel" [(ngModel)]="level"
+      (change)="editClassLevel()">
+      <option [value]="''" [selected]="!level">-- select an option --</option>
+      <option *ngFor="let lLevel of logLevels" [value]="lLevel">{{ lLevel }}</option>
+    </select>
+  </div>
+</div>

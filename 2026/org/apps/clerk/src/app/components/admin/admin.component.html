@@ -1,0 +1,123 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="row">
+      <label for="admType">Admin Type</label>
+      <select class="form-control" [(ngModel)]="selectedType" id="admType" name="admType"
+        data-cy="adm-admType">
+        <option *ngFor="let admType of admTypes" [value]="admType">{{ admType }}</option>
+      </select>
+    </div>
+    <div class="row col-md-12" *ngIf="selectedType === 'houses'">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+        Add House</button>
+      <app-admhouses *ngIf="newRow" (parmMod)="onParmMod($event.action,
+        $event.parmType, $event.newVal, $event.oldVal)"></app-admhouses>
+      <ul>
+        <li *ngFor="let lHouse of fullHouse">
+          <app-admhouses [house]="lHouse"
+            (parmMod)="onParmMod($event.action, $event.parmType,
+              $event.newVal, $event.oldVal)"></app-admhouses>
+        </li>
+      </ul>
+    </div>
+    <div class="row col-md-12" *ngIf="selectedType === 'accountType'">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+        Add Account</button>
+      <app-adm1parm *ngIf="newRow" [parmType]="selectedType"
+        (parmMod)="onParmMod($event.action, $event.parmType,
+          $event.newVal, $event.oldVal)" [parmLabel]="'Account Type:'"></app-adm1parm>
+      <ul>
+        <li *ngFor="let accountType of accountTypes">
+          <app-adm1parm [parmVal]="accountType" [parmType]="selectedType"
+          (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)"
+          [parmLabel]="'Account Type:'"></app-adm1parm></li>
+      </ul>
+    </div>
+    <div class="col-md-12" *ngIf="selectedType === 'accounts'">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+        New {{ selectedType }}</button>
+      <app-admkv *ngIf="newRow" [parmType]="selectedType" [valDomain]="accountTypes"
+        (parmMod)="onParmMod($event.action, $event.parmType,
+          $event.newVal, $event.oldVal)"
+        [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></app-admkv>
+      <ul>
+        <li *ngFor="let account of accounts">
+          <app-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
+          [valLabel]="'Account Type:'" (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></app-admkv></li>
+      </ul>
+    </div>
+    <div class="col-md-12" *ngIf="selectedType === 'tranType'">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+        Add Tran Type</button>
+      <app-adm1parm *ngIf="newRow" [parmType]="selectedType"
+        (parmMod)="onParmMod($event.action, $event.parmType,
+          $event.newVal, $event.oldVal)"
+        [parmLabel]="'TranType:'"></app-adm1parm>
+      <ul>
+        <li *ngFor="let tranType of tranTypes">
+          <app-adm1parm [parmVal]="tranType" [parmType]="selectedType"
+          (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)"
+          [parmLabel]="'TranType:'"></app-adm1parm></li>
+      </ul>
+    </div>
+    <div class="col-md-12" *ngIf="selectedType === 'taxCats'">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+        New {{ selectedType }} </button>
+      <app-admkv *ngIf="newRow" [parmType]="selectedType"
+        (parmMod)="onParmMod($event.action, $event.parmType,
+          $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'"
+        [valLabel]="'Taxcat Label:'"></app-admkv>
+      <ul>
+        <li *ngFor="let taxCat of taxCats">
+          <app-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
+          [valLabel]="'Taxcat Label:'" (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)"></app-admkv></li>
+      </ul>
+    </div>
+    <div class="col-md-12" *ngIf="selectedType === 'categoryTaxcat'">
+      <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
+        [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
+        $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>
+    </div>
+    <div class="col-md-12" *ngIf="selectedType === 'ruleData'">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+        Add Rule Data</button>
+      <app-admruledata *ngIf="newRow" (parmMod)="onParmMod($event.action,
+        $event.parmType, $event.newVal, $event.oldVal)"
+        [tranTypes]="tranTypes" [taxCats]="taxCats" [accounts]="accounts"
+        [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+      <ul>
+        <li *ngFor="let rule of ruleAdmin">
+          <app-admruledata [ruleAdmin]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
+            (parmMod)="onParmMod($event.action, $event.parmType,
+              $event.newVal, $event.oldVal)"
+            [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+        </li>
+      </ul>
+    </div>
+    <div class="row col-md-12" *ngIf="selectedType === 'logging'">
+      Please only use this section under the guidance of a Clerk support representative<br>
+      <label for="dfltLevel">Default Level</label>
+      <select class="form-control" id="dfltLevel" name="dfltLevel"
+        [(ngModel)]="defaultLevel" (change)="setDfltLogLevel()">
+        <option *ngFor="let level of logLevels" [value]="level">{{ level }}</option>
+      </select>
+      <label for="orideLevel">OverRide Level</label>
+      <select class="form-control" id="orideLevel" name="orideLevel"
+        [(ngModel)]="overrideLevel" (change)="setOrideLogLevel()">
+        <option [value]="''" [selected]="!overrideLevel">-- select an option --</option>
+        <option *ngFor="let level of logLevels" [value]="level">{{ level }}</option>
+      </select>
+      <ul>
+        <li *ngFor="let lClass of classList">
+          <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
+            (logMod)="onLogMod($event.className, $event.level)"></app-admlogging>
+        </li>
+      </ul>
+    </div>
+    <div> {{ statusMsg }} </div>
+  </div>
+</div>

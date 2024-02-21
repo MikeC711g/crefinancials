@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="row"> <hr>
+    <div class="col-12">
+      <div class="row">
+        <app-datesel [title]="'Project'" [dateOpts]="dateOpts"
+          (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
+        <hr>
+      </div>
+      <div class="row">
+        <button class="btn btn-success col-3" type="button"
+          (click)="newRow=true">New Project</button>
+          <app-creprojectedit *ngIf="newRow"
+            (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+      </div>
+      <div data-cy="cpro-msgs">
+        <app-cremessages [dispMsgs]="dispMsgs"
+          (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+      </div>
+      <div class="row" *ngIf="!!projects && projects.length > 0; else noProjects">
+        <ul>
+          <li *ngFor="let project of projects">
+            <app-creprojectedit [projId]="project.ProjectId!"
+              (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+          </li>
+        </ul>
+      </div>
+      <ng-template #noProjects>
+        <hr />
+        <h5>There are no projects to list</h5>
+      </ng-template>
+    </div>
+  </div>
+</div>

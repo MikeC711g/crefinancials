@@ -1,0 +1,50 @@
+<div class="row">
+  <form #authForm="ngForm" (ngSubmit)="onSubmit(authForm)">
+    <div class="offset-6 col-6">
+      <div class="form-group mt-5">
+        <label for="email" style="font-size: large;">EMail</label>
+        <input type="email" id="email" class="form-control" name="email" data-cy="auth-email"
+          required email autocomplete="email" ngModel style="font-size: large;"
+          #email="ngModel">
+      </div>
+      <div [hidden]="email.valid || !email.touched"
+        class="alert alert-danger"> eMail is required </div>
+      <div class="form-group mt-5" *ngIf="guiMode === 'Sign In' || guiMode === 'Sign Up'">
+        <label for="password" style="font-size: large;">Password</label>
+        <input type="password" id="password" class="form-control" name="password"
+            required minlength="6" autocomplete="current-password" ngModel
+            style="font-size: large;" data-cy="auth-password">
+      </div>
+      <div class="form-group" *ngIf="guiMode === 'Sign Up'">
+        <label for="compName" style="font-size: large;">Company Name</label>
+        <input type="text" class="form-control" name="compName" id="compName" ngModel required
+          style="font-size: large;" data-cy="auth-compName" #compName="ngModel">
+      </div>
+      <div class="form-group" *ngIf="guiMode === 'Sign Up'">
+        <label for="phone" style="font-size: large;">Telephone</label>
+        <input type="tel" class="form-control" name="phone" id="phone" ngModel required
+          style="font-size: large" data-cy="auth-phone">
+      </div>
+      <div class="row form-group" *ngIf="guiMode !== 'Sign In'">
+        <a (click)="guiMode = 'Sign In'" style="cursor:pointer;text-decoration: underline;color: blue;">
+          <br><p>Return to default signIn Mode</p></a>
+      </div>
+      <div class="row form-group" *ngIf="guiMode !== 'Reset Password'">
+        <a (click)="guiMode = 'Reset Password'" style="cursor:pointer;text-decoration: underline;color: blue">
+          <br><p>Forgot password (or reset/change password)</p></a>
+      </div>
+      <div class="row form-group" *ngIf="guiMode !== 'Sign Up'">
+        <a (click)="guiMode = 'Sign Up'" style="cursor:pointer;text-decoration: underline;color: blue;">
+          <p>Sign Up to join the CLERK community</p></a>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <app-cremessages [dispMsgs]="dispMsgs"
+      (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+    </div>
+    <div class="offset-8 col-6 mt-4">
+      <button type="submit" class="btn btn-warning btn-lg btn3d" [disabled]="!authForm.valid">
+        {{ guiMode }}</button>
+    </div>
+  </form>
+</div>

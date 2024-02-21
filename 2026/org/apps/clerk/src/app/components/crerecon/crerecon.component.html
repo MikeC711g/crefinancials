@@ -1,0 +1,115 @@
+<div class="container">
+  <div class="row col-md-12">
+    <form (ngSubmit)="onReconcile(startDate.value, endDate.value, beginBal.value, endBal.value)"
+      #reconForm="ngForm">
+      <div class="row form-group">
+        <label for="recAccount">Account</label>
+        <select class="form-control" id="recAccount" name="recAccount" [(ngModel)]="account"
+          (change)="onAcctChange()" data-cy="cre-recAccount" required #recAccount="ngModel">
+          <option [value]="''" [selected]="!account">-- select an option --</option>
+          <option *ngFor="let account of accounts" [value]="account.RKey">{{ account.RKey }}</option>
+        </select>
+      </div>
+      <div [hidden]="recAccount.valid || !recAccount.touched"
+        class="alert alert-danger"> Account selection is required </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="startDate">Enter Start Date</label>
+          <input class="form-control" type="date" id="startDate" name="startDate"
+            [(ngModel)]="startDt" #startDate="ngModel" data-cy="cre-startDt" required/>
+        </div>
+        <div [hidden]="startDate.valid || !startDate.touched"
+          class="alert alert-danger"> Start Date is required </div>
+        <div class="form-group">
+          <label for="endDate">Enter End Date</label>
+          <input class="form-control" type="date" id="endDate" name="endDate"
+            [(ngModel)]="endDt" #endDate="ngModel" data-cy="cre-endDt" required/>
+        </div>
+        <div [hidden]="endDate.valid || !endDate.touched"
+          class="alert alert-danger"> End Date is required </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="beginBal">Begin Balance</label>
+          <input class="form-control" type="number" id="beginBal" name="beginBal"
+            [(ngModel)]="beginBalStr" #beginBal="ngModel" data-cy="cre-beginBal" required/>
+        </div>
+        <div [hidden]="beginBal.valid || !beginBal.touched"
+          class="alert alert-danger"> Beginning Balance is required </div>
+        <div class="form-group">
+          <label for="endBal">Ending Balance</label>
+          <input class="form-control" type="number" id="endBal" name="endBal"
+            [(ngModel)]="endBalStr" #endBal="ngModel" data-cy="cre-endBal" required/>
+        </div>
+        <div [hidden]="endBal.valid || !endBal.touched"
+          class="alert alert-danger"> Ending Balance is required </div>
+      </div>
+      <div class="row">
+        Debits: {{ debitTotals }}  Credits: {{ creditTotals }} <b>Delta {{ deltaAmt }} </b>
+      </div>
+      <div class="row">
+        <button class="btn btn-primary col-md-2" type="submit" [disabled]="!reconForm.valid"
+          >Reconcile</button>
+        <button class="btn btn-info col-md-2" type="button"
+          (click)="onRefreshParms(startDate.value, endDate.value)">Refresh Globals</button>
+        <button class="btn btn-success col-md-2"  type="button"
+          (click)="newRow = true" > New </button>
+        <button class="btn btn-primary col-md-4" type="button" [disabled]="!work2Commit"
+          (click)="onSaveReconTran() ; reconForm.resetForm()">Save Reconciliation</button>
+      </div>
+      <div data-cy="te-dsm">
+        <app-cremessages [dispMsgs]="dispMsgs"
+          (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+      </div>
+    </form>
+  </div>
+  <div class="col-md-12" *ngIf="newRow">
+    <hr>
+    <app-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
+  </div>
+  <div class="col-md-12">
+    <!-- <div class="row" *ngIf="!!csvTranRecs && csvTranRecs?.length > 0;else noTrans"> -->
+      <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
+          <button class="btn btn-success btn-toggle col-md-2" type="button"
+          (click)="expandDebits = !expandDebits"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
+          <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
+          <ul *ngIf="expandDebits">
+            <li *ngFor="let tran of debitTranRecs">
+              <app-cretranall [tranRec]="tran"
+                [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
+                (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
+          </ul>
+      </div>
+      <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTransCredit">
+          <button class="btn btn-success btn-toggle col-md-2" type="button"
+          (click)="expandCredits = !expandCredits"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
+          <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
+          <ul *ngIf="expandCredits">
+            <li *ngFor="let tran of creditTranRecs">
+              <app-cretranall [tranRec]="tran"
+                [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
+                (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
+          </ul>
+    </div>
+    <div class="row" *ngIf="!!hiddenTranRecs && hiddenTranRecs.length > 0; else noTransHidden">
+      <button class="btn btn-success btn-toggle col-md-2" type="button"
+      (click)="expandHidden = !expandHidden"> {{expandHidden ? 'Hide' : 'Show'}} Hidden</button>
+      <h5 class="col-md-4">Total Hidden: {{ hiddenTotals }}</h5>
+      <ul *ngIf="expandHidden">
+        <li *ngFor="let tran of hiddenTranRecs">
+          <app-cretranall [tranRec]="tran"
+            [isParent]="tran.TranType === 'TPARENT'"
+            (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
+      </ul>
+    </div>
+    <ng-template #noTransDebit>
+      <hr>  <h5>There are no Debit transactions to list</h5>
+    </ng-template>
+    <ng-template #noTransCredit>
+      <hr>  <h5>There are no Credit transactions to list</h5>
+    </ng-template>
+    <ng-template #noTransHidden>
+      <hr>  <h5>There are no Hidden transactions to list</h5>
+    </ng-template>
+  </div>
+</div>

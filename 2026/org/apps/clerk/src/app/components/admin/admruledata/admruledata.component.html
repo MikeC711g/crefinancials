@@ -1,0 +1,72 @@
+<div class="row" *ngIf="!editMode">
+  <div class="col-md-2"> {{ ruleAdmin.ruleName }} </div>
+  <div class="col-md-3"> {{ ruleAdmin.srchStr }}  </div>
+  <div class="col-md-1"> {{ srchAmtStr }}         </div>
+  <div class="col-md-2"> {{ acctString }}         </div>
+  <button class="btn btn-success btn-toggle col-md-2" type="button"
+    (click)="editMode = true"> Edit</button>
+  <button class="btn btn-danger col-md-2" type="button"
+    (click)="onDeleteRecord()"> Delete</button>
+</div>
+<p style="background-color: aqua;">{{ statusMsg }}</p>
+<div class="row" *ngIf="editMode">
+  <div class="col-md-5">
+    <div class="form-group">
+      <label for="ruleNm">Name of Rule</label>
+      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.ruleName"
+        name="ruleNm" id="ruleNm" required ngModel data-cy="ard-name">
+      Fill in Search String or Search Amount.  If both filled, both must be true to match
+      <label for="srchStr">Search String</label>
+      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.srchStr"
+        name="srchStr" id="srchStr" style="text-transform:uppercase" ngModel
+        (change)="onChgSrchStr(true)" data-cy="ard-srchStr">
+      <label for="srchAmt">Search Amount</label>
+      <input type="number" class="form-control" [(ngModel)]="srchAmtStr" data-cy="ard-srchAmt"
+        name="srchAmt" id="srchAmt" ngModel (change)="onChgSrchStr(false)">
+      <label for="acctList">Account List</label>
+      <select class="form-control" id="acctList" name="acctList" multiple
+        (change)="multiSelAll()" [(ngModel)]="ruleAdmin.accounts" data-cy="ard-acctList">
+        <option [value]="'selectAll'">Select All</option>
+        <option *ngFor="let account of accounts" [value]="account.RKey"
+          [selected]="ruleAdmin.accounts.includes(account.RKey)">
+          {{ account.RKey }}</option>
+      </select>
+      <label for="category">Category</label>
+      <select class="form-control" id="category" name="category"
+        [(ngModel)]="ruleAdmin.Category" data-cy="ard-category">
+        <option [value]="''" [selected]="!ruleAdmin.Category">-- select an option --</option>
+        <option *ngFor="let category of categoryTaxcat" [value]="category.RKey"
+          [selected]="category.RKey === ruleAdmin.Category">{{ category.RKey }}</option>
+      </select>
+      <label for="tranType">Transaction Type</label>
+      <select class="form-control" id="tranType" name="tranType" [(ngModel)]="ruleAdmin.TranType"
+        data-cy="ard-tranType">
+        <option [value]="''" [selected]="!ruleAdmin.TranType"> -- select an option -- </option>
+        <option *ngFor="let tranType of tranTypes" [value]="tranType">{{ tranType }}</option>
+      </select>
+      <label for="tranExtra">Extra Tran Info</label>
+      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.TranExtra"
+        name="tranExtra" id="tranExtra" ngModel data-cy="ard-tranExt">
+      <label for="taxCat">Tax Category</label>
+      <select class="form-control" id="taxCat" name="taxCat" [(ngModel)]="ruleAdmin.TaxCat"
+        data-cy="ard-taxCat">
+        <option [value]="''" [selected]="!ruleAdmin.TaxCat"> -- select an option -- </option>
+        <option *ngFor="let taxCat of taxCats" [value]="taxCat.RKey">{{ taxCat.RVal }}</option>
+      </select>
+      <label for="house">House</label>
+      <select class="form-control" id="house" name="house" [(ngModel)]="ruleAdmin.House"
+        data-cy="ard-house">
+        <option [value]="''" [selected]="!ruleAdmin.House"> -- select an option -- </option>
+        <option *ngFor="let house of houses" [value]="house.name">{{ house.name }}</option>
+      </select>
+      <label for="annotation">Tran Annotation</label>
+      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.Annotation"
+        name="annotation" id="annotation" ngModel data-cy="ard-annot">
+      <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()"
+        [disabled]="ruleAdmin.ruleName === '' || (ruleAdmin.srchStr === '' && !srchAmtStr)">
+        {{ newRow ? 'Add' : 'Update' }}</button>
+      <button class="btn btn-primary col-md-3" type="button"
+        (click)="onCancel()">Cancel</button>
+    </div>
+  </div>
+</div>
