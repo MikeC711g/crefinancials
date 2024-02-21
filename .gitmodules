@@ -1,0 +1,6 @@
+[submodule "apps/clerk"]
+	path = apps/clerk
+	url = git@github.com:MikeC711g/clerk
+[submodule "apps/credbutils"]
+	path = apps/credbutils
+	url = git@github.com:MikeC711g/credbutils
