@@ -1,0 +1,5 @@
+[
+  { "Cid": "test1", "RKey": "accounts", "RVal": { "RKey": "phChecking", "RVal": "checking" }},
+  { "Cid": "test1", "RKey": "accounts", "RVal": { "RKey": "phCredit", "RVal": "credit" }},
+  { "Cid": "test1", "RKey": "accounts", "RVal": { "RKey": "phVirtual", "RVal": "virtual" }}
+]

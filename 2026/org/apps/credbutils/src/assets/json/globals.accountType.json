@@ -1,0 +1,6 @@
+[
+  { "Cid": "test1", "RKey": "accountType", "RVal": "credit" },
+  { "Cid": "test1", "RKey": "accountType", "RVal": "checking" },
+  { "Cid": "test1", "RKey": "accountType", "RVal": "savings" },
+  { "Cid": "test1", "RKey": "accountType", "RVal": "virtual" }
+]

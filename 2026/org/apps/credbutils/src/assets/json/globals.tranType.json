@@ -1,0 +1,20 @@
+[
+  { "Cid": "test1", "RKey": "tranType", "RVal": "INT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "ATM" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "PAYMENT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "CASH" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "CHECK" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "DEBIT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "DIV" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "DIRECTDEBIT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "DEP" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "CREDIT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "POS" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "TPARENT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "REPEATPMT" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "HOLD" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "OTHER" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "SRVCHG" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "FEE" },
+  { "Cid": "test1", "RKey": "tranType", "RVal": "XFER" }
+]

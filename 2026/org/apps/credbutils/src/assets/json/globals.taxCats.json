@@ -1,0 +1,9 @@
+[
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "PE", "RVal": "Personal Expense" }},
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "PI", "RVal": "Personal Income" }},
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "BE", "RVal": "Business Expense" }},
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "BI", "RVal": "Business Income" }},
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "NT", "RVal": "Not Tax Related" }},
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "CE", "RVal": "Capital Expense" }},
+  { "Cid": "test1", "RKey": "taxCats", "RVal": { "RKey": "??", "RVal": "Unknown" }}
+]

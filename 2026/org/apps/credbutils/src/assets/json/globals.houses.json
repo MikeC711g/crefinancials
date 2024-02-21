@@ -1,0 +1,6 @@
+[
+  { "Cid": "test1", "RKey": "houses", "RVal": { "name": "111PR", "Addr": "111 Pittsboro Rd", "City": "Gotham",
+    "State": "NY", "zipCode": "07079", "activeDt": "2015-01-01", "inactiveDt": ""}},
+  { "Cid": "test1", "RKey": "houses", "RVal": { "name": "123PR", "Addr": "123 Pittsboro Rd", "City": "Gotham",
+    "State": "NY", "zipCode": "07079", "activeDt": "2018-01-01", "inactiveDt": ""}}
+]

@@ -1,0 +1,17 @@
+[
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Description" : "Rent Income", "House": "123PR", "TaxCat": "BI",
+    "TranType": "CREDIT", "accounts": ["phChecking"], "srchAmt": 0.0001, "srchStr": "JONES APARTMENTS.COM" }},
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Annotation" : "Duplex Side A", "Description" : "Rental Utilities",
+    "House": "111PR", "TaxCat": "BE", "TranType": "DEBIT", "accounts": ["phChecking"], "srchAmt": 0.0001,
+    "srchStr": "CARTERET-CRAVEN EC" }},
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Description" : "Contractor payment", "TaxCat": "BE", "TranType": "DEBIT",
+    "accounts": ["phChecking"], "srchAmt": 0.0001, "srchStr": "ZELLE" }},
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Description" : "Property Management Fees", "TaxCat": "BE",
+    "TranType": "DEBIT", "accounts": ["phChecking"], "srchAmt": 0.0001, "srchStr": "TOUCH OF ELEGANCE PROPERTY MANAGEMENT" }},
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Description" : "Rent Income", "House": "111PR", "TaxCat": "BI",
+    "TranType": "CREDIT", "accounts": ["phChecking"], "srchAmt": 0.0001, "srchStr": "SMITH APARTMENTS.COM" }},
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Description" : "Credit Card Payment", "TaxCat": "NT", "TranType": "DEBIT",
+    "accounts": ["phChecking"], "srchAmt": 0.0001, "srchStr": "PAYMENT SAMS CLUB" }},
+  { "Cid": "test1", "RKey": "ruleData", "RVal": { "Description" : "Rent Income", "House": "123PR", "TaxCat": "BI",
+    "TranType": "CREDIT", "accounts": ["phChecking"], "srchAmt": 0.0001, "srchStr": "PRINC APARTMENTS.COM" }}
+]

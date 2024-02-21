@@ -1,0 +1,14 @@
+[
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Business Income", "RVal": "Late Fees & Other Income|$|Loan Income|$|Rent Income|$|Service Income|$|Other Business Income|$|Forfeited Security Deposits|$|Real Estate Sales" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Office & Business Expense", "RVal": "Administrative Expenses|$|Education and Dev|$|Bank Fees|$|Payroll|$|Advertising|$|Other Office & Business Expenses|$|Software and IT Expenses|$|Tenant/Buyer Screening" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Repairs & Maintenance", "RVal": "Building Supplies|$|Flooring|$|Cleaning|$|Gen Tool and Supply|$|HVAC|$|Landscaping|$|Labor|$|Plumbing|$|Pest Control|$|Other Repair & Maintenance" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Utility Expense", "RVal": "Gas & Propane|$|Water & Sewer|$|Electric|$|Internet|$|Utilities General|$|Garbage" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Property Management", "RVal": "Property Management" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Mortgage Payment", "RVal": "Mortgage Principal|$|Mortgage Escrow|$|Mortgage Interest|$|Mortgage Payment" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Legal & Professional Fees", "RVal": "Legal Fees|$|Professional Fees" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Insurance", "RVal": "Property Insurance|$|Other Insurance" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Taxes", "RVal": "Property Taxes|$|Income Taxes|$|Other Taxes" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "NonTaxable", "RVal": "Admin Account Management|$|Credit Card Payment|$|Other NonTaxable|$|Refunds|$|Reimbursements|$|Returns|$|Security Deposit|$|Uncategorized|$|Pet Deposit|$|Security Deposit Interest|$|Loan (Cash Out Loan)" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Personal Income", "RVal": "Dividends and Interest|$|W2 Income|$|Pension Income|$|Other Personal Income" }},
+  { "Cid": "test1", "RKey": "descripCategories", "RVal": { "RKey": "Personal Expenses", "RVal": "Charity|$|Dining|$|Medical|$|Grocery|$|Household|$|Recreation|$|Other Personal Expense|$|Automotive|$|Health and Wellness|$|Pharmacy|$|Travel" }}
+]
