@@ -37,7 +37,7 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
-firebase.json
+/firebase.json
 /libpeerconnection.log
 testem.log
 /typings
