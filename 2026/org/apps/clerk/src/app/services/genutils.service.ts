@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
 import { RuleData } from '../models/ruleData.model';
 import { Project } from '../models/project.model';
-import { KeyVal } from '../models/keyval.model';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +30,7 @@ export class GenutilsService {
   msgLvls = {Verbose: 'verbose', Debug: 'debug', Log: 'log', Warn: 'warn', Error: 'error'} ;
   authSignoff = false ;
   mlValue: Map<string, number> = new Map<string, number>() ;
-  CLASSNAME = 'genUtilsService' ;
+  CLASSNAME = 'genUtilsService' ;    noGid = 'noGid' ;
 
   constructor() {
     const classList = [ 'adm1parm', 'admcategory', 'admhouses', 'admkv', 'admruledata', 'admin',
@@ -169,54 +168,6 @@ export class GenutilsService {
         v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
-  }
-
-  genCategoryMap(catFolders: KeyVal[], catTaxcat: KeyVal[]): Map<string, KeyVal[]> {
-    const curMap: Map<string, KeyVal[]> = new Map<string, KeyVal[]>() ;
-    for (const catFolder of catFolders) {
-      curMap.set(catFolder.RKey, catTaxcat.filter((dt) => catFolder.RVal.includes(dt.RKey)))
-    }
-    this.cLog(this.CLASSNAME, 'genCategoryMap w/map: %O', curMap)
-    return curMap ;
-  }
-
-  /**
-   * function prefillDoc looks at amount and category type info in a row coming from
-   * ofx file and compares to ruleData to see if there are rules about handling that doc.
-   * Handling = prefilling other fields in the doc. Example would be seeing
-   * Jones apartments.com and recognizing that it is rent income for house 111MS (where
-   * Jones lives)
-   * @param {string} data2Srch description type data in incoming document
-   * @param {number} amt2Ck in incoming documenty
-   * @param {RuleData[]} ruleData to search for this account
-   * @param {TranRec} tranRec with final document
-   */
-  prefillDoc(data2Srch: string, amt2Ck: number, ruleData: RuleData[], tranRec : TranRec)  {
-    const ucSrchData = data2Srch.toUpperCase() ;    // search all upcase for efficiency
-    // const  roProps = ['srchStr', 'accounts', 'srchAmt' ]   // ReadOnly, don't subst these
-    // const  rwProps = ['Category', 'TranType', 'TranExtra', 'TaxCat', 'House', 'Annotation']
-    this.cDebug(this.CLASSNAME, 'prefillDoc w/Srch: %s  Num: %d rLen: %d', data2Srch, amt2Ck, ruleData.length) ;
-    for (const rule of ruleData) {
-      if ((!rule.srchAmt || rule.srchAmt === 0.0001) && rule.srchStr === '') {
-        this.cWarn(this.CLASSNAME, 'Invalid rule, no srchStr and no valid amount: %O', rule) ;
-        return ;
-      }
-          // If srchStr is not used in rule or if it matches, check amount as well
-      if (rule.srchStr === '' || ucSrchData.indexOf(rule.srchStr) > -1) {
-          // If no amount or amount MATCHES (ie: one or both matched if sent
-        if (!rule.srchAmt || rule.srchAmt === 0.0001 || rule.srchAmt === amt2Ck) {
-          this.cDebug(this.CLASSNAME, 'Matched on rule: %O', rule) ;
-          if (rule.Category) { tranRec.Category = rule.Category ; }
-          if (rule.TranType)    { tranRec.TranType = rule.TranType ; }
-          if (rule.TaxCat)      { tranRec.TaxCat = rule.TaxCat ; }
-          if (rule.TranExtra)   { tranRec.TranExtra = (tranRec.TranExtra === '') ?
-            rule.TranExtra : tranRec.TranExtra + ' [' + rule.TranExtra + ']' }
-          if (rule.House)       { tranRec.House = rule.House ; }
-          if (rule.Annotation)  { tranRec.Annotation = (tranRec.Annotation === '') ?
-            rule.Annotation : tranRec.Annotation + ' [' + rule.Annotation + ']' ; }
-        }
-      }
-    }
   }
 
   isTranDB(tranRec: TranRec): boolean {
@@ -409,6 +360,45 @@ export class GenutilsService {
       default: statusMsg = 'Invalid action notification of: ' + action ;
     }
     return [statusMsg, newRow]
+  }
+
+  /**
+   * function prefillDoc looks at amount and category type info in a row coming from
+   * ofx file and compares to ruleData to see if there are rules about handling that doc.
+   * Handling = prefilling other fields in the doc. Example would be seeing
+   * Jones apartments.com and recognizing that it is rent income for house 111MS (where
+   * Jones lives)
+   * @param {string} data2Srch description type data in incoming document
+   * @param {number} amt2Ck in incoming documenty
+   * @param {RuleData[]} ruleData to search for this account
+   * @param {TranRec} tranRec with final document
+   */
+  prefillDoc(data2Srch: string, amt2Ck: number, ruleData: RuleData[], tranRec : TranRec)  {
+    const ucSrchData = data2Srch.toUpperCase() ;    // search all upcase for efficiency
+    // const  roProps = ['srchStr', 'accounts', 'srchAmt' ]   // ReadOnly, don't subst these
+    // const  rwProps = ['Category', 'TranType', 'TranExtra', 'TaxCat', 'House', 'Annotation']
+    this.cDebug(this.CLASSNAME, 'prefillDoc w/Srch: %s  Num: %d rLen: %d', data2Srch, amt2Ck, ruleData.length) ;
+    for (const rule of ruleData) {
+      if ((!rule.srchAmt || rule.srchAmt === 0.0001) && rule.srchStr === '') {
+        this.cWarn(this.CLASSNAME, 'Invalid rule, no srchStr and no valid amount: %O', rule) ;
+        return ;
+      }
+          // If srchStr is not used in rule or if it matches, check amount as well
+      if (rule.srchStr === '' || ucSrchData.indexOf(rule.srchStr) > -1) {
+          // If no amount or amount MATCHES (ie: one or both matched if sent
+        if (!rule.srchAmt || rule.srchAmt === 0.0001 || rule.srchAmt === amt2Ck) {
+          this.cDebug(this.CLASSNAME, 'Matched on rule: %O', rule) ;
+          if (rule.Category) { tranRec.Category = rule.Category ; }
+          if (rule.TranType)    { tranRec.TranType = rule.TranType ; }
+          if (rule.TaxCat)      { tranRec.TaxCat = rule.TaxCat ; }
+          if (rule.TranExtra)   { tranRec.TranExtra = (tranRec.TranExtra === '') ?
+            rule.TranExtra : tranRec.TranExtra + ' [' + rule.TranExtra + ']' }
+          if (rule.House)       { tranRec.House = rule.House ; }
+          if (rule.Annotation)  { tranRec.Annotation = (tranRec.Annotation === '') ?
+            rule.Annotation : tranRec.Annotation + ' [' + rule.Annotation + ']' ; }
+        }
+      }
+    }
   }
 
   /** ************************************************************************

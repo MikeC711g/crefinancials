@@ -2,6 +2,7 @@ import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { KeyVal } from './../../../models/keyval.model';
 import { FirebaseService } from './../../../services/firebase.service';
 import { GenutilsService } from './../../../services/genutils.service';
+import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -25,10 +26,11 @@ export class AdmcategoryComponent implements OnInit {
   statusMsg = '' ; catSeparator = '|$|'
   CLASSNAME = 'admcategory'
 
-  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
+  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
+    private globalMod: GlobalModsService) { }
 
   ngOnInit(): void {
-    this.categoryMap = this.utilSvc.genCategoryMap(this.categoryFolders, this.categoryTaxcat) ;
+    this.categoryMap = this.globalMod.genCategoryMap(this.categoryFolders, this.categoryTaxcat) ;
     this.onClearSelect() ;
     this.utilSvc.cLog(this.CLASSNAME,'CategoryMap: %O', this.categoryMap ) ;
   }

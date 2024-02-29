@@ -250,7 +250,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   canDeactivate(): boolean {
     this.utilSvc.cDebug(this.CLASSNAME, 'Trans called canDeactivate') ;
     if (this.utilSvc.dirtyTrans.length > 0)
-      console.log('tranCanDeact with dirty trans: ', this.utilSvc.dirtyTrans) ;
+      this.utilSvc.cLog(this.CLASSNAME, 'tranCanDeact dirty trans: %O', this.utilSvc.dirtyTrans) ;
     return (this.utilSvc.dirtyTrans.length === 0 ||
       confirm("There are unsaved changes, exit anyway?")) ;
     }

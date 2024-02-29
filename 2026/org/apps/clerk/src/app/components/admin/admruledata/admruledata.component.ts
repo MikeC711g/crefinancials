@@ -18,8 +18,9 @@ export class AdmruledataComponent implements OnInit {
   @Input() categoryTaxcat: KeyVal[] = [] ;
   @Input() taxCats: KeyVal[] = [] ;
   @Input() accounts: KeyVal[] = [] ;
+  @Input() newRow = false ;   // Dflt, but over-ridden when tran caller feeds new rule
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string, newVal: any, oldVal: any }>() ;
-  newRow = false ;  editMode = false ;  acctString = '' ;
+  editMode = false ;  acctString = '' ;
   origRules: RuleData = new RuleData('', '', [], 0, '', '', '', '', '', '') ;
   houses: House[] = new Array<House>() ;
   srchAmtStr = '' ;
@@ -29,7 +30,7 @@ export class AdmruledataComponent implements OnInit {
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
 
   ngOnInit(): void {
-    if (this.ruleAdmin.srchStr === '' && this.ruleAdmin.srchAmt === 0) {
+    if (this.newRow || (this.ruleAdmin.srchStr === '' && this.ruleAdmin.srchAmt === 0)) {
       this.newRow = true ;  this.editMode = true ;
     } else {
       this.origRules = { ...this.ruleAdmin } ;
@@ -65,6 +66,7 @@ export class AdmruledataComponent implements OnInit {
       this.newRow = false ;
     } else {    // If update, send new and original for DB
       this.origRules.srchStr = this.origRules.srchStr.toUpperCase() ;
+      this.acctString = this.ruleAdmin.accounts.join(' ') ;
       this.parmMod.emit({action: this.utilSvc.actionTypes.Update,
         parmType: this.utilSvc.globalTypes.RuleData, newVal: this.ruleAdmin, oldVal: this.origRules}) ;
     }

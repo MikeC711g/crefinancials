@@ -6,6 +6,8 @@ import { Subscription } from 'rxjs';
 import { GenutilsService } from './../../services/genutils.service';
 import { KeyVal } from './../../models/keyval.model';
 import { House } from './../../models/house.model';
+import { RuleData } from '../../models/ruleData.model';
+import { GlobalModsService } from '../../services/globalMods.service';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -23,12 +25,14 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   @Output() tranMod = new EventEmitter<{action: string, tranRec: TranRec}>() ;
 //  @ViewChild('recordForm', { static: false })
 //  recordForm!: NgForm;
-  editMode = false ;  newRow = false ;   newProj = false ; isDirty = false ; isInDB = false ;
+  editMode = false ;  newRow = false ;  isDirty = false ; isInDB = false ;
+  newProj = false ;   newRule = false ;  // Controls over adding extra info
   accounts: KeyVal[] = new Array<KeyVal>() ;
   tranTypes: string[] = new Array<string>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;  curTaxCat: KeyVal = new KeyVal('', '');
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
   houses: House[] = new Array<House>() ;
+  ruleAdd: RuleData = new RuleData('', '', [], 0, '', '', '', '', '', '')
   projects: Project[] = new Array<Project>() ;
   filteredProjects: Project[] = new Array<Project>() ;
   noProj = new Project('None', '', '2015-01-01', '2030-12-31', '', 'Miscellaneous') ;
@@ -42,11 +46,11 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   deltaAmt = 0 ;      // Amount difference between parent tran and sum of child trans
   expandedView = false ;        // Showing list or expanded detail
   childExpand = true ;
-  addProj = false ;   // Can be used to dynamically add a project from here
   isGlobalAdmin = this.fireSvc.isUserGlobalAdmin() ;
   CLASSNAME = 'cretranall' ;
 
-  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
+  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
+    private globSvc: GlobalModsService) { }
 
   ngOnInit(): void {
     this.isInDB = this.utilSvc.isTranDB(this.tranRec) ;
@@ -329,6 +333,37 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     }
   }
 
+  /** **********************************************************************************
+  * Customer chose button to take current data and create a rule
+  *********************************************************************************** */
+  onAddRule() {
+    let x = new RuleData('rulenm', 'srchstr', [], 0, 'cat', 'ttp', 'textra', 'tcat', 'hse', 'anno')
+    this.ruleAdd = new RuleData(this.tranRec.TranExtra,
+      this.tranRec.TranExtra + ' : ' + this.tranRec.Annotation, [this.tranRec.Account], 0,
+      this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat, this.tranRec.House,
+      '') ;
+    this.newRule = true ;
+  }
+
+  /*****************************************************************************
+     Event occurred to a row in child component
+      See if we can modify the arrays to avoid refreshing from DBs so that while
+      admin is occurring.  On exit from admin, will refresh all from DB.
+   *****************************************************************************/
+  onRuleMod(action: string, parmType: string, newVal: any, oldVal: any): void {
+    let actionCnt: number ;  let statusMsg = '' ;  
+    let fbGlobals = this.fireSvc.retrieveGlobals() ;
+    let accountTypes = this.fireSvc.getAcctTypes() ;
+    let categoryFolders = this.fireSvc.getCategoryFolders() ;
+    let ruleAdmin = this.fireSvc.getRuleAdmin() ;
+    let fullHouse = this.fireSvc.getFullHouses() ;
+
+    [actionCnt, this.newRow, statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
+      oldVal, fbGlobals, fullHouse, accountTypes, this.tranTypes, this.accounts,
+      categoryFolders, this.categoryTaxcat, ruleAdmin, this.taxCats, this.tranRec.Cid)
+    this.newRule = false ;
+  }
+    
   /** **********************************************************************************
    * This is called only on split Trans when a child tran emits event to parent tran.
    * tranRec should match an element of splitChildren array

@@ -86,7 +86,7 @@
           <label for="extra">Notes</label>
           <input type="text" class="form-control" [(ngModel)]="tranRec.TranExtra"
             name="extra" id="extra" ngModel placeholder="Tran Extra" data-cy="cta-tranExtra"
-            (change)="chgData()">
+            (change)="chgData()" title="Brief description of transaction">
         </div>
       </div>
     </div>
@@ -119,7 +119,7 @@
               <app-creprojectedit *ngIf="newProj"
                 (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
           </div>
-            </div>
+        </div>
       </div>
     </div>
     <div class="row">
@@ -142,7 +142,7 @@
           <label for="annotation">Detailed description</label>
           <input type="text" class="form-control" [(ngModel)]="tranRec.Annotation"
               name="annotation" id="annotation" ngModel placeholder="Annotation"
-              (change)="chgData()" data-cy="cta-annot">
+              (change)="chgData()" data-cy="cta-annot" title="Detailed description/annotation">
         </div>
       </div>
     </div>
@@ -178,6 +178,14 @@
       <button class="btn btn-primary col-md-2" type="button" *ngIf="!isChild"
         [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin"
         (click)="parentChange()">{{ isParent ? 'Unsplit Transaction' : 'Split Transaction' }} </button>
+      <button class="btn btn-primary col-md-2" type="button"
+        (click)="onAddRule()">Create rule for tran</button>
+    </div>
+    <div class="row" *ngIf="newRule">
+      <app-admruledata [ruleAdmin]="ruleAdd" [tranTypes]="tranTypes" [taxCats]="taxCats"
+        [newRow]="true" (parmMod)="onRuleMod($event.action, $event.parmType,
+        $event.newVal, $event.oldVal)"
+      [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
     </div>
   </form>
 </div>
