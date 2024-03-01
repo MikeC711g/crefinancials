@@ -72,7 +72,7 @@ export class AuthComponent implements  AfterViewInit {
                 this.authSvc.user$.next(user) ;
                 this.loginDelay = 2
                 this.dispMsgs.push('You are now logged in') ;
-                this.router.navigate(['/trans']) ;
+                this.router.navigate(['/trans/search']) ;
               }
             } else {
               this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not in Users collection', this.uid) ;

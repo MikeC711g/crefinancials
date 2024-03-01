@@ -51,8 +51,10 @@ export class DateselComponent  {
           this.utilSvc.cDebug(this.CLASSNAME, 'pmth sDate: %s  eDate: %s', this.startDt, this.endDt) ; break ;
         case 'pqtr':
           curMth = curDt.getMonth() ;
-          pQtrEMth = qtrMthEnds.find((qMth) => qMth < curMth)! ;
+          pQtrEMth = qtrMthEnds.find((qMth) => qMth < ((curMth < 3) ? curMth+12 : curMth))! ;
           if (pQtrEMth === 11) {  curYr -= 1 ; }    // Prior qtr is in prior yr
+          console.log('curMth: ', curMth, 'pQtrEMth: ', pQtrEMth)
+          console.log('MthEnd pqtr: %d', mthEnds[pQtrEMth])
           this.endDt = new Date(curYr, pQtrEMth, mthEnds[pQtrEMth]).toISOString().slice(0, 10) ;
           this.startDt = new Date(curYr, pQtrEMth - 2, 1).toISOString().slice(0, 10) ;
           this.utilSvc.cDebug(this.CLASSNAME, 'pqtr sDate: %s EndDt: %s', this.startDt, this.endDt) ; break ;

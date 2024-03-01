@@ -22,6 +22,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   @Input() isChild = false ;
   @Input() hideLabel = '' ;
   @Input() newExpand = true ;
+  @Input() modeOp = '' ;      // If in createtran ... after add, reset for more
   @Output() tranMod = new EventEmitter<{action: string, tranRec: TranRec}>() ;
 //  @ViewChild('recordForm', { static: false })
 //  recordForm!: NgForm;
@@ -127,8 +128,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     }
     // this.filteredProjects = this.projects ;
     this.houses = this.fireSvc.getFullHouses() ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'Parent %s editMd: %s  childCnt: %d  tranAmt: %d', this.isParent, this.editMode,
-        this.splitChildren.length, this.tranRec.Amount) ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'Parent %s editMd: %s  expand: %s  childCnt: %d  tranAmt: %d',
+      this.isParent, this.editMode, this.expandedView, this.splitChildren.length, this.tranRec.Amount) ;
   }
 
   addNewChildren() {
@@ -205,8 +206,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.isDirty = false ;
     }
     // if (this.isParent)   this.tranRec.Amount = 0 ;  // Clear amount as this is logical tran only
-    this.utilSvc.cLog(this.CLASSNAME, 'add isParent: %s  editMd: %s  isindb: %s  amt: %d',
-      this.isParent, this.editMode, this.isInDB, this.tranRec.Amount)
+    this.utilSvc.cDebug(this.CLASSNAME, 'add isParent: %s  editMd: %s  isindb: %s  modeOp: %s  amt: %d',
+      this.isParent, this.editMode, this.isInDB, this.modeOp, this.tranRec.Amount)
     if (!this.editMode || !this.isInDB) {   // New record or record from OFX not yet in DB
       this.editMode = true ;    // Record saved, now can edit
       this.utilSvc.cDebug(this.CLASSNAME, 'tranedit calling addTrans1') ;
@@ -225,6 +226,14 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.expandedView = false ;     this.newRow = false ;
       if (!this.isInDB)   this.isInDB = true ;
       this.completedActions++ ;
+      if (this.modeOp === 'createtran' && !this.isChild) { 
+        setTimeout(() => {    // If in create mode, set up to hang around
+          this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
+          this.editMode = false ;
+          this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
+            0.0, '', '', '', '', '', '', '')      
+        }, 1000);   // Wait a second for data to be digested above before mods
+      }
     } else {
       this.fireSvc.updateTran(this.tranRec, this.tranRec).
         then(docRef => {

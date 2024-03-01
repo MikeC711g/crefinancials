@@ -1,13 +1,5 @@
 <div class="container">
   <div class="row col-md-12">
-    <div class="row col-md-12">
-      <label for="reportSel">Select report to run</label>
-      <select class="form-control" id="reportSel" name="reportSel" [(ngModel)]="selectedReport"
-        (click)="onSelectRpt()" required data-cy="rpt-reportSel">
-        <option *ngFor="let report of reportList" [value]="report.name"
-          [selected]="report.name === selectedReport">{{ report.name }}</option>
-      </select>
-    </div>
     <div class="row" *ngIf="reportInfo.dateList.length > 0">
       <app-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList" [advQuery]="{isOn: true}"
       (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>

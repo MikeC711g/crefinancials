@@ -1,21 +1,27 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <!-- <a class="navbar-brand" href="#"> -->
   <span class="navbar-brand">
     <img src="../../../assets/images/ClerkLogoV2.jpg" width="40" height="40">
-    <!-- <font size="+2">  Clerk </font> -->
     <font size="-1">  Real Estate Books</font>
   </span>
-  <!-- </a> -->
   <button class="navbar-toggler" type="button" (click)="navbarOpen = !navbarOpen">
       <span class="navbar-toggler-icon"></span>
   </button>
-
-  <div class="collapse navbar-collapse"
-          [ngClass]="{ 'show': navbarOpen }">
+  <div class="collapse navbar-collapse" [ngClass]="{ 'show': navbarOpen }">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-      <li class="nav-item">
-        <a class="nav-link" routerLinkActive="active" routerLink="/trans"
-          *ngIf="isAuthenticated"> Transactions/Records</a></li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" role="button"
+          data-bs-toggle="dropdown" aria-expanded="false" *ngIf="isAuthenticated">
+           Transactions/Records</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/trans/loadfile">
+            Load tran file</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/trans/createtran">
+            Create tran</a>
+          <div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/trans/search">
+            Search transactions</a></li>
+        </ul>
+      </li>
       <li class="nav-item">
         <a class="nav-link" routerLinkActive="active" routerLink="/auth"
           *ngIf="!isAuthenticated">Login</a></li>
@@ -25,12 +31,46 @@
       <li class="nav-item">
         <a class="nav-link" routerLinkActive="active" routerLink="/reconcile"
           *ngIf="isAuthenticated"> Reconciliations</a></li>
-      <li class="nav-item">
-        <a class="nav-link" routerLinkActive="active" routerLink="/reports"
-          *ngIf="isAuthenticated"> Reports</a></li>
-      <li class="nav-item">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" role="button"
+          data-bs-toggle="dropdown" aria-expanded="false" *ngIf="isAuthenticated">
+            Reports</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/profitnloss">
+            Profit and Loss</a><div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpglobals">
+            Dump of Globals</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpprojects">
+            Dump of Projects</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumprecons">
+            Dump of Reconciliations</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumptrans">
+            Dump of Transactions</a></li>
+        </ul>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" role="button"
+          data-bs-toggle="dropdown" aria-expanded="false" *ngIf="isAdmin && isAuthenticated">
+            Administration</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/houses">
+            Houses</a><div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/accounts">
+            Accounts</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/taxCats">
+            Tax Categories</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/categoryTaxcat">
+            Categories</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/ruleData">
+            Rules/Hints</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/logging">
+            Logging</a></li>
+        </ul>
+      </li>
+
+      <!--      <li class="nav-item">
         <a class="nav-link" routerLinkActive="active" routerLink="/admin"
-          *ngIf="isAdmin"> Administration</a></li>
+          *ngIf="isAdmin && isAuthenticated"> Administration</a></li> -->
     </ul><ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link me-2" routerLinkActive="active" routerLink="/auth"

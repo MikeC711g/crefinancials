@@ -7,6 +7,8 @@ import { KeyVal } from './../../models/keyval.model';
 import { Globals } from './../../models/globals.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { GlobalModsService } from './../../services/globalMods.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -35,12 +37,25 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   statusMsg = '' ;
   actionCounts = 0 ;
   fbGlobals: Globals[] = new Array<Globals>() ;
-  admTypes: string[] = [] ;
+  admTypes: string[] = [] ;  action$: Subscription = new Subscription() ;
   cid = 'noCid' ;     noGid = 'noGid' ;
   CLASSNAME = 'admin' ;
 
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
-    private globSvc: GlobalModsService) { }
+    private globSvc: GlobalModsService, private route: Router) {
+    const admTypes = Object.values(this.utilSvc.globalTypes) ;
+    this.admTypes = admTypes.filter((admTp) => !this.utilSvc.noAdminGlobalTypes.includes(admTp)) ;
+    this.action$ = route.events.subscribe((routeUrl) => {
+      if (routeUrl instanceof NavigationEnd) {
+        const urlParts = routeUrl.url.split('/') ;
+  // selectedType:  houses  accountType  accounts  tranType  taxCats  categoryTaxcat  ruleData  logging
+        const lastPart = urlParts[urlParts.length-1]
+        this.selectedType = (this.admTypes.indexOf(lastPart) > -1) ?
+          lastPart : 'profitnloss' 
+        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with report: ', this.selectedType)
+      }
+    })
+  }
 
   ngOnInit(): void {
     this.logLevels = Object.values(this.utilSvc.msgLvls) ;

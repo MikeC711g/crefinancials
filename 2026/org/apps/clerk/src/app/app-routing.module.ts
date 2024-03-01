@@ -11,15 +11,32 @@ import { canActivate, canDeactivate } from './services/activationguard.service';
 const routes: Routes = [
   { path: '', redirectTo: 'auth', pathMatch: 'full'},
   { path: 'trans', component: CretranComponent, canActivate: [canActivate],
-    canDeactivate: [canDeactivate] },
+    canDeactivate: [canDeactivate], children: [
+      { path: 'loadfile', component: CretranComponent },
+      { path: 'createtran', component: CretranComponent },
+      { path: 'search', component: CretranComponent },
+    ]},
   { path: 'auth', component: AuthComponent },
   { path: 'projects', component: CreprojectsComponent, canActivate: [canActivate],
     canDeactivate: [canDeactivate] },
   { path: 'reconcile', component: CrereconComponent, canActivate: [canActivate],
     canDeactivate: [canDeactivate] },
-  { path: 'reports', component: ReportsComponent, canActivate: [canActivate] },
+  { path: 'reports', component: ReportsComponent, canActivate: [canActivate], children: [
+    { path: 'profitnloss', component: ReportsComponent },
+    { path: 'dumpglobals', component: ReportsComponent },
+    { path: 'dumpprojects', component: ReportsComponent },
+    { path: 'dumprecons', component: ReportsComponent },
+    { path: 'dumptrans', component: ReportsComponent },
+  ] },
   { path: 'admin', component: AdminComponent, canActivate: [canActivate],
-    canDeactivate: [canDeactivate] }
+    canDeactivate: [canDeactivate], children: [
+      { path: 'houses', component: AdminComponent },
+      { path: 'accounts', component: AdminComponent },
+      { path: 'taxCats', component: AdminComponent },
+      { path: 'categoryTaxcat', component: AdminComponent },
+      { path: 'ruleData', component: AdminComponent },
+      { path: 'logging', component: AdminComponent }
+    ] }
 ];
 
 @NgModule({

@@ -1,79 +1,87 @@
 <div class="container">
   <div class="col-md-12">
-    <div class="row">
-      <label for="trnAccount" title="Select one or more accounts">Select Account(s)</label>
-      <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountArr"
-        (change)="multiSelAll()" multiple data-cy="ctrn-account">
-        <option [value]="'selectAll'">Select All</option>
-        <option *ngFor="let account of accounts" [value]="account.RKey"
-        [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
-      </select>
+        <!-- inputs for search -->
+    <div class="row" *ngIf="action === 'search'">
+      <div class="col-md-6"> <hr>
+        <label for="trnAccount" title="Select one or more accounts">Select Account(s)</label>
+        <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountArr"
+          (change)="multiSelAll()" multiple data-cy="ctrn-accounts">
+          <option [value]="'selectAll'">Select All</option>
+          <option *ngFor="let account of accounts" [value]="account.RKey"
+          [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
+        </select>
+      </div>
+      <div class="col-md-6"> <hr>
+        <app-datesel [title]="'Transaction'" [dateOpts]="dateOpts" [advQuery]="advancedSrch"
+          (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
+        <hr>
+      </div>
+      <button class="btn btn-success col-md-3"  type="button" id="advancedSearch.isOn"
+      (click)="advancedSrch.isOn= !advancedSrch.isOn">{{advancedSrch.isOn ?
+        'Standard' : 'Advanced'}} Search</button>
+      <div class="row col-md-12" *ngIf="advancedSrch.isOn">
+        <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
+          [fullHouses]="fullHouses" [projects]="projects" [taxCats]="taxCats"
+          (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
+          $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
+        </app-transrch>
+      </div>
     </div>
+        <!-- inputs for loadfile -->
+    <div class="row col-md-12" *ngIf="action === 'loadfile'">
+      <div class="col-md-6">
+        <label for="trnAccount" title="Select account">Select Account</label>
+        <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountOne"
+          data-cy="ctrn-account">
+          <option [value]="''" [selected]="accountArr.length === 0">-- select an option --</option>
+          <option *ngFor="let account of accounts" [value]="account.RKey"
+          [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="qfxFile" title="Select a file of transactions in ofx or qfx format.  Only enabled if one and only one account is selected">
+          Upload ofx/qfx file</label>
+        <input type="file" name="qfxFile" id="qfxFile" [disabled]="!accountOne"
+          (change)="qfxRead($event)" accept=".qfx, .ofx" data-cy="ctrn-qfxFile" />
+      </div>
+    </div>    <!-- note createtran has no inputs to get to details screen -->
   </div>
   <br>
-  <div class="row">
-    <label for="qfxFile" title="Select a file of transactions in ofx or qfx format.  Only enabled if one and only one account is selected">
-      Upload ofx/qfx file</label>
-    <input type="file" name="qfxFile" id="qfxFile" [disabled]="accountArr.length !== 1"
-      (change)="qfxRead($event)" accept=".qfx, .ofx" data-cy="ctrn-qfxFile" />
-  </div>
-  <button class="btn btn-success col-md-3"  type="button" id="advancedSearch.isOn"
-    (click)="advancedSrch.isOn= !advancedSrch.isOn">{{advancedSrch.isOn ? 'Standard' : 'Advanced'}} Search</button>
-  <div class="row col-md-12"> <hr>
-    <app-datesel [title]="'Transaction'" [dateOpts]="dateOpts" [advQuery]="advancedSrch"
-      (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
+  <div class="col-md-12" *ngIf="action === 'createtran'">
     <hr>
+    <app-cretranall [modeOp]="action"
+      (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
   </div>
-  <div class="row" *ngIf="advancedSrch.isOn">
-    <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
-      [fullHouses]="fullHouses" [projects]="projects" [taxCats]="taxCats"
-      (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
-      $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
-    </app-transrch>
-  </div>
-  <div class="col-md-6">
-    <div class="row">
-        <button class="btn btn-success col-md-3"  type="button" id="tranCreateTran"
-          (click)="newRow = true" >Create Transaction</button>
-        <button class="btn btn-info col-md-3" type="button" id="tranRefreshGlobals"
-          [disabled]="startDt === '' || endDt === ''"
-          (click)="onRefreshParms(startDt, endDt)">Refresh Globals</button>
+  <div class="col-md-12">
+    <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
+      <button class="btn btn-success btn-toggle col-md-2" type="button" id="trnShowDeb"
+      (click)="expandDebits = !expandDebits"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
+      <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
+      <ul data-cy="trnDebits" *ngIf="expandDebits">
+        <li *ngFor="let tran of debitTranRecs">
+          <app-cretranall [tranRec]="tran"
+            [isParent]="tran.TranType === 'TPARENT'"
+            (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
+        </li>
+      </ul>
+    </div>
+    <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTransCredit">
+      <button class="btn btn-success btn-toggle col-md-2" type="button" id="trnShowCred"
+      (click)="expandCredits = !expandCredits"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
+      <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
+      <ul data-cy="trnCredits" *ngIf="expandCredits">
+        <li *ngFor="let tran of creditTranRecs">
+          <app-cretranall [tranRec]="tran"
+            [isParent]="tran.TranType === 'TPARENT'"
+            (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
+        </li>
+      </ul>
     </div>
     <div data-cy="te-dsm">
       <app-cremessages [dispMsgs]="dispMsgs"
         (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
     </div>
-  </div>
-  <div class="col-md-12" *ngIf="newRow">
-    <hr>
-    <app-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
-  </div>
-  <div class="col-md-12">
-      <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
-          <button class="btn btn-success btn-toggle col-md-2" type="button" id="trnShowDeb"
-          (click)="expandDebits = !expandDebits"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
-          <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
-          <ul data-cy="trnDebits" *ngIf="expandDebits">
-            <li *ngFor="let tran of debitTranRecs">
-              <app-cretranall [tranRec]="tran"
-                [isParent]="tran.TranType === 'TPARENT'"
-                (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
-            </li>
-          </ul>
-      </div>
-      <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTransCredit">
-          <button class="btn btn-success btn-toggle col-md-2" type="button" id="trnShowCred"
-          (click)="expandCredits = !expandCredits"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
-          <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
-          <ul data-cy="trnCredits" *ngIf="expandCredits">
-            <li *ngFor="let tran of creditTranRecs">
-              <app-cretranall [tranRec]="tran"
-                [isParent]="tran.TranType === 'TPARENT'"
-                (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
-            </li>
-          </ul>
-      </div>
-    <ng-template #noTransDebit>
+      <ng-template #noTransDebit>
       <hr>  <h5>There are no Debit transactions to list</h5>
     </ng-template>
     <ng-template #noTransCredit>

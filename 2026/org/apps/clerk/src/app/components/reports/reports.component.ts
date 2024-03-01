@@ -10,9 +10,11 @@ import { House } from './../../models/house.model';
 import { TranQ } from './../../models/TranQ.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
 
 interface RptInfo {
   name: string,
+  url: string,
   dateList: KeyVal[],
   acctList: boolean,
   moreData: boolean
@@ -52,17 +54,24 @@ export class ReportsComponent implements OnInit, OnDestroy {
   noDateOpts: KeyVal[] = [] ;
         // List of reports and control info
   reportList: RptInfo[] = [
-    { name: 'Profit and Loss', dateList: this.dateOptsReport, acctList: false, moreData: false},
-    { name: 'House I & E', dateList: this.dateOptsReport, acctList: false, moreData: false},
-    { name: 'Dump of Globals', dateList: this.noDateOpts, acctList: false, moreData: true},
-    { name: 'Dump of Projects', dateList: this.dateOptsData, acctList: false, moreData: true},
-    { name: 'Dump of Reconciliations', dateList: this.dateOptsData, acctList: true, moreData: false},
-    { name: 'Dump of Transactions', dateList: this.dateOptsData, acctList: true, moreData: true} ]
+    { name: 'Profit and Loss', url: 'profitnloss', dateList: this.dateOptsReport,
+      acctList: false, moreData: false},
+    { name: 'House I & E', url: 'xxx', dateList: this.dateOptsReport,
+       acctList: false, moreData: false},
+    { name: 'Dump of Globals', url: 'dumpglobals', dateList: this.noDateOpts,
+      acctList: false, moreData: true},
+    { name: 'Dump of Projects', url: 'dumpprojects', dateList: this.dateOptsData,
+      acctList: false, moreData: true},
+    { name: 'Dump of Reconciliations', url: 'dumprecons', dateList: this.dateOptsData,
+      acctList: true, moreData: false},
+    { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsData,
+      acctList: true, moreData: true} ]
          // Generic report parms and info
   startDt = '' ;  endDt = '' ;  reportReady = false ;  screenDisplay = false ;
   selectedReport = '' ;  selectedType = '' ;  selectedHouse = '' ;
-  reportInfo: RptInfo = { name: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
+  reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
   completedActions = 0 ;    // List of global types
+  reportArr: string[] = new Array<string>() ;
         // Structures for P&L report
   totExpense = 0 ;  totIncome = 0 ;  netIncome = 0 ;
   incomeMap: Map<string, MapVal> = new Map<string, MapVal>() ;
@@ -91,9 +100,23 @@ export class ReportsComponent implements OnInit, OnDestroy {
   categoryFolders: KeyVal[] = new Array<KeyVal>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;  taxCatTime = 0 ;
   ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ;
+  report$: Subscription = new Subscription() ;
   CLASSNAME = 'reports' ;
 
-  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
+  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
+    private route: Router) {
+    for (let rinfo of this.reportList) { this.reportArr.push(rinfo.url) }
+    this.report$ = route.events.subscribe((routeUrl) => {
+      if (routeUrl instanceof NavigationEnd) {
+        const urlParts = routeUrl.url.split('/') ;
+        const lastPart = urlParts[urlParts.length-1]
+        this.selectedReport = (this.reportArr.indexOf(lastPart) > -1) ?
+          lastPart : 'profitnloss' 
+        this.onSelectRpt()
+        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with report: ', this.selectedReport)
+      }
+    })
+  }
 
   ngOnInit(): void {
     const admTypes = Object.values(this.utilSvc.globalTypes) ;
@@ -102,19 +125,23 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   onSelectRpt() {
-    this.reportInfo = this.reportList.find((rl) => rl.name === this.selectedReport)! ;
+    this.reportInfo = this.reportList.find((rl) => rl.url === this.selectedReport)! ;
+    this.selectedReport = this.reportInfo.name ;    // Go to long version of report
     console.log('selRpt: %s  rptInfo: %O', this.selectedReport, this.reportInfo)
     this.reportReady = false ; this.screenDisplay = false ;
     this.startDt = '' ;  this.endDt = '' ;
     if (this.reportInfo.dateList.length < 1 && !this.reportInfo.acctList &&
       !this.reportInfo.moreData) {
-      this.runReport(this.selectedReport) ;
+      console.log('selRpt calling runRpt')
+      this.runReport(this.reportInfo.name) ;
     } else {
+      console.log('selRpt setting vars and waiting for input')
       this.startDt = '' ; this.endDt = '' ; this.accountArr = [] ; this.reportReady = false
     }
   }
 
   runReport(report2Run: string) {
+    console.log('Came into runReport w/report: ', report2Run)
     this.reportReady = false ;   this.screenDisplay = false ;
     switch (report2Run) {
       case 'Profit and Loss': this.profitNLoss() ; break ;
@@ -373,6 +400,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   dumpGlobal() {
+    this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpGlobal selType: %s', this.selectedType)
     this.filtGlob =  (this.selectedType) ?
       this.globals.filter((glob) => glob.RKey === this.selectedType) : this.globals
     this.reportReady = true
@@ -383,6 +411,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   dumpProject() {
+    this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpProj sDt: %s  eDt: %s', this.startDt, this.endDt)
     this.filtProj = this.projects.filter((proj) => {
       if (proj.StartDt > this.endDt) return false ;
       if (proj.EndDt < this.startDt) return false ;
@@ -558,5 +587,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.project$.unsubscribe() ;
+    this.report$.unsubscribe() ;
   }
 }

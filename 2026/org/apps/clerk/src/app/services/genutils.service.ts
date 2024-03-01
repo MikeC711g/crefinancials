@@ -257,16 +257,9 @@ export class GenutilsService {
       // If arrays are of rows in DB (vs OFX) AND date is between begin and end date, add 2 arr
         if (accountArr.length === 0)  accountArr.push(tranRec.Account) ;
         if (tranDB) {     // Tran in DB, not coming from ofx/qfx/csv
-          if (tranRec.TranDate >= startDt && tranRec.TranDate <= endDt &&
-            accountArr.includes(tranRec.Account)) {
-            this.isrtTranRow(tranRec, destArr) ;
-            runReCalc = true ;
-            statusMsg = 'Added row w/tranId; ' + tranRec.TranId ;
-          } else {
-            console.log('Row not added TranDB: ', tranDB, ' TranDt: ', tranRec.TranDate,
-            ' startDt: ', startDt, ' EndDt: ', endDt) ;
-            statusMsg = 'Row added to data base but not shown in display due to filters' ;
-          }
+          this.isrtTranRow(tranRec, destArr) ;
+          runReCalc = true ;
+          statusMsg = 'Added row w/tranId; ' + tranRec.TranId ;
         }
         isNewRow = false ;    // Clear this "new" section
         break ;

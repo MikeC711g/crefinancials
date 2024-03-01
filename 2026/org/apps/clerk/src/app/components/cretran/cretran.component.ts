@@ -10,6 +10,7 @@ import { GenutilsService } from './../../services/genutils.service';
 import { KeyVal } from './../../models/keyval.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { House } from './../../models/house.model';
+import { NavigationEnd, Router } from '@angular/router';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -19,7 +20,7 @@ import { House } from './../../models/house.model';
 })
 
 export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, DeactivatableComponent {
-  codeVersion = '1.0.0.1' ;
+  codeVersion = '1.0.0.2' ;   action = '' 
   accounts: KeyVal[] = new Array<KeyVal>() ;
   tranTypes: string[] = new Array<string>() ;
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
@@ -28,7 +29,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   projects: Project[] = new Array<Project>() ;
   csvTranRecs: TranRec[] = new Array<TranRec>() ;
   qfxPreProcdTrans: TranRec[] = new Array<TranRec>() ;    // These trans already processed
-  accountArr: string[] = new Array<string>() ;
+  accountArr: string[] = new Array<string>() ;   accountOne: string = '' ;
   childMap: Map<string, TranRec[]> = new Map<string, TranRec[]>() ;
   debitTranRecs: TranRec[] = new Array<TranRec>() ;
   creditTranRecs: TranRec[] = new Array<TranRec>() ;
@@ -45,12 +46,24 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   project$: Subscription = new Subscription() ;
   global$: Subject<Globals[]> = new Subject() ;
   tran$: Subscription = new Subscription() ;
+  action$: Subscription = new Subscription() ;
   advancedSrch = { isOn: false } ;    // Advanced data base query or not
   CLASSNAME = 'cretran' ;
 
   constructor(private qfxService: QfxService,
     private fireSvc: FirebaseService, private utilSvc: GenutilsService,
-      private elementRef: ElementRef) { }
+    private elementRef: ElementRef, private route: Router) {
+    this.action$ = route.events.subscribe((routeUrl) => {
+      if (routeUrl instanceof NavigationEnd) {
+        const urlParts = routeUrl.url.split('/') ;
+        const lastPart = urlParts[urlParts.length-1]
+        this.action = (['loadfile', 'createtran', 'search'].indexOf(lastPart) > -1) ?
+          lastPart : 'search' 
+        if (this.action == 'createtran')  this.newRow = true ;
+        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with action: ', this.action)
+      }
+    })
+  }
 
   ngOnInit(): void {
     const curDt = new Date() ;
@@ -59,6 +72,13 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.onRefreshParms(this.startDt, this.endDt) ;
     const idx = this.utilSvc.dirtyTrans.length ;
     if (idx > 0) this.utilSvc.dirtyTrans.splice(0, idx)
+  }
+
+  reInit() {    // When URL changes (different subMenu)
+    this.csvTranRecs.splice(0) ;  this.qfxPreProcdTrans.splice(0) ;
+    this.accountArr.splice(0) ;   this.debitTranRecs.splice(0) ;
+    this.creditTranRecs.splice(0) ;   this.expandCredits = false ;
+    this.expandDebits = false ;
   }
 
   ngAfterViewInit() {
@@ -180,8 +200,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   }
 
   qfxRead($event: any): void {
-    this.utilSvc.cDebug(this.CLASSNAME, 'Calling qfxRead w/accountArr: %O', this.accountArr) ;
-    const qfxSubscrip = this.qfxService.readQFX($event, this.accountArr[0]).subscribe({
+    this.utilSvc.cDebug(this.CLASSNAME, 'Calling qfxRead w/accountOne: %s', this.accountOne) ;
+    const qfxSubscrip = this.qfxService.readQFX($event, this.accountOne).subscribe({
       next: (tranRecs) => {
         this.utilSvc.cLog(this.CLASSNAME, 'QFX returned %d trans', tranRecs.length)
         this.csvTranRecs = tranRecs ;
@@ -222,11 +242,20 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
      Event occurred to a row in child component cretranedit
    *****************************************************************************/
   onTranMod(action: string, tranRec: TranRec): void {
+    console.log('Into tranMod w/action: %s tranRec: %O', action, tranRec)
     let runRecalc = false ;
     let statusMsg = '' ;
     [statusMsg, this.newRow, runRecalc] = this.utilSvc.onTranMod(action,
       tranRec, this.creditTranRecs, this.debitTranRecs, new Array<TranRec>(),
       false, this.accountArr, this.startDt, this.endDt, this.tranDB, this.newRow) ;
+    console.log('TranMod done w/action %s and newRow: %s', this.action, this.newRow)
+    if (this.action === 'createtran' && !this.newRow)  {   // Set up for new add
+      console.log('ReSetting newRow to true in 2 seconds')
+      setTimeout(() => {
+        this.newRow = true ;      // Refresh to get a clean add
+      }, 2000);
+      this.newRow = true ;      // Refresh to get a clean add
+    }
     if (statusMsg)  this.dispMsgs.push(statusMsg) ;
     if (runRecalc) { this.reCalcTotals() ; }
   }
@@ -298,6 +327,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   ngOnDestroy() {
     this.project$.unsubscribe() ;
     this.global$.unsubscribe() ;
+    this.action$.unsubscribe() ;
     this.tran$.unsubscribe() ;
     const idx = this.utilSvc.dirtyTrans.length ;
     if (idx > 0) this.utilSvc.dirtyTrans.splice(0, idx)
