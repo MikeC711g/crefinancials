@@ -1,0 +1,19 @@
+{
+  "projects": {
+    "clerk-realestate-books": "crefinancials-fecdb",
+    "default": "crefinancials-fecdb"
+  },
+  "targets": {
+    "crefinancials-fecdb": {
+      "hosting": {
+        "credbutils": [
+          "credbutils"
+        ],
+        "clerk-realestate-books": [
+          "clerk-realestate-books"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

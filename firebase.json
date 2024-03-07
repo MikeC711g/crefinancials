@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "clerk-realestate-books",
     "public": "dist/apps/clerk",
     "ignore": [
       "firebase.json",
