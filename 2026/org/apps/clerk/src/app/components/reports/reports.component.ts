@@ -195,7 +195,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   profitNLoss() {
     this.utilSvc.cDebug(this.CLASSNAME,'P&L startDt: %s  endDt: %s', this.startDt, this.endDt) ;
-    const tranQ = new TranQ(this.startDt, this.endDt, '', [], [], [], 0, 0, ['BE', 'BI', 'CE'])
+    const tranQ = new TranQ(this.startDt, this.endDt, '', [], [], [], 0, 0, [])
     this.fireSvc.getTransFromDB(tranQ).subscribe({
       next: (tranRecs) => {
         this.transactions = tranRecs ;
@@ -203,7 +203,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
           // Need object key to map which recognizes exact equality, so cluging an array
         const pnlData: PnlData[] = [] ;
         // let pnlMap: Map<KeyVal, number> = new Map<KeyVal, number>() ;
-        for (const curTran of this.transactions) {
+        // Filter out parent trans and keep only business taxcats.  Filter here to avoid
+        //  bringing back and re-uniting split trans.
+        const filtTrans = this.transactions.filter(tr =>
+          tr.TranType !== 'TPARENT' && ['BE', 'CE', 'BI'].indexOf(tr.TaxCat) > -1)
+        for (const curTran of filtTrans) {
+          if (curTran.Category === '') {
+            this.utilSvc.cWarn(this.CLASSNAME, "Tran had no category: %O", curTran)
+            continue 
+          }
           const curPnl: PnlData = pnlData.find((pd) =>
             pd.category === curTran.Category && pd.taxCat === curTran.TaxCat)!
           if (curPnl) {
@@ -219,9 +227,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
         const incomes: PnlData[] = pnlData.filter((pd) => pd.taxCat === 'BI') ;
         const expenses: PnlData[] = pnlData.filter((pd) => pd.taxCat !== 'BI') ;
         this.totExpense = 0 ;  this.totIncome = 0 ;
+        console.log('Incomes: %O  Expenses: %O', incomes, expenses)
         for (const curCat of this.categoryFolders) {
           const catInc = incomes.filter((it) => curCat.RVal.includes(it.category)) ;
           const catExp = expenses.filter((it) => curCat.RVal.includes(it.category)) ;
+          console.log('catInc: %O  catExp: %O', catInc, catExp)
           if (catInc.length > 0) {
             const totInc4Cat = this.totArray(catInc)
             this.incomeMap.set(curCat.RKey, {pnlData: catInc, totBal: this.utilSvc.fixAmt(totInc4Cat)})
@@ -249,7 +259,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
     let fStr = '{\\rtf1\\ansi\\deff0\n'+    // Doc header
       '{\\fonttbl {\\f0 Times New Roman;} {\\f1\\fswiss Arial;} {\\f2\\fmodern Courier New;}}\n' +
       '\\f0 {\\pard\\fs50 Profit & Loss \\line\\par}\n' +
-      '{\\pard\\fs40 Income \\line\\par}\n'
+      '{\\pard\\fs40 Income \\line\\par}\n' +
+      `{\\pard\\fs20 Start Date: ${this.startDt}  End Date: ${this.endDt} \\line\\par}\n`
     let incomeTot = 0 ;   let expenseTot = 0 ;
     console.log('*******Income***********')
     let hdrSpce = ''

@@ -135,9 +135,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   addNewChildren() {
     this.splitChildren = new Array<TranRec>() ;
     if (this.tranRec.Category === 'Mortgage Payment') { // Mtg pmt has predefined split
-      this.onAddSplitChild('Mortgage Principal') ;
-      this.onAddSplitChild('Mortgage Escrow') ;
-      this.onAddSplitChild('Mortgage Interest') ;
+      this.onAddSplitChild('Mortgage Principal', this.tranRec.House) ;
+      this.onAddSplitChild('Mortgage Escrow', this.tranRec.House) ;
+      this.onAddSplitChild('Mortgage Interest', this.tranRec.House) ;
     } else {      // Create 2 generic children for them to start with
       this.onAddSplitChild() ;
       this.onAddSplitChild() ;
@@ -175,11 +175,14 @@ export class CretranallComponent  implements OnInit, OnDestroy {
    * in DB until parent is processed
    * hereiam ... need to consider taking existing DB tran and splitting it
    ***************************************************************************** */
-  onAddSplitChild(category?: string) {   // May want new category
+  onAddSplitChild(category?: string, house?: string) {   // May want new category
+    console.log('oasc cat: %s  house: %s', category, house)
     if (!category) { category = '' ; }
+    if (!house) house = '' ;
     this.childInDb = false ;
     const newChild = new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-      category, '', 0, '', '', '', '', '', this.tranRec.ReconKey, '', this.utilSvc.generateGuid(), '')
+      category, '', 0, '', '', house, '', '', this.tranRec.ReconKey, '', this.utilSvc.generateGuid(), '')
+    console.log('newChild: %O', newChild)
     this.splitChildren.push(newChild)
     this.useSplitChild.push('') ;
     this.childExpand = true ;
@@ -226,14 +229,6 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.expandedView = false ;     this.newRow = false ;
       if (!this.isInDB)   this.isInDB = true ;
       this.completedActions++ ;
-      if (this.modeOp === 'createtran' && !this.isChild) { 
-        setTimeout(() => {    // If in create mode, set up to hang around
-          this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
-          this.editMode = false ;
-          this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
-            0.0, '', '', '', '', '', '', '')      
-        }, 1000);   // Wait a second for data to be digested above before mods
-      }
     } else {
       this.fireSvc.updateTran(this.tranRec, this.tranRec).
         then(docRef => {
@@ -249,6 +244,14 @@ export class CretranallComponent  implements OnInit, OnDestroy {
           this.dispMsgs.push('Error updating record') ;
         }) ;
       this.completedActions++ ;
+    }
+    if (this.modeOp === 'createtran' && !this.isChild) { 
+      setTimeout(() => {    // If in create mode, set up to hang around
+        this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
+        this.editMode = false ;
+        this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
+          0.0, '', '', '', '', '', '', '')      
+      }, 1000);   // Wait a second for data to be digested above before mods
     }
   }
 

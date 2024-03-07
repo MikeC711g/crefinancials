@@ -254,17 +254,11 @@ export class FirebaseService {
 
   isAdvancedQuery(tranQ: TranQ): boolean {
     let truthLn = -1 ;
-    if (!(tranQ.AnnotationRegEx || (tranQ.Category && tranQ.Category.length > 0))) {
-      if (!((tranQ.House && tranQ.House.length > 0) || tranQ.MaxAmount || tranQ.MinAmount)) {
-        if (!tranQ.Project || (tranQ.TaxCat && tranQ.TaxCat.length > 0)) {
-          if (!(tranQ.TranType && tranQ.TranType.length > 0)) {
-            return false
-          } else truthLn = 4
-        } else  truthLn = 3
-      } else  truthLn = 2
-    } else  truthLn = 1
-    this.utilSvc.cLog(this.CLASSNAME, 'Query is adv based on line %d', truthLn)
-    return true ;
+    if (tranQ.AnnotationRegEx || (tranQ.Category && tranQ.Category.length > 0)) return true ;
+    if ((tranQ.House && tranQ.House.length > 0) || tranQ.MaxAmount || tranQ.MinAmount) return true ;
+    if (tranQ.Project || (tranQ.TaxCat && tranQ.TaxCat.length > 0)) return true
+    if (tranQ.TranType && tranQ.TranType.length > 0) return true ;
+      return false
   }
 
   bldQuery(tranQ: TranQ): QueryConstraint[] {    // Build tran query

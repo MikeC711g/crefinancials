@@ -72,7 +72,7 @@ export class AuthComponent implements  AfterViewInit {
                 this.authSvc.user$.next(user) ;
                 this.loginDelay = 2
                 this.dispMsgs.push('You are now logged in') ;
-                this.router.navigate(['/trans/search']) ;
+                this.router.navigate(['/trans/loadfile']) ;
               }
             } else {
               this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not in Users collection', this.uid) ;
@@ -116,6 +116,11 @@ export class AuthComponent implements  AfterViewInit {
       const userRec: UserRec = new UserRec('add', '', companyName, dtAdd, '', eMail, phone, 'Admin',
         true, uid)
       this.cre8NewCust(userRec)
+      this.authSvc.verifyEMail(userCred.user).then(emailV => {
+        console.log('eMailVerifyResult: ', emailV) ;
+      }).catch(emailVErr => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error %s sending eMail verify', emailVErr)
+      })
       // ToDo ... message about thanks for signing up, you will receive an eMail with
       //  instructions to get you going shortly
     }).catch(error => {

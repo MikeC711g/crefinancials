@@ -15,6 +15,7 @@
     </div>
     <div class="row col-md-12" *ngIf="selectedReport === 'Profit and Loss' && reportReady">
       <div class="justify-content-center"><h1>Profit & Loss</h1></div>
+        Start Date: {{ startDt }}   End Date: {{ endDt }}
       <h3>Income</h3>
       <div class="row" *ngFor="let catFolder of incomeMap | keyvalue">
         <div class="col-md-5 offset-md-1"><b> {{ catFolder.key }}</b> </div>

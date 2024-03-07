@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Auth, UserCredential, User, createUserWithEmailAndPassword, deleteUser,
-  sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from '@angular/fire/auth' ;
+  sendPasswordResetEmail, signInWithEmailAndPassword, signOut, 
+  sendEmailVerification} from '@angular/fire/auth' ;
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { BehaviorSubject } from 'rxjs';
 import { GenutilsService } from './genutils.service';
@@ -43,6 +44,10 @@ export class AuthService {
   createUser(email: string, password: string): Promise<UserCredential> {
     console.log('Cre8User email %s', email)
     return createUserWithEmailAndPassword(this.auth, email, password)
+  }
+
+  verifyEMail(user: User): Promise<any> {
+    return sendEmailVerification(user) ;
   }
 
   addNewCustomer(userRec: UserRec): Promise<any> {

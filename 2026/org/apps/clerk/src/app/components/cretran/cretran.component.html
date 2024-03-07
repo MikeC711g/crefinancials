@@ -54,9 +54,14 @@
   </div>
   <div class="col-md-12">
     <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
-      <button class="btn btn-success btn-toggle col-md-2" type="button" id="trnShowDeb"
-      (click)="expandDebits = !expandDebits"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
       <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
+      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="te-exb"
+        (click)="expandDebits = !expandDebits">
+        <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+          style="width: 16px; height: 16px;" *ngIf="!expandDebits">
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+          style="width: 16px; height: 16px;" *ngIf="expandDebits">
+      </button><p></p>
       <ul data-cy="trnDebits" *ngIf="expandDebits">
         <li *ngFor="let tran of debitTranRecs">
           <app-cretranall [tranRec]="tran"
@@ -66,9 +71,14 @@
       </ul>
     </div>
     <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTransCredit">
-      <button class="btn btn-success btn-toggle col-md-2" type="button" id="trnShowCred"
-      (click)="expandCredits = !expandCredits"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
       <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
+      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="te-exb"
+        (click)="expandCredits = !expandCredits">
+        <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+          style="width: 16px; height: 16px;" *ngIf="!expandCredits">
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+          style="width: 16px; height: 16px;" *ngIf="expandCredits">
+      </button><p></p>
       <ul data-cy="trnCredits" *ngIf="expandCredits">
         <li *ngFor="let tran of creditTranRecs">
           <app-cretranall [tranRec]="tran"
@@ -81,7 +91,7 @@
       <app-cremessages [dispMsgs]="dispMsgs"
         (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
     </div>
-      <ng-template #noTransDebit>
+    <ng-template #noTransDebit>
       <hr>  <h5>There are no Debit transactions to list</h5>
     </ng-template>
     <ng-template #noTransCredit>
