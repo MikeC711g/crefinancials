@@ -125,8 +125,8 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
   canDeactivate() {
     if (this.utilSvc.dirtyProj.length > 0)
       this.utilSvc.cLog(this.CLASSNAME, 'deActivateProj dirty projects: %O', this.utilSvc.dirtyProj)
-    return (this.utilSvc.dirtyProj.length === 0 ||
-      confirm("There are unsaved changes, exit anyway?")) ;
+    return (this.utilSvc.dirtyProj.length === 0) ? true :
+      confirm("There are unsaved changes, exit anyway?") ;
   }
 
   ngOnDestroy() {

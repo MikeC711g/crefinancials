@@ -1,7 +1,7 @@
 <div class="container">
   <div class="row col-md-12">
     <div class="row" *ngIf="reportInfo.dateList.length > 0">
-      <app-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList" [advQuery]="{isOn: true}"
+      <app-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList" [advQuery]="advancedSrch"
       (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
     </div>
     <div class="row" *ngIf="reportInfo.acctList">

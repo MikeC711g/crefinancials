@@ -149,6 +149,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
      Handling date select component output
    *****************************************************************************/
   onDateMod(numDays: number, startDt: string, endDt: string): void {
+    this.utilSvc.cDebug(this.CLASSNAME, 'onDtMd adv: %s', this.advancedSrch.isOn)
     this.numDays = numDays ;  this.startDt = startDt ;  this.endDt = endDt ;
     if (!this.advancedSrch.isOn)  this.onQueryDates(startDt, endDt) ;
   }
@@ -280,8 +281,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.utilSvc.cDebug(this.CLASSNAME, 'Trans called canDeactivate') ;
     if (this.utilSvc.dirtyTrans.length > 0)
       this.utilSvc.cLog(this.CLASSNAME, 'tranCanDeact dirty trans: %O', this.utilSvc.dirtyTrans) ;
-    return (this.utilSvc.dirtyTrans.length === 0 ||
-      confirm("There are unsaved changes, exit anyway?")) ;
+    return (this.utilSvc.dirtyTrans.length === 0) ? true :
+      confirm("There are unsaved changes, exit anyway?") ;
     }
 
     // hereiam todo ... replace read tran with db tran

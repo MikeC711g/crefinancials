@@ -67,6 +67,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsData,
       acctList: true, moreData: true} ]
          // Generic report parms and info
+  advancedSrch = { isOn: false } ;    // Force the button for now, complex logic
   startDt = '' ;  endDt = '' ;  reportReady = false ;  screenDisplay = false ;
   selectedReport = '' ;  selectedType = '' ;  selectedHouse = '' ;
   reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
@@ -187,8 +188,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
       this.accountArr = [] ;
       for (const curAcct of this.accounts) { this.accountArr.push(curAcct.RKey ) }
     }   // If we need date and have it AND we have accounts AND we don't need more, run report
-    if ((this.reportInfo.dateList.length < 1 || this.startDt) && this.accountArr.length > 0 &&
-      !this.reportInfo.moreData) {
+    if ((this.reportInfo.dateList.length < 1 || (this.startDt && this.endDt) &&
+      this.accountArr.length > 0 && !this.reportInfo.moreData)) {
         this.runReport(this.selectedReport) ;
       }
   }

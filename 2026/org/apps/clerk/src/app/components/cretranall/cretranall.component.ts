@@ -247,6 +247,10 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     }
     if (this.modeOp === 'createtran' && !this.isChild) { 
       setTimeout(() => {    // If in create mode, set up to hang around
+        if (this.isParent) {
+          // this.splitChildren.splice(0, this.splitChildren.length)
+          this.isParent = false   
+        } 
         this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
         this.editMode = false ;
         this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
@@ -259,10 +263,10 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     Delete current record
   ********************************************************************/
   onDeleteRecord(): void {    // I "think" this is fine for split trans as well
-    if (this.isParent && this.tranRec.TranId) {
+    if (this.isParent && this.utilSvc.isTranDB(this.tranRec)) {
       for (const curTran of this.splitChildren) {     // For each child
         this.utilSvc.cDebug(this.CLASSNAME, 'Doing child %O', curTran)
-        if (curTran.TranId) {    // If child in DB
+        if (this.utilSvc.isTranDB(curTran)) {    // If child in DB
           const delRtn = this.fireSvc.deleteTran(curTran, false) ;
           if (typeof delRtn === 'boolean') {  return ; }
           delRtn.then(() => {
