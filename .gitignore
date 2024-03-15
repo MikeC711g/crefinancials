@@ -2,6 +2,7 @@
 
 # Compiled output
 /dist
+/dest
 /tmp
 /out-tsc
 /bazel-out
@@ -37,7 +38,7 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
-/firebase.json
+# /firebase.json
 /libpeerconnection.log
 testem.log
 /typings
