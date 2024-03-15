@@ -60,7 +60,7 @@
       <div class="col-md-6" *ngIf="!isParent">
         <div class="form-group">
           <label for="tranType">Type</label>
-          <select class="form-control" id="tranType" name="tranType" (change)="chgData()"
+          <select class="form-control" id="tranType" name="tranType" (change)="chgData() ; onCheckValAbs()"
               [(ngModel)]="tranRec.TranType" required data-cy="cta-tranType" #tranType="ngModel">
               <option [value]="''" [selected]="!tranRec.TranType">-- select an option --</option>
               <option *ngFor="let tranType of tranTypes" [value]="tranType">{{ tranType }}</option>
@@ -168,17 +168,17 @@
       <button class="btn btn-danger col-md-2" type="button" data-cy="te-dbd"
           [disabled]="!editMode || (tranRec.ReconKey !== '' && !isGlobalAdmin)"
           (click)="onDeleteRecord()">Delete</button>
-      <button class="btn btn-primary col-md-2" type="button" data-cy="te-dbc"
+      <button class="btn btn-warning col-md-2" type="button" data-cy="te-dbc"
         (click)="onCancel()">Cancel</button>
-      <button class="btn btn-success col-md-2" type="button" data-cy="te-dbh"
+      <button class="btn btn-secondary col-md-2" type="button" data-cy="te-dbh"
         *ngIf="hideLabel !== ''" (click)="onHideRecord()">{{ hideLabel }}</button>
-      <button class="btn btn-primary col-md-2" type="button" *ngIf="isParent"
+      <button class="btn btn-success col-md-2" type="button" *ngIf="isParent"
         [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin"
         (click)="childExpand = true ; onAddSplitChild()">Add Child</button>
       <button class="btn btn-primary col-md-2" type="button" *ngIf="!isChild"
         [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin"
         (click)="parentChange()">{{ isParent ? 'Unsplit Transaction' : 'Split Transaction' }} </button>
-      <button class="btn btn-primary col-md-2" type="button"
+      <button class="btn btn-secondary col-md-2" type="button"
         (click)="onAddRule()">Create rule for tran</button>
     </div>
     <div class="row" *ngIf="newRule">

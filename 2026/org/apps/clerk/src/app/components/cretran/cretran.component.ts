@@ -20,7 +20,7 @@ import { NavigationEnd, Router } from '@angular/router';
 })
 
 export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, DeactivatableComponent {
-  codeVersion = '1.0.0.2' ;   action = '' 
+  codeVersion = '1.0.0.3' ;   action = '' 
   accounts: KeyVal[] = new Array<KeyVal>() ;
   tranTypes: string[] = new Array<string>() ;
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
@@ -254,7 +254,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
       console.log('ReSetting newRow to true in 2 seconds')
       setTimeout(() => {
         this.newRow = true ;      // Refresh to get a clean add
-      }, 2000);
+      }, 4000);
       this.newRow = true ;      // Refresh to get a clean add
     }
     if (statusMsg)  this.dispMsgs.push(statusMsg) ;

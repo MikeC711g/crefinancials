@@ -2,6 +2,7 @@
   <div class="col-md-12">
         <!-- inputs for search -->
     <div class="row" *ngIf="action === 'search'">
+      <h2>Clerk Transaction Search</h2>
       <div class="col-md-6"> <hr>
         <label for="trnAccount" title="Select one or more accounts">Select Account(s)</label>
         <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountArr"
@@ -29,6 +30,7 @@
     </div>
         <!-- inputs for loadfile -->
     <div class="row col-md-12" *ngIf="action === 'loadfile'">
+      <h2>Load OFX or QFX file of transactions</h2>
       <div class="col-md-6">
         <label for="trnAccount" title="Select account">Select Account</label>
         <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountOne"
@@ -48,13 +50,14 @@
   </div>
   <br>
   <div class="col-md-12" *ngIf="action === 'createtran'">
+    <h2>Add a Transaction</h2>
     <hr>
     <app-cretranall [modeOp]="action"
       (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
   </div>
   <div class="col-md-12">
     <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
-      <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
+      <h5 class="col-md-4">{{ debitTranRecs.length }} Total Debits: {{ debitTotals }}</h5>
       <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="te-exb"
         (click)="expandDebits = !expandDebits">
         <img class="img-responsive" src="assets/images/chevron-right-icon.png"
@@ -71,7 +74,7 @@
       </ul>
     </div>
     <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTransCredit">
-      <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
+      <h5 class="col-md-4">{{ creditTranRecs.length }} Total Credits: {{ creditTotals }}</h5>
       <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="te-exb"
         (click)="expandCredits = !expandCredits">
         <img class="img-responsive" src="assets/images/chevron-right-icon.png"

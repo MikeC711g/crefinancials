@@ -1,9 +1,13 @@
 <div class="container">
   <div class="row col-md-12" *ngIf="selectedType === 'houses'">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newHouse = !newHouse">
       Add House</button>
-    <app-admhouses *ngIf="newRow" (parmMod)="onParmMod($event.action,
+    <div *ngIf="newHouse">
+      <h2>Add a new House</h2>
+      <app-admhouses (parmMod)="onParmMod($event.action,
       $event.parmType, $event.newVal, $event.oldVal)"></app-admhouses>
+    </div>
+    <h2 title="Modify or delete existing houses">Manage Houses</h2>
     <ul>
       <li *ngFor="let lHouse of fullHouse">
         <app-admhouses [house]="lHouse"
@@ -13,11 +17,15 @@
     </ul>
   </div>
   <div class="row col-md-12" *ngIf="selectedType === 'accountType'">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
-      Add Account</button>
-    <app-adm1parm *ngIf="newRow" [parmType]="selectedType"
+    <button class="btn btn-primary col-md-3" type="button" (click)="newAccountTypes = !newAccountTypes">
+      Add Account Type</button>
+    <div *ngIf="newAccountTypes">
+      <h2>Add a new Account Type</h2>
+      <app-adm1parm [parmType]="selectedType"
       (parmMod)="onParmMod($event.action, $event.parmType,
         $event.newVal, $event.oldVal)" [parmLabel]="'Account Type:'"></app-adm1parm>
+    </div>
+    <h2>Manage Account Types</h2>
     <ul>
       <li *ngFor="let accountType of accountTypes">
         <app-adm1parm [parmVal]="accountType" [parmType]="selectedType"
@@ -27,12 +35,16 @@
     </ul>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'accounts'">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newAccounts = !newAccounts">
       New {{ selectedType }}</button>
-    <app-admkv *ngIf="newRow" [parmType]="selectedType" [valDomain]="accountTypes"
+    <div *ngIf="newAccounts">
+      <h2>Add a new Account</h2>
+      <app-admkv [parmType]="selectedType" [valDomain]="accountTypes"
       (parmMod)="onParmMod($event.action, $event.parmType,
         $event.newVal, $event.oldVal)"
       [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></app-admkv>
+    </div>
+    <h2>Manage Accounts</h2>
     <ul>
       <li *ngFor="let account of accounts">
         <app-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
@@ -41,12 +53,16 @@
     </ul>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'tranType'">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newTranTypes = !newTranTypes">
       Add Tran Type</button>
-    <app-adm1parm *ngIf="newRow" [parmType]="selectedType"
+    <div *ngIf="newTranTypes">
+      <h2>Add a new Transaction Type</h2>
+      <app-adm1parm [parmType]="selectedType"
       (parmMod)="onParmMod($event.action, $event.parmType,
         $event.newVal, $event.oldVal)"
       [parmLabel]="'TranType:'"></app-adm1parm>
+    </div>
+    <h2>Manage Transaction Types</h2>
     <ul>
       <li *ngFor="let tranType of tranTypes">
         <app-adm1parm [parmVal]="tranType" [parmType]="selectedType"
@@ -56,12 +72,16 @@
     </ul>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'taxCats'">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newTaxCats = !newTaxCats">
       New {{ selectedType }} </button>
-    <app-admkv *ngIf="newRow" [parmType]="selectedType"
+    <div *ngIf="newTaxCats">
+      <h2>add a new Tax Category</h2>
+      <app-admkv [parmType]="selectedType"
       (parmMod)="onParmMod($event.action, $event.parmType,
         $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'"
       [valLabel]="'Taxcat Label:'"></app-admkv>
+    </div>
+    <h2>Manage Tax Categories</h2>
     <ul>
       <li *ngFor="let taxCat of taxCats">
         <app-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
@@ -70,17 +90,22 @@
     </ul>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'categoryTaxcat'">
+    <h2>Manage Categories and Category Folders</h2>
     <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
       [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
       $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'ruleData'">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = true">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newRule = !newRule">
       Add Rule Data</button>
-    <app-admruledata *ngIf="newRow" (parmMod)="onParmMod($event.action,
+    <div *ngIf="newRule">
+      <h2>Add a New Rule</h2>
+      <app-admruledata (parmMod)="onParmMod($event.action,
       $event.parmType, $event.newVal, $event.oldVal)"
       [tranTypes]="tranTypes" [taxCats]="taxCats" [accounts]="accounts"
       [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+    </div>
+    <h2>Manage Rules</h2>
     <ul>
       <li *ngFor="let rule of ruleAdmin">
         <app-admruledata [ruleAdmin]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
@@ -91,6 +116,7 @@
     </ul>
   </div>
   <div class="row col-md-12" *ngIf="selectedType === 'logging'">
+    <h2>Log and trace management</h2>
     Please only use this section under the guidance of a Clerk support representative<br>
     <label for="dfltLevel">Default Level</label>
     <select class="form-control" id="dfltLevel" name="dfltLevel"
@@ -103,6 +129,8 @@
       <option [value]="''" [selected]="!overrideLevel">-- select an option --</option>
       <option *ngFor="let level of logLevels" [value]="level">{{ level }}</option>
     </select>
+  </div>
+  <div class="row col-md-12">
     <ul>
       <li *ngFor="let lClass of classList">
         <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"

@@ -33,7 +33,9 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   categoryFolders: KeyVal[] = new Array<KeyVal>() ; // label: categoryFolders
   ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ; // label: ruleData
   ruleAdmin: RuleData[] = new Array<RuleData>() ;
-  selectedType = '' ;   newRow = false ;   completeActions = 0 ;
+  selectedType = '' ;   completeActions = 0 ;
+  newRule = false ;  newHouse = false ;  newAccounts = false ;
+  newTranTypes = false ;  newAccountTypes = false ;  newTaxCats = false ;
   statusMsg = '' ;
   actionCounts = 0 ;
   fbGlobals: Globals[] = new Array<Globals>() ;
@@ -106,11 +108,19 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
       admin is occurring.  On exit from admin, will refresh all from DB.
    *****************************************************************************/
   onParmMod(action: string, parmType: string, newVal: any, oldVal: any): void {
-    let actionCnt: number ;
-    [actionCnt, this.newRow, this.statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
+    let actionCnt: number ;  let newRow = false ;
+    [actionCnt, newRow, this.statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
       oldVal, this.fbGlobals, this.fullHouse, this.accountTypes, this.tranTypes, this.accounts,
       this.categoryFolders, this.categoryTaxcat, this.ruleAdmin, this.taxCats, this.cid)
     this.actionCounts += actionCnt
+    switch (parmType) {
+      case this.utilSvc.globalTypes.Houses:  this.newHouse = newRow ; break ;
+      case this.utilSvc.globalTypes.Accounts:  this.newAccounts = newRow ; break ;
+      case this.utilSvc.globalTypes.AccountType:  this.newAccountTypes = newRow ; break ;
+      case this.utilSvc.globalTypes.RuleData:  this.newRule = newRow ; break ;
+      case this.utilSvc.globalTypes.TaxCats:  this.newTaxCats = newRow ; break ;
+      case this.utilSvc.globalTypes.TranType:  this.newTranTypes = newRow ; break ;
+    }
   }
 
   /*********************************************************************

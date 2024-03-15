@@ -245,20 +245,21 @@ export class CretranallComponent  implements OnInit, OnDestroy {
         }) ;
       this.completedActions++ ;
     }
-    if (this.modeOp === 'createtran' && !this.isChild) { 
-      setTimeout(() => {    // If in create mode, set up to hang around
-        if (this.isParent) {
-          // this.splitChildren.splice(0, this.splitChildren.length)
-          this.isParent = false   
-        } 
-        this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
-        this.editMode = false ;
-        this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
-          0.0, '', '', '', '', '', '', '')      
-      }, 1000);   // Wait a second for data to be digested above before mods
-    }
+    if (this.modeOp === 'createtran' && !this.isChild) this.refreshCreate() 
   }
 
+  refreshCreate() {
+    setTimeout(() => {    // If in create mode, set up to hang around
+      if (this.isParent) {
+        // this.splitChildren.splice(0, this.splitChildren.length)
+        this.isParent = false   
+      } 
+      this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
+      this.editMode = false ;
+      this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
+        0.0, '', '', '', '', '', '', '')      
+    }, 1500);   // Wait a second for data to be digested above before mods
+  }
   /*********************************************************************
     Delete current record
   ********************************************************************/
@@ -353,7 +354,6 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   * Customer chose button to take current data and create a rule
   *********************************************************************************** */
   onAddRule() {
-    let x = new RuleData('rulenm', 'srchstr', [], 0, 'cat', 'ttp', 'textra', 'tcat', 'hse', 'anno')
     this.ruleAdd = new RuleData(this.tranRec.TranExtra,
       this.tranRec.TranExtra + ' : ' + this.tranRec.Annotation, [this.tranRec.Account], 0,
       this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat, this.tranRec.House,
@@ -374,10 +374,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     let ruleAdmin = this.fireSvc.getRuleAdmin() ;
     let fullHouse = this.fireSvc.getFullHouses() ;
 
-    [actionCnt, this.newRow, statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
+    [actionCnt, this.newRule, statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
       oldVal, fbGlobals, fullHouse, accountTypes, this.tranTypes, this.accounts,
       categoryFolders, this.categoryTaxcat, ruleAdmin, this.taxCats, this.tranRec.Cid)
-    this.newRule = false ;
   }
     
   /** **********************************************************************************
@@ -459,8 +458,11 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.utilSvc.dirtyTranUpdt(false, this.tranRec.TranId!)
       this.isDirty = false ;
     }
-  this.tranMod.emit({ action: this.utilSvc.actionTypes.Cancel, tranRec: this.tranRec }) ;
-    this.expandedView = false ;
+    if (this.modeOp === 'createTran')  this.refreshCreate()
+    else {
+      this.tranMod.emit({ action: this.utilSvc.actionTypes.Cancel, tranRec: this.tranRec }) ;
+      this.expandedView = false ;
+     }
   }
 
   /** ****************************************************************************
@@ -521,12 +523,12 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   *  Positives: CREDIT DIV DEP DIRECTDEP
   ********************************************************************/
   onCheckValAbs(): void {
+    console.log('OnCkValAbs: TType: %s  Amt: %d', this.tranRec.TranType, this.tranRec.Amount)
     if (['DEBIT', 'CHECK', 'CASH', 'DIRECTDEBIT', 'REPEATPMT', 'FEE', 'SRVCHG'].
       indexOf(this.tranRec.TranType) > -1) {
-      if (this.tranRec.Amount > 0) {
-        this.tranRec.Amount *= -1 ;
-      }
+      if (this.tranRec.Amount > 0)  this.tranRec.Amount *= -1 ;
     }
+    console.log('onCkValAbs Amt: %d', this.tranRec.Amount)
   }
 
   /*********************************************************************
@@ -550,8 +552,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
      Event occurred to a row in child component for adding project dynamically
    *****************************************************************************/
   onProjMod(action: string, project: Project): void {
-    let statusMsg = '' ;   this.newProj = false ;
-    [statusMsg, this.newRow] = this.utilSvc.onProjMod(action, project) ;
+    let statusMsg = '' ;
+    [statusMsg, this.newProj] = this.utilSvc.onProjMod(action, project) ;
     this.tranRec.Project = project.ProjectId! ;
     if (statusMsg !== '') this.dispMsgs.push(statusMsg)
   }

@@ -1,5 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
-.btn3d {
+/* .btn3d {
   transition:all .08s linear;
   position:relative;
   outline:medium none;
@@ -44,7 +44,8 @@
 .btn-danger {
   box-shadow:0 0 0 1px #c63702 inset, 0 0 0 2px rgba(255,255,255,0.15) inset, 0 8px 0 0 #C24032, 0 8px 0 1px rgba(0,0,0,0.4), 0 8px 8px 1px rgba(0,0,0,0.5);
   background-color:#c63702;
-}
+}  */
+
 label {
   font-size: large;
   font-weight: 700;

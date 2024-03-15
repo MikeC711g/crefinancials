@@ -53,16 +53,16 @@
           data-bs-toggle="dropdown" aria-expanded="false" *ngIf="isAdmin && isAuthenticated">
             Administration</a>
         <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/ruleData">
+            Rules/Hints</a></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/houses">
-            Houses</a><div class="dropdown-divider"></div></li>
+            Houses</a></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/accounts">
-            Accounts</a></li>
+            Accounts</a><div class="dropdown-divider"></div></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/taxCats">
             Tax Categories</a></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/categoryTaxcat">
-            Categories</a></li>
-          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/ruleData">
-            Rules/Hints</a></li>
+            Categories</a><div class="dropdown-divider"></div></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/logging">
             Logging</a></li>
         </ul>
