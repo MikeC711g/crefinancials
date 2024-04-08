@@ -42,6 +42,7 @@
     "@cypress/schematic": "^2.5.1",
     "@nx/angular": "18.0.4",
     "@nx/cypress": "18.0.4",
+    "@nx/eslint": "18.0.4",
     "@nx/eslint-plugin": "18.0.4",
     "@nx/jest": "18.0.4",
     "@nx/js": "18.0.4",

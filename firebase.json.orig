@@ -4,14 +4,13 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "site": "credbutils",
-    "public": "dist/apps/credbutils",
+    "site": "clerk-realestate-books",
+    "public": "dist/apps/clerk",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "trailingSlash": false,
     "rewrites": [
       {
         "source": "**",
