@@ -5,7 +5,6 @@ import { GenutilsService } from './../../services/genutils.service';
 import { Router } from '@angular/router';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-headers',
   templateUrl: './headers.component.html',
   styleUrls: ['./headers.component.css']

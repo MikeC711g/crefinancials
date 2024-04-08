@@ -8,7 +8,7 @@
         <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountArr"
           (change)="multiSelAll()" multiple data-cy="ctrn-accounts">
           <option [value]="'selectAll'">Select All</option>
-          <option *ngFor="let account of accounts" [value]="account.RKey"
+          <option *ngFor="let account of accounts" [value]="account.RKey" data-cy="ctrn-acctOpts"
           [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
         </select>
       </div>
@@ -18,7 +18,7 @@
         <hr>
       </div>
       <button class="btn btn-success col-md-3"  type="button" id="advancedSearch.isOn"
-      (click)="advancedSrch.isOn= !advancedSrch.isOn">{{advancedSrch.isOn ?
+      (click)="advancedSrch.isOn= !advancedSrch.isOn" data-cy="ctrn-advSrchBtn">{{advancedSrch.isOn ?
         'Standard' : 'Advanced'}} Search</button>
       <div class="row col-md-12" *ngIf="advancedSrch.isOn">
         <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
@@ -36,7 +36,7 @@
         <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountOne"
           data-cy="ctrn-account">
           <option [value]="''" [selected]="accountArr.length === 0">-- select an option --</option>
-          <option *ngFor="let account of accounts" [value]="account.RKey"
+          <option *ngFor="let account of accounts" [value]="account.RKey" data-cy="ctrn-acctOpts"
           [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
         </select>
       </div>
@@ -50,7 +50,7 @@
   </div>
   <br>
   <div class="col-md-12" *ngIf="action === 'createtran'">
-    <h2>Add a Transaction</h2>
+    <h2 data-cy="ctrn-addTran">Add a Transaction</h2>
     <hr>
     <app-cretranall [modeOp]="action"
       (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
@@ -58,15 +58,15 @@
   <div class="col-md-12">
     <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
       <h5 class="col-md-4">{{ debitTranRecs.length }} Total Debits: {{ debitTotals }}</h5>
-      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="te-exb"
+      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="ctrn-expDebit"
         (click)="expandDebits = !expandDebits">
         <img class="img-responsive" src="assets/images/chevron-right-icon.png"
           style="width: 16px; height: 16px;" *ngIf="!expandDebits">
         <img class="img-responsive" src="assets/images/chevron-down-icon.png"
           style="width: 16px; height: 16px;" *ngIf="expandDebits">
       </button><p></p>
-      <ul data-cy="trnDebits" *ngIf="expandDebits">
-        <li *ngFor="let tran of debitTranRecs">
+      <ul data-cy="ctrn-debits" *ngIf="expandDebits">
+        <li *ngFor="let tran of debitTranRecs" data-cy="ctrn-debitRow">
           <app-cretranall [tranRec]="tran"
             [isParent]="tran.TranType === 'TPARENT'"
             (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
@@ -75,30 +75,30 @@
     </div>
     <div class="row" *ngIf="!!creditTranRecs && creditTranRecs.length > 0; else noTransCredit">
       <h5 class="col-md-4">{{ creditTranRecs.length }} Total Credits: {{ creditTotals }}</h5>
-      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="te-exb"
+      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="ctrn-expCredit"
         (click)="expandCredits = !expandCredits">
         <img class="img-responsive" src="assets/images/chevron-right-icon.png"
           style="width: 16px; height: 16px;" *ngIf="!expandCredits">
         <img class="img-responsive" src="assets/images/chevron-down-icon.png"
           style="width: 16px; height: 16px;" *ngIf="expandCredits">
       </button><p></p>
-      <ul data-cy="trnCredits" *ngIf="expandCredits">
-        <li *ngFor="let tran of creditTranRecs">
+      <ul data-cy="ctrn-credits" *ngIf="expandCredits">
+        <li *ngFor="let tran of creditTranRecs" data-cy="ctrn-creditRow">
           <app-cretranall [tranRec]="tran"
             [isParent]="tran.TranType === 'TPARENT'"
             (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
         </li>
       </ul>
     </div>
-    <div data-cy="te-dsm">
-      <app-cremessages [dispMsgs]="dispMsgs"
+    <div>
+      <app-cremessages [dispMsgs]="dispMsgs" data-cy="ctrn-msgs"
         (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
     </div>
     <ng-template #noTransDebit>
-      <hr>  <h5>There are no Debit transactions to list</h5>
+      <hr>  <h5 data-cy="ctrn-noDebits">There are no Debit transactions to list</h5>
     </ng-template>
     <ng-template #noTransCredit>
-      <hr>  <h5>There are no Credit transactions to list</h5>
+      <hr>  <h5 data-cy="ctrn-noCredits">There are no Credit transactions to list</h5>
     </ng-template>
   </div>
   Code Version: {{ codeVersion }}

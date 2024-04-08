@@ -26,15 +26,15 @@
           style="font-size: large" data-cy="auth-phone">
       </div>
       <div class="row form-group" *ngIf="guiMode !== 'Sign In'">
-        <a (click)="guiMode = 'Sign In'" style="cursor:pointer;text-decoration: underline;color: blue;">
+        <a (click)="guiMode = 'Sign In'" style="cursor:pointer;text-decoration: underline;color: navy">
           <br><p>Return to default signIn Mode</p></a>
       </div>
       <div class="row form-group" *ngIf="guiMode !== 'Reset Password'">
-        <a (click)="guiMode = 'Reset Password'" style="cursor:pointer;text-decoration: underline;color: blue">
+        <a (click)="guiMode = 'Reset Password'" style="cursor:pointer;text-decoration: underline;color: navy">
           <br><p>Forgot password (or reset/change password)</p></a>
       </div>
       <div class="row form-group" *ngIf="guiMode !== 'Sign Up'">
-        <a (click)="guiMode = 'Sign Up'" style="cursor:pointer;text-decoration: underline;color: blue;">
+        <a (click)="guiMode = 'Sign Up'" style="cursor:pointer;text-decoration: underline;color: navy">
           <p>Sign Up to join the CLERK community</p></a>
       </div>
     </div>
@@ -43,8 +43,8 @@
       (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
     </div>
     <div class="offset-8 col-6 mt-4">
-      <button type="submit" class="btn btn-warning btn-lg btn3d" [disabled]="!authForm.valid">
-        {{ guiMode }}</button>
+      <button type="submit" class="btn btn-warning btn-lg btn3d" data-cy="auth-submit"
+        [disabled]="!authForm.valid">{{ guiMode }}</button>
     </div>
   </form>
 </div>

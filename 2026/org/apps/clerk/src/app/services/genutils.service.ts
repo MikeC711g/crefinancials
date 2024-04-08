@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
 import { RuleData } from '../models/ruleData.model';
 import { Project } from '../models/project.model';
+import { KeyVal } from '../models/keyval.model';
 
 @Injectable({
   providedIn: 'root'
@@ -223,15 +224,28 @@ export class GenutilsService {
     inArr.push(tranRec) ;   // Higher than highest in array, so add to end
   }
 
-  shallowClone(inProj: Project): Project {    // Moved from generic to proj so lint happy
+  cloneProj(inProj: Project): Project {    // Moved from generic to proj so lint happy
     return  new Project(inProj.House, inProj.Cid, inProj.StartDt, inProj.EndDt, inProj.Description,
       inProj.ProjectId) ;
   }
 
-  // objCompare(objA: Object, objB: Object): boolean {
-    // for (let cProp in objA)  if (objA[cProp] !== objB[cProp])  return false ;
-    // return true ;
-  // }
+  cloneTran(inTran: TranRec): TranRec {
+    return new TranRec(inTran.Cid, inTran.TranDate, inTran.Account, inTran.Category, inTran.TranType,
+      inTran.Amount, inTran.TranExtra, inTran.TaxCat, inTran.House, inTran.Project, inTran.Annotation,
+      inTran.ReconKey, inTran.FitID, inTran.TranId, inTran.SplitParent)
+  }
+
+  getNewIdx(srceIdx: string, xref: KeyVal[], label: string): string {
+    console.log('getNewIdx src: %s  label: %s', srceIdx, label)
+    if (srceIdx === '') return '' ;
+    const eIdx = xref.findIndex((idx) => idx.RKey === srceIdx)
+    if (eIdx < 0) {
+      console.warn('%s key %s not found xrefs %O', label, srceIdx, xref)
+      return '' ;
+    } else {
+      return xref[eIdx].RVal
+    }
+  }    // End of getnewidx function def
 
   /******************************************************************************
    * Event occurred to a row in child component of tran or reconcile
@@ -286,9 +300,9 @@ export class GenutilsService {
         if (idx < 0) {
           statusMsg = 'Tranid: ' + tranRec.TranId + ' Not found, cannot delete' ;
         } else {
-          console.debug('del preLen: ', debitTrans.length, ' idx: ', idx, ' Row: ', debitTrans[idx])
+          this.cLog(this.CLASSNAME, 'del preLen: %d  idx: %d  Row: %O', destArr.length, idx, destArr[idx])
           destArr.splice(idx, 1) ;
-          console.debug('del post: ', debitTrans.length, ' destLen: ', destArr.length) ;
+          this.cLog(this.CLASSNAME, 'del postLen: %d', destArr.length)
           statusMsg = 'Deleted row w/Tranid: ' + tranRec.TranId ;
         }
         runReCalc = true ;

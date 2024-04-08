@@ -43,7 +43,7 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
     if (this.projId) {
       this.editMode = true ;
       this.curProj = this.utilSvc.getProjById(this.projId)! ;
-      this.origProject = this.utilSvc.shallowClone(this.curProj)
+      this.origProject = this.utilSvc.cloneProj(this.curProj)
     } else {    // Create new project
       const curDt = new Date() ;
       this.newRow = true ;

@@ -13,7 +13,6 @@ import { House } from './../../models/house.model';
 import { NavigationEnd, Router } from '@angular/router';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-cretran',
   templateUrl: './cretran.component.html',
   styleUrls: ['./cretran.component.css']
@@ -29,7 +28,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   projects: Project[] = new Array<Project>() ;
   csvTranRecs: TranRec[] = new Array<TranRec>() ;
   qfxPreProcdTrans: TranRec[] = new Array<TranRec>() ;    // These trans already processed
-  accountArr: string[] = new Array<string>() ;   accountOne: string = '' ;
+  accountArr: string[] = new Array<string>() ;   accountOne = '' ;
   childMap: Map<string, TranRec[]> = new Map<string, TranRec[]>() ;
   debitTranRecs: TranRec[] = new Array<TranRec>() ;
   creditTranRecs: TranRec[] = new Array<TranRec>() ;
@@ -59,7 +58,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
         const lastPart = urlParts[urlParts.length-1]
         this.action = (['loadfile', 'createtran', 'search'].indexOf(lastPart) > -1) ?
           lastPart : 'search' 
-        if (this.action == 'createtran')  this.newRow = true ;
+        this.newRow =  (this.action === 'createtran') ? true : false
+        this.reInit()
         utilSvc.cDebug(this.CLASSNAME, 'Into url chg with action: ', this.action)
       }
     })
@@ -254,7 +254,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
       console.log('ReSetting newRow to true in 2 seconds')
       setTimeout(() => {
         this.newRow = true ;      // Refresh to get a clean add
-      }, 4000);
+      }, 1000);
       this.newRow = true ;      // Refresh to get a clean add
     }
     if (statusMsg)  this.dispMsgs.push(statusMsg) ;

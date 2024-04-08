@@ -10,7 +10,6 @@ import { RuleData } from '../../models/ruleData.model';
 import { GlobalModsService } from '../../services/globalMods.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-cretranall',
   templateUrl: './cretranall.component.html',
   styleUrls: ['./cretranall.component.css']
@@ -197,32 +196,37 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   onAddRecord(): void {
     // this.tranRec.ReconKey = '' ;
     this.utilSvc.cDebug(this.CLASSNAME, 'csvrecEd editmd: %s  DB: %s  Tran: %O', this.editMode, this.isInDB, this.tranRec) ;
+    const locTran = this.utilSvc.cloneTran(this.tranRec)
     if (this.isChild) {
       const locAction = (this.isInDB) ? this.utilSvc.actionTypes.Update : this.utilSvc.actionTypes.Add
-      this.tranMod.emit({ action: locAction, tranRec: this.tranRec }) ;
+      this.tranMod.emit({ action: locAction, tranRec: locTran }) ;
       this.expandedView = false ;     this.newRow = false ;
       return ;
     }
-    delete this.tranRec.SplitParent ;   // In case fld got something, move it out
+    delete locTran.SplitParent ;   // In case fld got something, move it out
     if (this.isDirty) {
-      this.utilSvc.dirtyTranUpdt(false, this.tranRec.TranId!)
+      this.utilSvc.dirtyTranUpdt(false, locTran.TranId!)
       this.isDirty = false ;
     }
     // if (this.isParent)   this.tranRec.Amount = 0 ;  // Clear amount as this is logical tran only
     this.utilSvc.cDebug(this.CLASSNAME, 'add isParent: %s  editMd: %s  isindb: %s  modeOp: %s  amt: %d',
-      this.isParent, this.editMode, this.isInDB, this.modeOp, this.tranRec.Amount)
+      this.isParent, this.editMode, this.isInDB, this.modeOp, locTran.Amount)
     if (!this.editMode || !this.isInDB) {   // New record or record from OFX not yet in DB
       this.editMode = true ;    // Record saved, now can edit
       this.utilSvc.cDebug(this.CLASSNAME, 'tranedit calling addTrans1') ;
-      this.fireSvc.addTrans(this.tranRec).
+      this.fireSvc.addTrans(locTran).
         then(docRef => {
+          locTran.TranId = docRef?.id ;
           this.tranRec.TranId = docRef?.id ;
+          console.log('in Add tranRec: %O  isParent: %s', locTran, this.isParent)
           if (this.isParent) {
-            this.storeChildRows(this.tranRec, this.splitChildren, this.useSplitChild) ;
+            console.log('Calling storeChildRows from add')
+            this.storeChildRows(locTran, this.splitChildren, this.useSplitChild) ;
           }
-          this.utilSvc.cDebug(this.CLASSNAME, 'Added record: %O', this.tranRec ) ;
+          this.utilSvc.cDebug(this.CLASSNAME, 'Added record: %O', locTran ) ;
           this.dispMsgs.push('Successfully added Record: ' + ++this.recordsAdded) ;
-          this.tranMod.emit({ action: this.utilSvc.actionTypes.Add, tranRec: this.tranRec }) ;
+          this.tranMod.emit({ action: this.utilSvc.actionTypes.Add, tranRec: locTran }) ;
+          if (this.modeOp === 'createtran' && !this.isChild) this.refreshCreate() 
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error Adding tran: %s', error) ;
         })
@@ -230,22 +234,24 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       if (!this.isInDB)   this.isInDB = true ;
       this.completedActions++ ;
     } else {
-      this.fireSvc.updateTran(this.tranRec, this.tranRec).
+      console.log('Came into else/update in addRecord')
+      this.fireSvc.updateTran(locTran, locTran).
         then(docRef => {
           this.dispMsgs.push('Update record successful') ;
-          this.utilSvc.cDebug(this.CLASSNAME, 'Update success, DocRef id: %s  TranId: %s', docRef?.id, this.tranRec.TranId) ;
+          this.utilSvc.cLog(this.CLASSNAME, 'Update success, isParent %s TranId: %s', this.isParent, locTran.TranId) ;
           this.expandedView = false ;
           if (this.isParent) {
-            this.storeChildRows(this.tranRec, this.splitChildren, this.useSplitChild) ;
+            console.log('calling storeChildRows from update')
+            this.storeChildRows(locTran, this.splitChildren, this.useSplitChild) ;
           }
-          this.tranMod.emit({ action: this.utilSvc.actionTypes.Update, tranRec: this.tranRec }) ;
+          this.tranMod.emit({ action: this.utilSvc.actionTypes.Update, tranRec: locTran }) ;
+          if (this.modeOp === 'createtran' && !this.isChild) this.refreshCreate() 
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'UpdtTranErr..RecordService: %s', error) ;
           this.dispMsgs.push('Error updating record') ;
         }) ;
       this.completedActions++ ;
     }
-    if (this.modeOp === 'createtran' && !this.isChild) this.refreshCreate() 
   }
 
   refreshCreate() {
@@ -258,13 +264,15 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.editMode = false ;
       this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
         0.0, '', '', '', '', '', '', '')      
-    }, 1500);   // Wait a second for data to be digested above before mods
+    }, 500);   // Wait a second for data to be digested above before mods
   }
+
   /*********************************************************************
     Delete current record
   ********************************************************************/
   onDeleteRecord(): void {    // I "think" this is fine for split trans as well
-    if (this.isParent && this.utilSvc.isTranDB(this.tranRec)) {
+    const locTran = this.utilSvc.cloneTran(this.tranRec)
+    if (this.isParent && this.utilSvc.isTranDB(locTran)) {
       for (const curTran of this.splitChildren) {     // For each child
         this.utilSvc.cDebug(this.CLASSNAME, 'Doing child %O', curTran)
         if (this.utilSvc.isTranDB(curTran)) {    // If child in DB
@@ -278,19 +286,19 @@ export class CretranallComponent  implements OnInit, OnDestroy {
         }
       }
     }
-    console.log('DeleteRec TranRec: %O  isChild: %s', this.tranRec, this.isChild)
-    if (this.utilSvc.isTranDB(this.tranRec)) {    // Tran is in DB
-      const delRtn = this.fireSvc.deleteTran(this.tranRec) ;
+    console.log('DeleteRec TranRec: %O  isChild: %s', locTran, this.isChild)
+    if (this.utilSvc.isTranDB(locTran)) {    // Tran is in DB
+      const delRtn = this.fireSvc.deleteTran(locTran) ;
       if ( typeof delRtn === 'boolean') { return ;
       } else {
         if (this.isDirty) {
-          this.utilSvc.dirtyTranUpdt(false, this.tranRec.TranId!)
+          this.utilSvc.dirtyTranUpdt(false, locTran.TranId!)
           this.isDirty = false ;
         }
         delRtn.then(docRef => {
           this.dispMsgs.push('Successfully deleted Record') ;
-          this.utilSvc.cDebug(this.CLASSNAME, 'Delete success, DocRef id %s  TranId: %s', docRef?.id, this.tranRec.TranId) ;
-          this.tranMod.emit({ action: this.utilSvc.actionTypes.Delete, tranRec: this.tranRec }) ;
+          this.utilSvc.cDebug(this.CLASSNAME, 'Delete success, DocRef id %s  TranId: %s', docRef?.id, locTran.TranId) ;
+          this.tranMod.emit({ action: this.utilSvc.actionTypes.Delete, tranRec: locTran }) ;
           this.expandedView = false ;
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'DeleteTranErr: %s', error) ;
@@ -300,7 +308,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.completedActions++ ;
     } else {
       if (this.isChild)     // onChildMod will remove from child arrays
-        this.tranMod.emit({ action: this.utilSvc.actionTypes.Delete, tranRec: this.tranRec }) ;
+        this.tranMod.emit({ action: this.utilSvc.actionTypes.Delete, tranRec: locTran }) ;
     }
   }
 
@@ -313,7 +321,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   ********************************************************************* */
   storeChildRows(tranRec: TranRec, childRows: TranRec[], useList: string[]) {
     // let lastRow = childRows.length - 1 ;
-    this.utilSvc.cDebug(this.CLASSNAME,'storeChildRows Parent: %O Children: %O  useList: %O ', tranRec, childRows, useList) ;
+    this.utilSvc.cLog(this.CLASSNAME,'storeChildRows Parent: %O Children: %O  useList: %O ', tranRec, childRows, useList) ;
     this.fireSvc.add2ChildMap(tranRec.TranId!, childRows) ;
     for (let i = 0; i < childRows.length; i++) {
       childRows[i].SplitParent = tranRec.TranId ;
@@ -368,11 +376,11 @@ export class CretranallComponent  implements OnInit, OnDestroy {
    *****************************************************************************/
   onRuleMod(action: string, parmType: string, newVal: any, oldVal: any): void {
     let actionCnt: number ;  let statusMsg = '' ;  
-    let fbGlobals = this.fireSvc.retrieveGlobals() ;
-    let accountTypes = this.fireSvc.getAcctTypes() ;
-    let categoryFolders = this.fireSvc.getCategoryFolders() ;
-    let ruleAdmin = this.fireSvc.getRuleAdmin() ;
-    let fullHouse = this.fireSvc.getFullHouses() ;
+    const fbGlobals = this.fireSvc.retrieveGlobals() ;
+    const accountTypes = this.fireSvc.getAcctTypes() ;
+    const categoryFolders = this.fireSvc.getCategoryFolders() ;
+    const ruleAdmin = this.fireSvc.getRuleAdmin() ;
+    const fullHouse = this.fireSvc.getFullHouses() ;
 
     [actionCnt, this.newRule, statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
       oldVal, fbGlobals, fullHouse, accountTypes, this.tranTypes, this.accounts,
@@ -387,7 +395,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
    *********************************************************************************** */
   onChildMod(action: string, tranRec: TranRec) {    // Need child in DB logic, coming
     this.utilSvc.cDebug(this.CLASSNAME, 'Called onChildMod action: %s Tran: %O', action, tranRec) ;
-    const idx = this.splitChildren.findIndex((tr) => tr === tranRec) ;
+    const idx = this.splitChildren.findIndex((tr) => tr.TranId === tranRec.TranId) ;
     switch (action) {
       case this.utilSvc.actionTypes.Delete:
         if (idx > -1) {
@@ -414,14 +422,15 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to unsplit this transaction?  This will' +
       ' lose all data associated with the children')) {
       this.tranRec.TranType = (this.tranRec.Amount > 0) ? 'CREDIT' : 'DEBIT' ;
+      const locTran = this.utilSvc.cloneTran(this.tranRec)
 
-      this.fireSvc.updateTran(this.tranRec, this.tranRec).
+      this.fireSvc.updateTran(locTran, locTran).
         then(() => {
           this.dispMsgs.push('Unsplit record successful') ;
-          this.utilSvc.cDebug(this.CLASSNAME, 'Unsplit Update success, TranId: %s', this.tranRec.TranId) ;
+          this.utilSvc.cDebug(this.CLASSNAME, 'Unsplit Update success, TranId: %s', locTran.TranId) ;
           this.expandedView = false ;
           this.isParent = false ;
-          if (this.tranRec.TranId) { this.fireSvc.rmvChildren4Parent(this.tranRec.TranId)}
+          if (locTran.TranId) { this.fireSvc.rmvChildren4Parent(locTran.TranId)}
           for (let i = 0; i < this.splitChildren.length; i++) {
             const curChild = this.splitChildren[i] ;
             if (this.utilSvc.isTranDB(curChild)) {  // If tran in DB
@@ -434,7 +443,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
               }
             }
           }
-          this.tranMod.emit({ action: this.utilSvc.actionTypes.UnSplit, tranRec: this.tranRec }) ;
+          this.tranMod.emit({ action: this.utilSvc.actionTypes.UnSplit, tranRec: locTran }) ;
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'UpdtTranErr..RecordService: %s', error) ;
           this.dispMsgs.push('Error UnSplitting record') ;

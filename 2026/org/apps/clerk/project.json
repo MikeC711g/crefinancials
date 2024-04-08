@@ -18,10 +18,9 @@
         "assets": ["apps/clerk/src/favicon.ico", "apps/clerk/src/assets"],
         "styles": [
           "node_modules/bootstrap/dist/css/bootstrap.min.css",
-          "apps/clerk/src/styles.css"],
-        "scripts": [
-          "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-        ]
+          "apps/clerk/src/styles.css"
+        ],
+        "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
       },
       "configurations": {
         "production": {
@@ -105,6 +104,22 @@
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "clerk:build"
+      }
+    },
+    "e2e": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/clerk/cypress.config.ts",
+        "testingType": "e2e",
+        "devServerTarget": "clerk:serve"
+      },
+      "configurations": {
+        "production": {
+          "devServerTarget": "clerk:serve:production"
+        },
+        "ci": {
+          "devServerTarget": "clerk:serve-static"
+        }
       }
     }
   }
