@@ -1,13 +1,11 @@
 <div class="container">
   <div class="row col-md-12">
     <div class="col-md-6">
-      <div class="row">
-        <label for="action">Action</label>
-        <select class="form-control" id="action" name="action"
-          [(ngModel)]="selectedAction" (change)="getActionInputs()">
-          <option *ngFor="let action of actions" [value]="action"
-            >{{ action }}</option>
-        </select>
+      <div *ngIf="labelStr.length > 0">
+        <div class="row col-md-12" *ngFor="let curLabel of labelStr">
+          {{ curLabel }}
+          <input type="file" (change)="handleJsonData($event, curLabel)" accept=".json" />
+        </div>
       </div>
       <div class="row" *ngIf="getSourceCid">
         <h2>Source data base information</h2>
@@ -45,11 +43,12 @@
     </div>
   </div>
   <div class="row" *ngIf="getGlobalTypes">
-    <h2>Which global types would you like to add or delete</h2>
+    <h2>Which global types would you like to remove</h2>
     <div class="row">
       <label for="globType">Global Type</label>
       <select class="form-control" id="globType" name="globType"
-        [(ngModel)]="selectedGlobalTypes" multiple>
+        [(ngModel)]="selectedGlobalType">
+        <option [value]="'All'">All Types</option>
         <option *ngFor="let globType of globalTypeArr" [value]="globType"
           >{{ globType }}</option>
       </select>
@@ -82,7 +81,7 @@
       <label for="house">House</label>
       <select class="form-control" id="house" name="house" [(ngModel)]="tfHouse">
         <option [value]="''">-- select an option --</option>
-        <option *ngFor="let house of fullHouses" [value]="house.name">{{ house.name }}</option>
+        <option *ngFor="let house of houses" [value]="house.name">{{ house.name }}</option>
       </select>
     </div>
     <div class="form-group">
@@ -91,51 +90,6 @@
         <option [value]="''">-- select an option --</option>
         <option *ngFor="let taxcat of taxCats" [value]="taxcat.RKey">{{ taxcat.RVal }}</option>
       </select>
-    </div>
-  </div>
-  <div class="row" *ngIf="getUUidInfo">
-    <h2>UUID info</h2>
-    <div class="row">
-      <label for="UUID">UUID</label>
-      <input type="text" name="uuid" id="uuid" [(ngModel)]="lUUid" ngModel>
-      <label for="uidrole">User Role</label>
-      <select class="form-control" id="uidrole" name="uidrole" [(ngModel)]="lRole">
-        <option [value]="''">-- select an option --</option>
-        <option *ngFor="let role of roleNames" [value]="role">{{ role }}</option>
-      </select>
-      <label for="eMail">eMail</label>
-      <input type="email" name="eMail" id="eMail" [(ngModel)]="eMail" ngModel>
-      <label for="pw">password</label>
-      <input type="password" name="pw" id="pw" [(ngModel)]="pw" ngModel>
-      <label for="cname">Company Name</label>
-      <input type="text" name="cname" id="cname" [(ngModel)]="cName" ngModel>
-      <label for="phone">Phone</label>
-      <input type="tel" name="phone" id="phone" [(ngModel)]="phone" ngModel>
-    </div>
-  </div>
-  <div class="row" *ngIf="selectedAction === 'handleUserActions'">
-    <h2>userAction info</h2>
-    <div class="row">
-      <label for="actionItem">Action to Process</label>
-      <select class="form-control" id="actionItem" name="actionItem"
-        [(ngModel)]="lUUid" (change)="selectURec()">
-        <option *ngFor="let uRec of custActions" [value]="uRec.uuid"
-          >{{ uRec.action }} {{ uRec.cName }}  {{ uRec.eMail }} </option>
-      </select>
-    </div>
-    <div class="row" *ngIf="uRecSelected !== null">
-      <h3>Data for currently selected action</h3>
-        <p><b>UID:</b>{{ uRecSelected.uuid }} <b>Action:</b> {{ uRecSelected.action }}
-          <b>Date Added:</b>{{ uRecSelected.dateAdded }}</p>
-        <p><b>eMail:</b>{{ uRecSelected.eMail }} <b>Phone:</b>{{ uRecSelected.phone }}
-          <b>Role:</b>{{ uRecSelected.role }} </p>
-        <p><b>Company Name:</b>{{ uRecSelected.cName }}</p>
-        <label for="cid">CID</label>
-        <input type="text" name="cid" id="cid" [(ngModel)]="uRecSelected.cid"
-          required ngModel>
-        <label for="dbpref">DB Prefix</label>
-        <input type="text" name="dbpref" id="dbpref" [(ngModel)]="uRecSelected.dbPrefix"
-          required ngModel>
     </div>
   </div>
   <div class="row">

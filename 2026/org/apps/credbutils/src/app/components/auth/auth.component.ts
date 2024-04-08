@@ -6,7 +6,6 @@ import { cUser } from './../../models/cUser.model';
 import { Router } from '@angular/router';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-auth',
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
@@ -34,7 +33,7 @@ export class AuthComponent  {
                 data.cid, data.dbPrefix, data.role) ;
               this.authSvc.user$.next(user) ;
               this.successMsg = 'You are now logged in' ;
-              this.router.navigate(['/clonedb']) ;
+              this.router.navigate(['/dbmaint']) ;
             } else {
               console.log('uid: %s not in Users collection', this.uid) ;
               this.errLogin(rslt.user.email, rslt.user.uid, rslt.user.refreshToken) ;

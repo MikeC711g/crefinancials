@@ -1,4 +1,3 @@
-import { KXref } from './../../models/kXref.model';
 import { Reconciliation } from './../../models/reconciliation.model';
 import { Project } from './../../models/project.model';
 import { TranRec } from './../../models/tranRec.model';
@@ -15,7 +14,6 @@ interface DbMeta {
 }
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-reports',
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']

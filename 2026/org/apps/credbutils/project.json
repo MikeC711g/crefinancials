@@ -21,10 +21,9 @@
         ],
         "styles": [
           "node_modules/bootstrap/dist/css/bootstrap.min.css",
-          "apps/credbutils/src/styles.css"],
-        "scripts": [
-          "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-        ]
+          "apps/credbutils/src/styles.css"
+        ],
+        "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
       },
       "configurations": {
         "production": {
@@ -78,7 +77,10 @@
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/credbutils/**/*.ts", "apps/credbutils/**/*.html"]
+        "lintFilePatterns": [
+          "apps/credbutils/**/*.ts",
+          "apps/credbutils/**/*.html"
+        ]
       }
     },
     "test": {
@@ -98,7 +100,23 @@
     "serve-static": {
       "executor": "@nx/web:file-server",
       "options": {
-        "buildTarget": "credbutils:build",
+        "buildTarget": "credbutils:build"
+      }
+    },
+    "e2e": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/credbutils/cypress.config.ts",
+        "testingType": "e2e",
+        "devServerTarget": "credbutils:serve"
+      },
+      "configurations": {
+        "production": {
+          "devServerTarget": "credbutils:serve:production"
+        },
+        "ci": {
+          "devServerTarget": "credbutils:serve-static"
+        }
       }
     }
   }

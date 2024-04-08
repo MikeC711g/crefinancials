@@ -23,9 +23,9 @@ export class AuthGuard  {
       }
       console.log('path: %s', route.routeConfig.path) ;
         switch (route.routeConfig.path) {
-        case 'loadutils':
-        case 'unloadutils':
-        case 'clonedb':
+        case 'useractions':
+        case 'dbmaint':
+        case 'repairs':
         case 'reports':
           return !!user ;
         default:

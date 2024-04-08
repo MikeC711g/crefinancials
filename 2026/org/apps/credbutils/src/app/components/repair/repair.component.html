@@ -1,0 +1,25 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="col-md-6">
+      <div class="row" *ngIf="getSourceCid">
+        <h2>Source data base information</h2>
+        <div class="row">
+          <label for="dbPrefix">DB Prefix</label>
+          <input type="text" name="dbPrefix" id="dbPrefix" [(ngModel)]="sourceDbPrefix" ngModel>
+        </div>
+        <div class="row">
+          <label for="cid">Customer ID</label>
+          <input type="text" name="cid" id="cid" [(ngModel)]="sourceCid" ngModel (change)="onChgCid()">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn btn-primary col-md-2" type="button"
+    (click)="doAction()" *ngIf="selectedAction !== ''">{{ selectedAction }}</button>
+    <div class="col-md-2"></div>
+    <button class="btn btn-secondary col-md-2" type="button"
+      (click)="selectedAction = ''">Cancel</button>
+  </div>
+  <div> {{ statusMsg }} </div>
+</div>

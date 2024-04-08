@@ -1,0 +1,130 @@
+accounts K: phAccount V: checking
+accountType virtual
+accountType checking
+accountType savings
+accountType credit
+categoryFolders K: Mortgage Payment V: Mortgage Principal|$|Mortgage Escrow|$|Mortgage Interest|$|Mortgage Payment
+categoryFolders K: Business Income V: Late Fees & Other Income|$|Loan Income|$|Rent Income|$|Service Income|$|Other Business Income|$|Forfeited Security Deposits|$|Real Estate Sales
+categoryFolders K: Taxes V: Property Taxes|$|Income Taxes|$|Other Taxes
+categoryFolders K: Personal Income V: Dividends and Interest|$|W2 Income|$|Pension Income|$|Other Personal Income
+categoryFolders K: Insurance V: Property Insurance|$|Other Insurance
+categoryFolders K: Property Management V: Property Management
+categoryFolders K: NonTaxable V: Admin Account Management|$|Credit Card Payment|$|Other NonTaxable|$|Refunds|$|Reimbursements|$|Returns|$|Security Deposit|$|Uncategorized|$|Pet Deposit|$|Security Deposit Interest|$|Loan (Cash Out Loan)
+categoryFolders K: Legal & Professional Fees V: Legal Fees|$|Professional Fees
+categoryFolders K: Repairs & Maintenance V: Building Supplies|$|Flooring|$|Cleaning|$|Gen Tool and Supply|$|HVAC|$|Landscaping|$|Labor|$|Plumbing|$|Pest Control|$|Other Repair & Maintenance
+categoryFolders K: Utility Expense V: Gas & Propane|$|Water & Sewer|$|Electric|$|Internet|$|Utilities General|$|Garbage
+categoryFolders K: Personal Expenses V: Charity|$|Dining|$|Medical|$|Grocery|$|Household|$|Recreation|$|Other Personal Expense|$|Automotive|$|Health and Wellness|$|Pharmacy|$|Travel
+categoryFolders K: Office & Business Expense V: Administrative Expenses|$|Education and Dev|$|Bank Fees |$|Payroll|$|Advertising|$|Other Office & Business Expenses|$|Software and IT Expenses|$|Tenant/Buyer Screening
+categoryTaxcat K: Landscaping V: BE
+categoryTaxcat K: Other Taxes V: PE
+categoryTaxcat K: Other Office & Business Expenses V: BE
+categoryTaxcat K: Pest Control V: BE
+categoryTaxcat K: Security Deposit Interest V: NT
+categoryTaxcat K: Recreation V: NT
+categoryTaxcat K: Tenant/Buyer Screening V: BE
+categoryTaxcat K: Legal Fees V: BE
+categoryTaxcat K: W2 Income V: PI
+categoryTaxcat K: Mortgage Interest V: BE
+categoryTaxcat K: Mortgage Principal V: NT
+categoryTaxcat K: Other Insurance V: NT
+categoryTaxcat K: Loan Income V: BI
+categoryTaxcat K: Income Taxes V: PE
+categoryTaxcat K: Building Supplies V: BE
+categoryTaxcat K: Labor V: BE
+categoryTaxcat K: Education and Dev V: BE
+categoryTaxcat K: Credit Card Payment V: NT
+categoryTaxcat K: Gas & Propane V: NT
+categoryTaxcat K: Admin Account Management V: NT
+categoryTaxcat K: Other NonTaxable V: NT
+categoryTaxcat K: Mortgage Escrow V: NT
+categoryTaxcat K: Cleaning V: BE
+categoryTaxcat K: Dining V: NT
+categoryTaxcat K: Forfeited Security Deposits V: BI
+categoryTaxcat K: Real Estate Sales V: BI
+categoryTaxcat K: Medical V: NT
+categoryTaxcat K: Payroll V: BE
+categoryTaxcat K: Property Management V: BE
+categoryTaxcat K: Security Deposit V: NT
+categoryTaxcat K: Charity V: PE
+categoryTaxcat K: Pension Income V: PI
+categoryTaxcat K: Garbage V: BE
+categoryTaxcat K: Advertising V: BE
+categoryTaxcat K: Utilities General V: BE
+categoryTaxcat K: Automotive V: NT
+categoryTaxcat K: Gen Tool and Supply V: BE
+categoryTaxcat K: Pet Deposit V: NT
+categoryTaxcat K: HVAC V: BE
+categoryTaxcat K: Flooring V: BE
+categoryTaxcat K: Pharmacy V: NT
+categoryTaxcat K: Health and Wellness V: NT
+categoryTaxcat K: Other Personal Expense V: PE
+categoryTaxcat K: Other Personal Income V: PI
+categoryTaxcat K: Uncategorized V: NT
+categoryTaxcat K: Bank Fees  V: BE
+categoryTaxcat K: Returns V: NT
+categoryTaxcat K: Plumbing V: BE
+categoryTaxcat K: Grocery V: NT
+categoryTaxcat K: Reimbursements V: NT
+categoryTaxcat K: Travel V: NT
+categoryTaxcat K: Service Income V: BI
+categoryTaxcat K: Rent Income V: BI
+categoryTaxcat K: Water & Sewer V: BE
+categoryTaxcat K: Late Fees & Other Income V: BI
+categoryTaxcat K: Electric V: BE
+categoryTaxcat K: Mortgage Payment V: NT
+categoryTaxcat K: Internet V: BE
+categoryTaxcat K: Other Repair & Maintenance V: BE
+categoryTaxcat K: Property Taxes V: BE
+categoryTaxcat K: Property Insurance V: BE
+categoryTaxcat K: Dividends and Interest V: PI
+categoryTaxcat K: Software and IT Expenses V: BE
+categoryTaxcat K: Professional Fees V: BE
+categoryTaxcat K: Refunds V: NT
+categoryTaxcat K: Administrative Expenses V: BE
+categoryTaxcat K: Loan (Cash Out Loan) V: NT
+categoryTaxcat K: Household V: NT
+categoryTaxcat K: Other Business Income V: BI
+houses 123MS
+houses 321TS
+ruleData SS: AUTOMATIC PAYMENT SA: 0.0001 Cat: Credit Card Payment acc: phAccount Hse: undefined TC: NT
+ruleData SS: LOWES SA: 0.0001 Cat: Building Supplies acc: phAccount Hse: undefined TC: BE
+ruleData SS: CONSUMER CELLULAR SA: 0.0001 Cat: Administrative Expenses acc: phAccount Hse: undefined TC: BE
+ruleData SS: SPECTRUM SA: 0.0001 Cat: Utilities General acc: phAccount Hse: 123MS TC: BE
+ruleData SS: SMITH APARTMENTS.COM SA: 0.0001 Cat: Rent Income acc: phAccount Hse: 123MS TC: BI
+ruleData SS: DUKE ENERGY PROGRESS SA: 0.0001 Cat: Electric acc: phAccount Hse: 123MS TC: BE
+ruleData SS: ZELLE SA: 0.0001 Cat: Contractor acc: phAccount Hse: undefined TC: BE
+ruleData SS: PUBLIX SA: 0.0001 Cat: Grocery acc: phAccount Hse: undefined TC: NT
+ruleData SS: JONES APARTMENTS.COM SA: 0.0001 Cat: Rent Income acc: phAccount Hse: 321TS TC: BI
+ruleData SS: TO LOAN 10086833 SA: 0.0001 Cat: Mortgage Payment acc: phAccount Hse: 123MS TC: NT
+ruleData SS: FOREMOST INSURANCE SA: 0.0001 Cat: Property Insurance acc: phAccount Hse: undefined TC: BE
+ruleData SS: SPLIT RATE APY SA: 0.0001 Cat: Dividends and Interest acc: phAccount Hse: undefined TC: PI
+ruleData SS: REDEEMER CHURCH FV SA: 0.0001 Cat: Charity acc: phAccount Hse: undefined TC: PE
+ruleData SS: JACOBSEN PROPERTY MANAGEMENT SA: -200 Cat: Property Management acc: phAccount Hse: 321TS TC: BE
+ruleData SS: WILSON ACCOUNTING SA: 0.0001 Cat: Administrative Expenses acc: phAccount Hse: undefined TC: BE
+ruleData SS: TO LOAN 10043768 SA: 0.0001 Cat: Mortgage Payment acc: phAccount Hse: 321TS TC: NT
+taxCats K: BI V: Business Income
+taxCats K: ?? V: Unknown
+taxCats K: BE V: Business Expense
+taxCats K: PI V: Personal Income
+taxCats K: CE V: Capital Expense
+taxCats K: NT V: Not Tax Related
+taxCats K: PE V: Personal Expense
+tranType ATM
+tranType DIRECTDEBIT
+tranType HOLD
+tranType CHECK
+tranType PAYMENT
+tranType DEBIT
+tranType POS
+tranType TPARENT
+tranType CREDIT
+tranType SRVCHG
+tranType REPEATPMT
+tranType DEP
+tranType FEE
+tranType DIV
+tranType CASH
+tranType XFER
+tranType INT
+tranType OTHER
+ ;

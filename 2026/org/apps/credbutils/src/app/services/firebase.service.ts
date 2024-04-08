@@ -14,6 +14,7 @@ import { RuleData } from '../models/ruledata.model';
 import { House } from '../models/house.model';
 import { KeyVal } from '../models/keyval.model';
 import { UserRec } from '../models/UserRec.model';
+import { GenutilsService } from './genutils.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,11 +25,8 @@ export class FirebaseService {
   isAuthenticated = false ;
   globalsNm = 'GlobalVars' ;  tranNm = 'Transactions' ;  userNm = 'Users';  custNm = 'newCustomer'
   projNm = 'Projects' ;  reconNm = 'Reconciliations' ;
-  globalTypes = { RuleData: 'ruleData', TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
-    Houses: 'houses', TranType: 'tranType', Accounts: 'accounts', AccountType: 'accountType',
-    CategoryFolders: 'categoryFolders', Logging: 'logging' } ;
 
-  constructor(private firestore: Firestore) { }
+  constructor(private firestore: Firestore, private utilSvc: GenutilsService) { }
 
   captureAuth(isAuth: boolean, role: string, cid: string, dbPrefix: string) {
     console.log('Into captureAuth isAuth: %s  role: %s dbPrefix: %s  cid: %s',
@@ -67,6 +65,7 @@ export class FirebaseService {
   }
 
   getGlobalType(cid: string, dbPrefix: string, rKey: string): Observable<Globals[]> {
+    if (rKey === 'All')  return this.getAllGlobals(cid, dbPrefix) ;
     const globQuery: QueryConstraint[] = [where('Cid', '==', cid),
       where('RKey', '==', rKey)] ;
     return collectionData<Globals>(query(
@@ -136,9 +135,10 @@ export class FirebaseService {
   }
 
   addGlobalMultFld(cid: string, dbPrefix: string, rKey: string, rVal: any) : Promise<any> {
+    const globalTypes = this.utilSvc.globalTypes ;
     let cRule: RuleData ;  let cHouse: House ;  let cCategory: KeyVal ;
     switch(rKey) {
-      case this.globalTypes.RuleData:
+      case globalTypes.RuleData:
         cRule = rVal ;
         if (cRule.Annotation === undefined) { delete cRule.Annotation ; }
         if (cRule.Category === undefined) { delete cRule.Category ; }
@@ -148,14 +148,14 @@ export class FirebaseService {
         if (cRule.TranType === undefined) { delete cRule.TranType ; }
         return addDoc(collection(this.firestore, this.globalsNm),
           {RKey: rKey, RVal: { ...cRule }, Cid: cid }) ; break ;
-      case this.globalTypes.Houses:
+      case globalTypes.Houses:
         cHouse = rVal ;
         return addDoc(collection(this.firestore, this.globalsNm),
           {RKey: rKey, RVal: { ...cHouse }, Cid: cid }) ; break ;
-      case this.globalTypes.CategoryTaxcats:
-      case this.globalTypes.CategoryFolders:
-      case this.globalTypes.Accounts:
-      case this.globalTypes.TaxCats:
+      case globalTypes.CategoryTaxcats:
+      case globalTypes.CategoryFolders:
+      case globalTypes.Accounts:
+      case globalTypes.TaxCats:
         cCategory = rVal ;
         return addDoc(collection(this.firestore, this.globalsNm),
           {RKey: rKey, RVal: { ...cCategory }, Cid: cid }) ; break ;

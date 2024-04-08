@@ -8,5 +8,6 @@ export class UserRec {
     public eMail: string,
     public phone: string,
     public role: string,
+    public activeU: boolean,
     public uuid?: string) {}
 }
