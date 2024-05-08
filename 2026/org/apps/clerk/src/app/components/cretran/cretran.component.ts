@@ -59,7 +59,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
         this.action = (['loadfile', 'createtran', 'search'].indexOf(lastPart) > -1) ?
           lastPart : 'search' 
         this.newRow =  (this.action === 'createtran') ? true : false
-        this.reInit()
+        this.reInit() ;  this.dispMsgs.splice(0, this.dispMsgs.length)
         utilSvc.cDebug(this.CLASSNAME, 'Into url chg with action: ', this.action)
       }
     })
@@ -70,8 +70,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.endDt = curDt.toISOString().slice(0, 10)
     this.startDt = this.utilSvc.getDate(curDt, -45) ;
     this.onRefreshParms(this.startDt, this.endDt) ;
-    const idx = this.utilSvc.dirtyTrans.length ;
-    if (idx > 0) this.utilSvc.dirtyTrans.splice(0, idx)
+    const dirtyTranLen = this.utilSvc.dirtyTrans.length ;
+    if (dirtyTranLen > 0) this.utilSvc.dirtyTrans.splice(0, dirtyTranLen)
   }
 
   reInit() {    // When URL changes (different subMenu)
@@ -151,7 +151,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   onDateMod(numDays: number, startDt: string, endDt: string): void {
     this.utilSvc.cDebug(this.CLASSNAME, 'onDtMd adv: %s', this.advancedSrch.isOn)
     this.numDays = numDays ;  this.startDt = startDt ;  this.endDt = endDt ;
-    if (!this.advancedSrch.isOn)  this.onQueryDates(startDt, endDt) ;
+    // if (!this.advancedSrch.isOn)  this.onQueryDates(startDt, endDt) ;
   }
 
   // Might be issue if dates not selected when other items are
@@ -172,9 +172,10 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   /*****************************************************************************
      Query the transaction data base for trans between the dates
    ****************************************************************************/
-  onQueryDates(startDate: string, endDate: string, inTranQ?: TranQ): void {
+  onQueryDates(startDate: string = this.startDt, endDate: string = this.endDt, inTranQ?: TranQ): void {
     const tq = (inTranQ) ? inTranQ : new TranQ(startDate, endDate, '', this.accountArr) ;
     const tranQ$ = this.fireSvc.getTransFromDB(tq) ;
+    console.log('onQueryDates from cretran st: %s  en: %s  tq: %O', startDate, endDate, tq)
     this.tran$ = tranQ$.subscribe({
       next: (response => {
         this.utilSvc.cLog(this.CLASSNAME, 'Success back in on QueryDates tranq: %O', tq)
@@ -278,9 +279,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   }
 
   canDeactivate(): boolean {
-    this.utilSvc.cDebug(this.CLASSNAME, 'Trans called canDeactivate') ;
-    if (this.utilSvc.dirtyTrans.length > 0)
-      this.utilSvc.cLog(this.CLASSNAME, 'tranCanDeact dirty trans: %O', this.utilSvc.dirtyTrans) ;
+    this.utilSvc.cLog(this.CLASSNAME, 'Trans called canDeactivate dirtyTranLen: %d dirtyTran: %O',
+      this.utilSvc.dirtyTrans.length, this.utilSvc.dirtyTrans) ;
     return (this.utilSvc.dirtyTrans.length === 0) ? true :
       confirm("There are unsaved changes, exit anyway?") ;
     }
@@ -330,7 +330,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.global$.unsubscribe() ;
     this.action$.unsubscribe() ;
     this.tran$.unsubscribe() ;
-    const idx = this.utilSvc.dirtyTrans.length ;
-    if (idx > 0) this.utilSvc.dirtyTrans.splice(0, idx)
+    const dirtyTranLen = this.utilSvc.dirtyTrans.length ;
+    if (dirtyTranLen > 0) this.utilSvc.dirtyTrans.splice(0, dirtyTranLen)
   }
 }

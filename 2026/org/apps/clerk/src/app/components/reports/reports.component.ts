@@ -32,7 +32,6 @@ interface MapVal {
 }
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-reports',
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']
@@ -67,7 +66,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
     { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsData,
       acctList: true, moreData: true} ]
          // Generic report parms and info
-  advancedSrch = { isOn: false } ;    // Force the button for now, complex logic
   startDt = '' ;  endDt = '' ;  reportReady = false ;  screenDisplay = false ;
   selectedReport = '' ;  selectedType = '' ;  selectedHouse = '' ;
   reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
@@ -106,14 +104,14 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
     private route: Router) {
-    for (let rinfo of this.reportList) { this.reportArr.push(rinfo.url) }
+    for (const rinfo of this.reportList) { this.reportArr.push(rinfo.url) }
     this.report$ = route.events.subscribe((routeUrl) => {
       if (routeUrl instanceof NavigationEnd) {
         const urlParts = routeUrl.url.split('/') ;
         const lastPart = urlParts[urlParts.length-1]
         this.selectedReport = (this.reportArr.indexOf(lastPart) > -1) ?
           lastPart : 'profitnloss' 
-        this.onSelectRpt()
+        this.onSelectRpt() ; this.dispMsgs.splice(0, this.dispMsgs.length)
         utilSvc.cDebug(this.CLASSNAME, 'Into url chg with report: ', this.selectedReport)
       }
     })
@@ -504,6 +502,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
     const dlAnchor = document.createElement('a')
     dlAnchor.setAttribute("href", encodedData)
     dlAnchor.setAttribute("download", fileName)
+    dlAnchor.setAttribute("dataType", "rtf")
+    dlAnchor.setAttribute("Content-Disposition", "attachment")
     document.body.appendChild(dlAnchor)
     dlAnchor.click()
     dlAnchor.remove()

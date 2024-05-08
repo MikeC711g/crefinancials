@@ -8,7 +8,6 @@ import { GenutilsService } from './../../services/genutils.service';
 import { FirebaseService } from './../../services/firebase.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-auth',
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']

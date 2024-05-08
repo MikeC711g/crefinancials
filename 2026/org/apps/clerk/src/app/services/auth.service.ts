@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Auth, UserCredential, User, createUserWithEmailAndPassword, deleteUser,
   sendPasswordResetEmail, signInWithEmailAndPassword, signOut, 
-  sendEmailVerification} from '@angular/fire/auth' ;
+  sendEmailVerification, updatePassword} from '@angular/fire/auth' ;
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { BehaviorSubject } from 'rxjs';
 import { GenutilsService } from './genutils.service';
@@ -39,6 +39,11 @@ export class AuthService {
 
   resetPassword(eMail: string): Promise<any> {
     return sendPasswordResetEmail(this.auth, eMail)
+  }
+
+  changePassword(user: User, oldPw: string, newPw: string): Promise<any> | string {
+    return (this.auth.currentUser) ? updatePassword(this.auth.currentUser!, newPw) :
+      'Must be signed in to use this feature'
   }
 
   createUser(email: string, password: string): Promise<UserCredential> {

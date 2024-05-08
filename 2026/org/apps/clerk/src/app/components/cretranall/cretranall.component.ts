@@ -60,6 +60,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.newRow = true ;
       this.expandedView = (this.isChild) ? this.newExpand : true ;
       this.tranRec.TranDate = new Date().toISOString().slice(0, 10) ;
+      this.tranRec.TranId = this.utilSvc.generateGuid() ;
       if (this.isParent) this.addNewChildren() ;
     } else {
       this.editMode = true ;
@@ -94,8 +95,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
               this.utilSvc.cWarn(this.CLASSNAME, 'UpdtTranErr..RecordService: %s', error) ;
               this.dispMsgs.push('Error updating parent record to inflate amount to match children') ;
             }) ;
-          }
-        else this.dispMsgs.push('TranAmount of parent does not match that of children')
+        } else this.dispMsgs.push('TranAmount of parent does not match that of children')
       }
     }
     this.accounts = this.fireSvc.getAccounts() ;
@@ -154,18 +154,27 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   calcSplitAmount(tranRecs: TranRec[], useList: string[]): [number, number] {
     let curAmt = 0 ;
     for (let i = 0; i < tranRecs.length; i++) {
-      if (tranRecs[i].TranId ||   // If row in DB or action is Add or update
+      // tranid blank (during db add) or real db tranid or add or update action
+      if (!tranRecs[i].TranId || this.utilSvc.isTranDB(tranRecs[i]) ||
         useList[i] === this.utilSvc.actionTypes.Add || useList[i] === this.utilSvc.actionTypes.Update) {
         curAmt += tranRecs[i].Amount ;
       }
     }
+    this.utilSvc.cLog(this.CLASSNAME, 'CalcSplitAmt amt %d tranAmt %d', curAmt, this.tranRec.Amount)
     return [this.utilSvc.fixAmt(curAmt), this.utilSvc.fixAmt(this.tranRec.Amount - curAmt)] ;
   }
 
   chgData() {
-    if (!this.isDirty) {
+    if (!this.isDirty && this.tranRec.TranId) {
       this.isDirty = true ;
-      this.utilSvc.dirtyTranUpdt(true, this.tranRec.TranId!)
+      this.utilSvc.dirtyTranUpdt(true, this.tranRec.TranId)
+    }
+  }
+
+  cleanData(tranId = this.tranRec.TranId) {   // When data is no longer dirty (saved, deleted, cancelled)
+    if (this.isDirty && tranId) {
+      if (tranId === this.tranRec.TranId) this.isDirty = false ;
+      this.utilSvc.dirtyTranUpdt(false, tranId)
     }
   }
 
@@ -200,14 +209,12 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     if (this.isChild) {
       const locAction = (this.isInDB) ? this.utilSvc.actionTypes.Update : this.utilSvc.actionTypes.Add
       this.tranMod.emit({ action: locAction, tranRec: locTran }) ;
+      this.cleanData()
       this.expandedView = false ;     this.newRow = false ;
       return ;
     }
     delete locTran.SplitParent ;   // In case fld got something, move it out
-    if (this.isDirty) {
-      this.utilSvc.dirtyTranUpdt(false, locTran.TranId!)
-      this.isDirty = false ;
-    }
+    this.cleanData()
     // if (this.isParent)   this.tranRec.Amount = 0 ;  // Clear amount as this is logical tran only
     this.utilSvc.cDebug(this.CLASSNAME, 'add isParent: %s  editMd: %s  isindb: %s  modeOp: %s  amt: %d',
       this.isParent, this.editMode, this.isInDB, this.modeOp, locTran.Amount)
@@ -275,6 +282,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     if (this.isParent && this.utilSvc.isTranDB(locTran)) {
       for (const curTran of this.splitChildren) {     // For each child
         this.utilSvc.cDebug(this.CLASSNAME, 'Doing child %O', curTran)
+        this.cleanData(curTran.TranId)
         if (this.utilSvc.isTranDB(curTran)) {    // If child in DB
           const delRtn = this.fireSvc.deleteTran(curTran, false) ;
           if (typeof delRtn === 'boolean') {  return ; }
@@ -291,11 +299,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       const delRtn = this.fireSvc.deleteTran(locTran) ;
       if ( typeof delRtn === 'boolean') { return ;
       } else {
-        if (this.isDirty) {
-          this.utilSvc.dirtyTranUpdt(false, locTran.TranId!)
-          this.isDirty = false ;
-        }
-        delRtn.then(docRef => {
+          this.cleanData()
+          delRtn.then(docRef => {
           this.dispMsgs.push('Successfully deleted Record') ;
           this.utilSvc.cDebug(this.CLASSNAME, 'Delete success, DocRef id %s  TranId: %s', docRef?.id, locTran.TranId) ;
           this.tranMod.emit({ action: this.utilSvc.actionTypes.Delete, tranRec: locTran }) ;
@@ -308,6 +313,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.completedActions++ ;
     } else {
       if (this.isChild)     // onChildMod will remove from child arrays
+        this.cleanData()
         this.tranMod.emit({ action: this.utilSvc.actionTypes.Delete, tranRec: locTran }) ;
     }
   }
@@ -325,6 +331,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     this.fireSvc.add2ChildMap(tranRec.TranId!, childRows) ;
     for (let i = 0; i < childRows.length; i++) {
       childRows[i].SplitParent = tranRec.TranId ;
+      this.cleanData(childRows[i].TranId)
       switch (useList[i]) {
         case this.utilSvc.actionTypes.Update:
           this.utilSvc.cDebug(this.CLASSNAME, 'Update on childRow')
@@ -344,7 +351,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
           this.fireSvc.addTrans(childRows[i]).
           then(docRef => {
             childRows[i].TranId = docRef?.id ;
-            this.utilSvc.cDebug(this.CLASSNAME, 'Back well to cpte w/childRow: %O', childRows[i])
+            this.utilSvc.cLog(this.CLASSNAME, 'Back well to cpte w/childRow: %O', childRows[i])
           }).catch(error => {
             this.utilSvc.cDebug(this.CLASSNAME, 'Error %s adding %O', error, childRows[i])
           })
@@ -355,6 +362,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
         default:
           this.utilSvc.cWarn(this.CLASSNAME, 'Invalid action: %s  on ChileRowI: %O', useList[i], childRows[i]) ;
       }
+      useList[i] = ''
     }
   }
 
@@ -433,6 +441,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
           if (locTran.TranId) { this.fireSvc.rmvChildren4Parent(locTran.TranId)}
           for (let i = 0; i < this.splitChildren.length; i++) {
             const curChild = this.splitChildren[i] ;
+            this.cleanData(curChild.TranId)
             if (this.utilSvc.isTranDB(curChild)) {  // If tran in DB
               const delRtn = this.fireSvc.deleteTran(curChild, false) ;
               if (typeof delRtn !== 'boolean') {
@@ -463,10 +472,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     Cancel work on current record
   ********************************************************************/
   onCancel(): void {
-    if (this.isDirty) {
-      this.utilSvc.dirtyTranUpdt(false, this.tranRec.TranId!)
-      this.isDirty = false ;
-    }
+    this.cleanData()
     if (this.modeOp === 'createTran')  this.refreshCreate()
     else {
       this.tranMod.emit({ action: this.utilSvc.actionTypes.Cancel, tranRec: this.tranRec }) ;
@@ -488,9 +494,11 @@ export class CretranallComponent  implements OnInit, OnDestroy {
           // Add can fail w/no splitParent. So providing it
       if (!this.tranRec.SplitParent) { this.tranRec.SplitParent = '' ; }
       this.utilSvc.cDebug(this.CLASSNAME, 'Parent Change add Tran %O', this.tranRec) ;
+      this.utilSvc.dirtyTranUpdt(false, this.tranRec.TranId!) // Clean up old tranid ref
         // Add the doc and tell caller it's new as won't be in array
       this.fireSvc.addTrans(this.tranRec).then(docRef => {
         this.tranRec.TranId = docRef.id ;
+        this.utilSvc.dirtyTranUpdt(true, this.tranRec.TranId!)  // Now show dirty under new tranid
         this.tranMod.emit({ action: this.utilSvc.actionTypes.SplitNew, tranRec: this.tranRec }) ;
         this.isInDB = true ;   this.editMode = true ;
       }).catch(error => {
@@ -500,12 +508,6 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.tranMod.emit({ action: this.utilSvc.actionTypes.Split, tranRec: this.tranRec }) ;
     }
     this.addNewChildren()
-  }
-
-  isBalChg() {
-    if (this.isParent && this.splitChildren.length > 0) {
-      this.deltaAmt = this.tranRec.Amount - this.allocdAmt
-    }
   }
 
   /*********************************************************************

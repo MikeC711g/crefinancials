@@ -1,5 +1,5 @@
 <div class="container">
-  <div class="row col-md-12" *ngIf="selectedType === 'houses'">
+  <div class="row col-md-12" *ngIf="selectedType === 'houses' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newHouse = !newHouse">
       Add House</button>
     <div *ngIf="newHouse">
@@ -16,7 +16,7 @@
       </li>
     </ul>
   </div>
-  <div class="row col-md-12" *ngIf="selectedType === 'accountType'">
+  <div class="row col-md-12" *ngIf="selectedType === 'accountType' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newAccountTypes = !newAccountTypes">
       Add Account Type</button>
     <div *ngIf="newAccountTypes">
@@ -34,7 +34,7 @@
         [parmLabel]="'Account Type:'"></app-adm1parm></li>
     </ul>
   </div>
-  <div class="col-md-12" *ngIf="selectedType === 'accounts'">
+  <div class="col-md-12" *ngIf="selectedType === 'accounts' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newAccounts = !newAccounts">
       New {{ selectedType }}</button>
     <div *ngIf="newAccounts">
@@ -52,7 +52,7 @@
           $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></app-admkv></li>
     </ul>
   </div>
-  <div class="col-md-12" *ngIf="selectedType === 'tranType'">
+  <div class="col-md-12" *ngIf="selectedType === 'tranType' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newTranTypes = !newTranTypes">
       Add Tran Type</button>
     <div *ngIf="newTranTypes">
@@ -71,7 +71,7 @@
         [parmLabel]="'TranType:'"></app-adm1parm></li>
     </ul>
   </div>
-  <div class="col-md-12" *ngIf="selectedType === 'taxCats'">
+  <div class="col-md-12" *ngIf="selectedType === 'taxCats' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newTaxCats = !newTaxCats">
       New {{ selectedType }} </button>
     <div *ngIf="newTaxCats">
@@ -89,13 +89,13 @@
           $event.newVal, $event.oldVal)"></app-admkv></li>
     </ul>
   </div>
-  <div class="col-md-12" *ngIf="selectedType === 'categoryTaxcat'">
+  <div class="col-md-12" *ngIf="selectedType === 'categoryTaxcat' && globalsLoaded">
     <h2>Manage Categories and Category Folders</h2>
     <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
       [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
       $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>
   </div>
-  <div class="col-md-12" *ngIf="selectedType === 'ruleData'">
+  <div class="col-md-12" *ngIf="selectedType === 'ruleData' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newRule = !newRule">
       Add Rule Data</button>
     <div *ngIf="newRule">
@@ -129,14 +129,14 @@
       <option [value]="''" [selected]="!overrideLevel">-- select an option --</option>
       <option *ngFor="let level of logLevels" [value]="level">{{ level }}</option>
     </select>
-  </div>
-  <div class="row col-md-12">
-    <ul>
-      <li *ngFor="let lClass of classList">
-        <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
-          (logMod)="onLogMod($event.className, $event.level)"></app-admlogging>
-      </li>
-    </ul>
+    <div class="row col-md-12">
+      <ul>
+        <li *ngFor="let lClass of classList">
+          <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
+            (logMod)="onLogMod($event.className, $event.level)"></app-admlogging>
+        </li>
+      </ul>
+    </div>
   </div>
   <div> {{ statusMsg }} </div>
 </div>

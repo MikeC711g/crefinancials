@@ -11,7 +11,6 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-admin',
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
@@ -37,7 +36,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   newRule = false ;  newHouse = false ;  newAccounts = false ;
   newTranTypes = false ;  newAccountTypes = false ;  newTaxCats = false ;
   statusMsg = '' ;
-  actionCounts = 0 ;
+  actionCounts = 0 ;  globalsLoaded = false
   fbGlobals: Globals[] = new Array<Globals>() ;
   admTypes: string[] = [] ;  action$: Subscription = new Subscription() ;
   cid = 'noCid' ;     noGid = 'noGid' ;
@@ -53,7 +52,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   // selectedType:  houses  accountType  accounts  tranType  taxCats  categoryTaxcat  ruleData  logging
         const lastPart = urlParts[urlParts.length-1]
         this.selectedType = (this.admTypes.indexOf(lastPart) > -1) ?
-          lastPart : 'profitnloss' 
+          lastPart : 'ruleData' 
         utilSvc.cDebug(this.CLASSNAME, 'Into url chg with report: ', this.selectedType)
       }
     })
@@ -61,14 +60,15 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
 
   ngOnInit(): void {
     this.logLevels = Object.values(this.utilSvc.msgLvls) ;
-    this.fbGlobals = this.fireSvc.retrieveGlobals() ;
+    // this.fbGlobals = this.fireSvc.retrieveGlobals() ;
+    this.globalsLoaded = false ;
     const admTypes = Object.values(this.utilSvc.globalTypes) ;
     this.admTypes = admTypes.filter((admTp) => !this.utilSvc.noAdminGlobalTypes.includes(admTp)) ;
     const globalSubj = this.fireSvc.getGlobals(true) ;
     this.cid = this.fireSvc.getCid() ;
     if (typeof globalSubj === 'boolean') {
       this.utilSvc.cDebug(this.CLASSNAME, 'Boolean response from getGlobals') ;
-      this.globalLoad() ;
+      this.globalLoad()
     } else {
       const global$ = globalSubj.subscribe({
         next: () => {
@@ -93,6 +93,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     this.ruleAdmin = this.fireSvc.getRuleAdmin() ;
     this.fullHouse = this.fireSvc.getFullHouses() ;
     this.loadLogging() ;    // Retrieve logging info
+    this.globalsLoaded = true
   }
 
   onLogMod(className: string, level: string): void {

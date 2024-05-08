@@ -13,13 +13,15 @@
         </select>
       </div>
       <div class="col-md-6"> <hr>
-        <app-datesel [title]="'Transaction'" [dateOpts]="dateOpts" [advQuery]="advancedSrch"
+        <app-datesel [title]="'Transaction'" [dateOpts]="dateOpts"
           (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
         <hr>
       </div>
-      <button class="btn btn-success col-md-3"  type="button" id="advancedSearch.isOn"
-      (click)="advancedSrch.isOn= !advancedSrch.isOn" data-cy="ctrn-advSrchBtn">{{advancedSrch.isOn ?
+      <button class="btn btn-success col-md-3"  type="button" id="advSrch"
+        (click)="advancedSrch.isOn= !advancedSrch.isOn" data-cy="ctrn-advSrchBtn">{{advancedSrch.isOn ?
         'Standard' : 'Advanced'}} Search</button>
+      <button class="btn btn-info col-md-3"  type="button" id="submitSearch" *ngIf="!advancedSrch.isOn"
+        (click)="onQueryDates()" data-cy="ctrn-subSrch">Execute Search</button>
       <div class="row col-md-12" *ngIf="advancedSrch.isOn">
         <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
           [fullHouses]="fullHouses" [projects]="projects" [taxCats]="taxCats"
@@ -30,7 +32,7 @@
     </div>
         <!-- inputs for loadfile -->
     <div class="row col-md-12" *ngIf="action === 'loadfile'">
-      <h2>Load OFX or QFX file of transactions</h2>
+      <h2>Load QFX or OFX file of Transactions</h2>
       <div class="col-md-6">
         <label for="trnAccount" title="Select account">Select Account</label>
         <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountOne"

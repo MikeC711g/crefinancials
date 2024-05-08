@@ -273,7 +273,6 @@ export class GenutilsService {
         if (tranDB) {     // Tran in DB, not coming from ofx/qfx/csv
           this.isrtTranRow(tranRec, destArr) ;
           runReCalc = true ;
-          statusMsg = 'Added row w/tranId; ' + tranRec.TranId ;
         }
         isNewRow = false ;    // Clear this "new" section
         break ;
@@ -281,12 +280,11 @@ export class GenutilsService {
         idx = destArr.findIndex((tr) => tr.TranId === tranRec.TranId) ;
         if (idx >= 0) {
           destArr[idx] = tranRec ;      // Update row in array
-          statusMsg = 'Updated row w/Tranid: ' + tranRec.TranId ;
         } else {                        // Amount may have changed
           srcArr = (tranRec.Amount < 0) ? creditTrans : debitTrans ;
           idx = srcArr.findIndex((tr) => tr.TranId === tranRec.TranId) ;
           if (idx < 0) {      // Not found anywhere
-            statusMsg =  'Update to tranid: ' + tranRec.TranId + ' failed as not found' ;
+            statusMsg =  'Update to tranid failed as tran not found' ;
           } else {      // Must delete from where it is and isrt to other array
             srcArr.splice(idx, 1) ;     // Rmv from where it is
             this.isrtTranRow(tranRec, destArr) ;  // Add to where it isn't (yet)
@@ -298,12 +296,11 @@ export class GenutilsService {
       case this.actionTypes.Delete:
         idx = destArr.findIndex((tr) => tr.TranId === tranRec.TranId) ;
         if (idx < 0) {
-          statusMsg = 'Tranid: ' + tranRec.TranId + ' Not found, cannot delete' ;
+          statusMsg = 'Tranid not found, cannot delete' ;
         } else {
           this.cLog(this.CLASSNAME, 'del preLen: %d  idx: %d  Row: %O', destArr.length, idx, destArr[idx])
           destArr.splice(idx, 1) ;
           this.cLog(this.CLASSNAME, 'del postLen: %d', destArr.length)
-          statusMsg = 'Deleted row w/Tranid: ' + tranRec.TranId ;
         }
         runReCalc = true ;
         break ;
@@ -323,7 +320,6 @@ export class GenutilsService {
         idx = srcArr.findIndex((tr) => tr.TranId === tranRec.TranId) ;
         srcArr.splice(idx, 1) ;
         this.isrtTranRow(tranRec, destArr) ;
-        statusMsg = 'Moved row w/Tranid: ' + tranRec.TranId ;
         runReCalc = true ;
         break ;
       case this.actionTypes.Split:    // Make sure array change noted, replace row

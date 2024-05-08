@@ -8,7 +8,6 @@ import { Project } from './../../../models/project.model';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-creprojectedit',
   templateUrl: './creprojectedit.component.html',
   styleUrls: ['./creprojectedit.component.css']
@@ -59,11 +58,13 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
     Add the projec created to the data base or update it
   ********************************************************************/
   onAddProject(): void {
+    const oldId = this.curProj.ProjectId!
     if (!this.editMode) {
       this.editMode = true ;    // Project saved, now can edit
       this.utilSvc.cDebug(this.CLASSNAME, 'about to addProject') ;
       this.fireSvc.addProject(this.curProj).
         then(docRef => {
+          this.utilSvc.dirtyProjUpdt(false, oldId)
           this.curProj.ProjectId = docRef?.id ;
           this.expandedView = false ;
           this.utilSvc.cDebug(this.CLASSNAME, 'Added proj w/ID %s', this.curProj.ProjectId);
@@ -81,6 +82,7 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
       this.utilSvc.cDebug(this.CLASSNAME, 'Updating project') ;
       this.fireSvc.updateProject(this.curProj, this.origProject).
         then(docRef => {
+          this.utilSvc.dirtyProjUpdt(false, oldId)
           this.expandedView = false ;
           this.projMod.emit({action: this.utilSvc.actionTypes.Update, project: this.curProj}) ;
           this.utilSvc.cDebug(this.CLASSNAME, 'projUpd docRef: %O', docRef) ;
@@ -102,8 +104,10 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
   ********************************************************************/
   onDeleteProject(): void {
     this.utilSvc.cDebug(this.CLASSNAME,'csvProjEd delete Proj: %O', this.curProj) ;
+    const oldId = this.curProj.ProjectId!
     this.fireSvc.deleteProj(this.curProj).
       then(docRef => {
+        this.utilSvc.dirtyProjUpdt(false, oldId)
         this.projMod.emit({action: this.utilSvc.actionTypes.Delete, project: this.curProj}) ;
         this.utilSvc.cDebug(this.CLASSNAME, 'projDel docRef: %O', docRef) ;
         if (!this.curProj.ProjectId || this.curProj.ProjectId === '') {
@@ -139,6 +143,7 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
     Cancel any action that was taking place
   ********************************************************************/
   onCancel(): void {
+    this.utilSvc.dirtyProjUpdt(false, this.curProj.ProjectId!)
     this.projMod.emit({action: this.utilSvc.actionTypes.Cancel, project: this.curProj}) ;
     this.utilSvc.cDebug(this.CLASSNAME,'csvProjEd cancel Proj: %O', this.curProj) ;
     this.expandedView = false ;

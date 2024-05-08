@@ -10,7 +10,6 @@ import { DeactivatableComponent } from './../..//interfaces/deactivatableCompone
 // import { House } from 'src/app/models/house.model';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-creprojects',
   templateUrl: './creprojects.component.html',
   styleUrls: ['./creprojects.component.css']
@@ -123,6 +122,7 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
   }
 
   canDeactivate() {
+    this.utilSvc.cLog('canDeact proj dirtyLen: %d', this.utilSvc.dirtyProj.length)
     if (this.utilSvc.dirtyProj.length > 0)
       this.utilSvc.cLog(this.CLASSNAME, 'deActivateProj dirty projects: %O', this.utilSvc.dirtyProj)
     return (this.utilSvc.dirtyProj.length === 0) ? true :

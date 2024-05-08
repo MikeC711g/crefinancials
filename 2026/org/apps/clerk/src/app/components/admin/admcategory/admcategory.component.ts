@@ -5,7 +5,6 @@ import { GenutilsService } from './../../../services/genutils.service';
 import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-admcategory',
   templateUrl: './admcategory.component.html',
   styleUrls: ['./admcategory.component.css']
