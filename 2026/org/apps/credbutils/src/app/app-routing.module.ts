@@ -33,7 +33,8 @@ const routes: Routes = [
   ] },
   { path: 'repairs', component: RepairComponent, canActivate: [AuthGuard], children: [
     { path: 'addname2rules', component: RepairComponent },
-    { path: 'fixnameinglobals', component: RepairComponent }
+    { path: 'fixnameinglobals', component: RepairComponent },
+    { path: 'modcategories', component: RepairComponent }
   ] },
   { path: 'reports', component: ReportsComponent, canActivate: [AuthGuard] }
 ];

@@ -250,6 +250,10 @@ export class FirebaseService {
     return getDocs(collection(this.firestore, 'newCustomer'))
   }
 
+  loadAllGlobals():Promise<QuerySnapshot<DocumentData>> {
+    return getDocs(collection(this.firestore, 'GlobalVars'))
+  }
+
   loadAllTrans(dbPref: string): Promise<QuerySnapshot<DocumentData>> {
     return getDocs(collection(this.firestore, dbPref+'Transactions'))
   }
