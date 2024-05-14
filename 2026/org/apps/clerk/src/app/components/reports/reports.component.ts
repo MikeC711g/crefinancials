@@ -11,6 +11,11 @@ import { TranQ } from './../../models/TranQ.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
+import { jsPDF } from "jspdf";
+import { addPage } from 'pdfkit';
+
+// import * as PDFDocument from 'pdfkit';
+// import * as blobStream from 'blob-stream'
 
 interface RptInfo {
   name: string,
@@ -43,6 +48,7 @@ interface MapVal {
  * existing dates
  */
 export class ReportsComponent implements OnInit, OnDestroy {
+  // #PDFDocument = {}
   dispMsgs: string[] = new Array<string>() ;
         // Different options for date selection
   dateOptsReport: KeyVal[] = [ new KeyVal('Prior Month', 'pmth'), new KeyVal('Prior Quarter', 'pqtr'),
@@ -104,6 +110,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
     private route: Router) {
+    // for (const tKey in window) { if (tKey === 'PDFDocument')  this.#PDFDocument = window[tKey] }
     for (const rinfo of this.reportList) { this.reportArr.push(rinfo.url) }
     this.report$ = route.events.subscribe((routeUrl) => {
       if (routeUrl instanceof NavigationEnd) {
@@ -327,6 +334,94 @@ export class ReportsComponent implements OnInit, OnDestroy {
     let totBal = 0
     for (const curData of pnlData) { totBal += curData.totBal }
     return this.utilSvc.fixAmt(totBal) ;
+  }
+
+  writePnLPDF() {
+    let yCoord = 10 ; let xCoord = 10 ; let incomeTot = 0 ; let  expenseTot = 0
+    const divLine = '--------------------------------------------------------------------' +
+      '-------------------------'
+    const doc = new jsPDF() ;
+    const xCenter = doc.internal.pageSize.width / 2 ;
+    doc.setFont('Helvetica', 'bold').setFontSize(18).
+      text('Profit & Loss', xCenter, yCoord, {align: 'center'}) ;
+    yCoord += 7 ;
+    const dtStr = `Start Date: ${this.startDt}   End Date: ${this.endDt}` ;
+    doc.setFontSize(10).text(dtStr, xCenter, yCoord, {align: 'center'}) ;  yCoord += 8
+
+    doc.setFontSize(14).text('Income', xCoord, yCoord) ;
+    [incomeTot, xCoord, yCoord] = this.catGrpPdf(doc, xCoord, yCoord+8, this.incomeMap)
+    yCoord += 2
+    doc.setFontSize(14).text('Total Income', xCoord, yCoord).
+      text(this.dispFmt(incomeTot), xCoord+128, yCoord, {align: 'right'})
+    doc.text(divLine, xCenter, yCoord+6, {align: 'center'}) ;
+    doc.text('Expense', xCoord, yCoord+10) ;
+    [expenseTot, xCoord, yCoord] = this.catGrpPdf(doc, xCoord, yCoord+17, this.expenseMap)
+    yCoord += 2
+    doc.setFontSize(14).text('Total Expense', xCoord, yCoord).
+      text(this.dispFmt(expenseTot), xCoord+128, yCoord, {align: 'right'})
+    doc.text(divLine, xCenter, yCoord+6, {align: 'center'}) ;  yCoord += 14
+
+    if (yCoord > 220) yCoord = this.pdfAddPg(doc, yCoord) ;
+    const netInc = incomeTot - expenseTot ;
+    doc.text('Net Income', xCoord, yCoord).
+      text(this.dispFmt(netInc), xCoord+128, yCoord, {align: 'right'})
+    doc.text('Net Income Summary', xCoord, yCoord+10) ;  yCoord += 16
+    doc.setFontSize(12).setFont('Helvetica', 'normal').text('Income', xCoord+8, yCoord).
+      text(this.dispFmt(incomeTot), xCoord+128, yCoord, {align: 'right'}); yCoord += 6 ;
+    doc.text('Expense', xCoord+8, yCoord).
+      text('-' + this.dispFmt(expenseTot), xCoord+128, yCoord, {align: 'right'}) ; yCoord += 4 ;
+    doc.text('---------------', xCoord+128, yCoord, {align: 'right'}) ; yCoord += 4 ;
+    doc.setFontSize(14).setFont('Helvetica', 'bold').text('Net Income', xCoord+4, yCoord).
+      text(this.dispFmt(netInc), xCoord+128, yCoord, {align: 'right'});
+    
+    doc.save('PnL.pdf')
+  }
+
+  catGrpPdf(doc: jsPDF, xCoord: number, yCoord: number, ieMap: Map<string, MapVal> ):
+    [number, number, number] {
+    let ieTot = 0 ;   let catGrpTot = 0 ;
+    for (const [catGrp, catVal] of ieMap) {
+      const yAtBottom = yCoord + (6 * catVal.pnlData.length)
+      if (yAtBottom > 250) yCoord = this.pdfAddPg(doc, yCoord) ;
+      doc.setFontSize(12).text(catGrp, xCoord+4, yCoord) ;
+      [ieTot, xCoord, yCoord] = this.catGrpDtls(doc, catVal, xCoord, yCoord+7, true)
+      catGrpTot += ieTot ;  yCoord -= 3 ;   // Shrink for line of underscores
+      doc.text('---------------', xCoord+128, yCoord, {align: 'right'}) ; yCoord += 5 ;
+      doc.setFont('Helvetica', 'bold').setFontSize(12).text('Total '+catGrp, xCoord+10, yCoord).
+        text(this.dispFmt(ieTot), xCoord+128, yCoord, {align: 'right'}) ;
+      yCoord += 10
+    }
+    return [catGrpTot, xCoord, yCoord]
+  }
+
+  catGrpDtls(doc: jsPDF, catVal: MapVal, xCoord: number, yCoord: number, isExpense: boolean):
+    [number, number, number] {
+    doc.setFontSize(10).setFont('Helvetica', 'normal')
+    let catTotal = 0 ;
+    for (const pnlData of catVal.pnlData) {
+      const pnlTot = (isExpense && pnlData.totBal < 0) ? pnlData.totBal * -1 : pnlData.totBal
+      doc.text(pnlData.category, xCoord+10, yCoord).text(this.dispFmt(pnlTot), xCoord+128, yCoord, {align: 'right'})
+      yCoord += 6 ;  catTotal += pnlTot ;
+    }
+    return [catTotal, xCoord, yCoord]
+  }
+
+  pdfAddPg(doc: jsPDF, yCoord: number): number {
+    doc.addPage() ;
+    return 10 ;
+  }
+
+  dispFmt(inNo: number, prec = 2): string {
+    const oNum = inNo.toFixed(prec) ;
+    const dotPo = oNum.indexOf('.') ;
+    let intPart = oNum.slice(0, dotPo)
+    let curStr = oNum.slice(dotPo)
+    for (let iLen = intPart.length; iLen > 3; iLen -= 3) {
+        curStr = ',' + intPart.slice(iLen - 3) + curStr
+        intPart = intPart.slice(0, iLen-3)
+    }
+    curStr = intPart + curStr
+    return curStr
   }
 
   houseInE() {
