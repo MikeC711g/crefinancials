@@ -54,7 +54,7 @@
   <div class="col-md-12" *ngIf="action === 'createtran'">
     <h2 data-cy="ctrn-addTran">Add a Transaction</h2>
     <hr>
-    <app-cretranall [modeOp]="action"
+    <app-cretranall [modeOp]="action" [idx]="1"
       (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
   </div>
   <div class="col-md-12">
@@ -68,8 +68,8 @@
           style="width: 16px; height: 16px;" *ngIf="expandDebits">
       </button><p></p>
       <ul data-cy="ctrn-debits" *ngIf="expandDebits">
-        <li *ngFor="let tran of debitTranRecs" data-cy="ctrn-debitRow">
-          <app-cretranall [tranRec]="tran"
+        <li *ngFor="let tran of debitTranRecs; index as i" data-cy="ctrn-debitRow">
+          <app-cretranall [tranRec]="tran" [idx]="i"
             [isParent]="tran.TranType === 'TPARENT'"
             (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
         </li>
@@ -85,8 +85,8 @@
           style="width: 16px; height: 16px;" *ngIf="expandCredits">
       </button><p></p>
       <ul data-cy="ctrn-credits" *ngIf="expandCredits">
-        <li *ngFor="let tran of creditTranRecs" data-cy="ctrn-creditRow">
-          <app-cretranall [tranRec]="tran"
+        <li *ngFor="let tran of creditTranRecs; index as i" data-cy="ctrn-creditRow">
+          <app-cretranall [tranRec]="tran" [idx]="i"
             [isParent]="tran.TranType === 'TPARENT'"
             (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
         </li>

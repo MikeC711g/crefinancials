@@ -90,7 +90,7 @@
     </ul>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'categoryTaxcat' && globalsLoaded">
-    <h2>Manage Categories and Category Folders</h2>
+    <h2>Manage Categories</h2>
     <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
       [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
       $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>

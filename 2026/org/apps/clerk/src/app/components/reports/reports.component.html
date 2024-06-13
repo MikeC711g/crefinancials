@@ -8,76 +8,95 @@
     <div class="row" *ngIf="reportInfo.acctList">
       <label for="account">Accounts</label>
       <select class="form-control" id="account" name="account" [(ngModel)]="accountArr"
-        (change)="multiSelAll()" multiple required data-cy="rpt-account">
+        (change)="accountSelAll()" multiple required data-cy="rpt-account">
         <option [value]="'selectAll'">Select All</option>
         <option *ngFor="let account of accounts" [value]="account.RKey"
         [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
       </select>
     </div>
-    <div class="row col-md-12" *ngIf="selectedReport === 'Profit and Loss' && reportReady">
-      <div class="justify-content-center"><h1>Profit & Loss</h1></div>
-        Start Date: {{ startDt }}   End Date: {{ endDt }}
-      <h3>Income</h3>
-      <div class="row" *ngFor="let catFolder of incomeMap | keyvalue">
-        <div class="col-md-5 offset-md-1"><b> {{ catFolder.key }}</b> </div>
-        <div class="row col-md-12 offset-md-2 col-2" *ngFor="let pnls of catFolder.value.pnlData">
-          <div class="col-md-6"> {{ pnls.category }}</div>
-          <div class="col-md-3 text-end"> {{ pnls.totBal }} </div>
+    <div class="row col-md-12" *ngIf="selectedReport === 'Profit and Loss'">
+      <form (ngSubmit)="runReport(selectedReport)" #PnLForm="ngForm">
+        <div class="row">
+          <div class="col-md-6 border-right">
+            <div class="form-group">
+              <label for="house">House</label>
+              <select class="form-control" id="house" name="house" data-cy="rpt-house"
+                [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houses">
+                <option [value]="'selectAll'">Select All</option>
+                <option *ngFor="let house of fullHouses" [value]="house.name"
+                [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
-        <div class="row col-md-12 offset-md-2 col-2">
-          <div class="col-md-6"> <b>Total {{ catFolder.key }}</b></div>
-          <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal }}</b> </div>
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub3"
+          [disabled]="startDt === ''">{{ selectedReport }}</button>
+      </form>
+      <div class="row" *ngIf="reportReady">
+        <div class="justify-content-center"><h1>Profit & Loss</h1></div>
+          Start Date: {{ startDt }}   End Date: {{ endDt }}
+        <h3>Income</h3>
+        <div class="row" *ngFor="let catFolder of incomeMap | keyvalue">
+          <div class="col-md-5 offset-md-1"><b> {{ catFolder.key }}</b> </div>
+          <div class="row col-md-12 offset-md-2 col-2" *ngFor="let pnls of catFolder.value.pnlData">
+            <div class="col-md-6"> {{ pnls.category }}</div>
+            <div class="col-md-3 text-end"> {{ pnls.totBal }} </div>
+          </div>
+          <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
+          <div class="row col-md-12 offset-md-2 col-2">
+            <div class="col-md-6"> <b>Total {{ catFolder.key }}</b></div>
+            <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal }}</b> </div>
+          </div>
         </div>
-      </div>
-      <hr>
-      <div class="row col-md-12 col-2">
-        <div class="col-md-5 offset-md-1"> <b> Total Income</b></div>
-        <div class="col-md-5 text-end"><b> {{ totIncome }} </b></div>
-      </div>
-      <hr>
-      <h3>Expenses</h3>
-      <div class="row" *ngFor="let catFolder of expenseMap | keyvalue">
-        <div class="col-md-5 offset-md-1"> <b>{{ catFolder.key }}</b> </div>
-        <div class="row col-md-12 offset-2 col-2" *ngFor="let pnls of catFolder.value.pnlData">
-          <div class="col-md-6"> {{ pnls.category }}</div>
-          <div class="col-md-3 text-end"> {{ pnls.totBal*-1 }} </div>
+        <hr>
+        <div class="row col-md-12 col-2">
+          <div class="col-md-5 offset-md-1"> <b> Total Income</b></div>
+          <div class="col-md-5 text-end"><b> {{ totIncome }} </b></div>
         </div>
-        <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
-        <div class="row col-md-12 offset-md-2 col-2">
-          <div class="col-md-6"><b> Total {{ catFolder.key }}</b></div>
-          <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal*-1 }}</b> </div>
+        <hr>
+        <h3>Expenses</h3>
+        <div class="row" *ngFor="let catFolder of expenseMap | keyvalue">
+          <div class="col-md-5 offset-md-1"> <b>{{ catFolder.key }}</b> </div>
+          <div class="row col-md-12 offset-2 col-2" *ngFor="let pnls of catFolder.value.pnlData">
+            <div class="col-md-6"> {{ pnls.category }}</div>
+            <div class="col-md-3 text-end"> {{ pnls.totBal*-1 }} </div>
+          </div>
+          <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
+          <div class="row col-md-12 offset-md-2 col-2">
+            <div class="col-md-6"><b> Total {{ catFolder.key }}</b></div>
+            <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal*-1 }}</b> </div>
+          </div>
         </div>
+        <hr>
+        <div class="row col-md-12 col-2">
+          <div class="col-md-5 offset-md-1"> <b> Total Expense</b></div>
+          <div class="col-md-5 text-end"><b> {{ totExpense*-1 }} </b></div>
+        </div>
+        <hr>
+        <div class="row col-md-12 col-2">
+          <div class="col-md-5 offset-md-1"> <b> Net Income</b></div>
+          <div class="col-md-5 text-end"><b> {{ netIncome }} </b></div>
+        </div>
+        <br><hr>
+        <div class="row col-md-12 offset-md-2"><h4>Net Income Summary</h4></div>
+        <div class="row col-md-12 offset-md-3 col-2">
+          <div class="col-md-4">Income</div>
+          <div class="col-md-3 text-end"> {{ totIncome }} </div>
+        </div>
+        <div class="row col-md-12 offset-md-3 col-2">
+          <div class="col-md-4">Expense</div>
+          <div class="col-md-3 text-end"> {{ totExpense }} </div>
+        </div>
+        <hr style="position: relative;left: 70%;width: 15%;border: 1px solid black;">
+        <div class="row col-md-12 offset-md-3 col-2">
+          <div class="col-md-4"><b>NET INCOME</b></div>
+          <div class="col-md-3 text-end"><b> {{ netIncome }} </b></div>
+        </div>
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeRTF"
+          (click)="writePnlRtf()">Write RTF</button>
+        <button class="btn btn-secondary col-md-2" type="button" data-cy="rpt-writePDF"
+          (click)="writePnLPDF()">Write PDF</button>
       </div>
-      <hr>
-      <div class="row col-md-12 col-2">
-        <div class="col-md-5 offset-md-1"> <b> Total Expense</b></div>
-        <div class="col-md-5 text-end"><b> {{ totExpense*-1 }} </b></div>
-      </div>
-      <hr>
-      <div class="row col-md-12 col-2">
-        <div class="col-md-5 offset-md-1"> <b> Net Income</b></div>
-        <div class="col-md-5 text-end"><b> {{ netIncome }} </b></div>
-      </div>
-      <br><hr>
-      <div class="row col-md-12 offset-md-2"><h4>Net Income Summary</h4></div>
-      <div class="row col-md-12 offset-md-3 col-2">
-        <div class="col-md-4">Income</div>
-        <div class="col-md-3 text-end"> {{ totIncome }} </div>
-      </div>
-      <div class="row col-md-12 offset-md-3 col-2">
-        <div class="col-md-4">Expense</div>
-        <div class="col-md-3 text-end"> {{ totExpense }} </div>
-      </div>
-      <hr style="position: relative;left: 70%;width: 15%;border: 1px solid black;">
-      <div class="row col-md-12 offset-md-3 col-2">
-        <div class="col-md-4"><b>NET INCOME</b></div>
-        <div class="col-md-3 text-end"><b> {{ netIncome }} </b></div>
-      </div>
-      <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeRTF"
-        (click)="writePnlRtf()">Write RTF</button>
-      <button class="btn btn-secondary col-md-2" type="button" data-cy="rpt-writePDF"
-        (click)="writePnLPDF()">Write PDF</button>
     </div>
     <hr>
     <div *ngIf="selectedReport === 'House I & E' && reportReady">

@@ -60,26 +60,21 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
 
   ngOnInit(): void {
     this.logLevels = Object.values(this.utilSvc.msgLvls) ;
-    // this.fbGlobals = this.fireSvc.retrieveGlobals() ;
+    this.fbGlobals = this.fireSvc.retrieveGlobals() ;
     this.globalsLoaded = false ;
     const admTypes = Object.values(this.utilSvc.globalTypes) ;
     this.admTypes = admTypes.filter((admTp) => !this.utilSvc.noAdminGlobalTypes.includes(admTp)) ;
     const globalSubj = this.fireSvc.getGlobals(true) ;
     this.cid = this.fireSvc.getCid() ;
-    if (typeof globalSubj === 'boolean') {
-      this.utilSvc.cDebug(this.CLASSNAME, 'Boolean response from getGlobals') ;
-      this.globalLoad()
-    } else {
-      const global$ = globalSubj.subscribe({
-        next: () => {
-          this.utilSvc.cDebug(this.CLASSNAME, 'Subscription came back in nginit.getGlobals')
-          this.globalLoad() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving globals: ', error) ;
-        }
-      })
-      setTimeout(() => {  global$.unsubscribe() ; }, 30000);
-    }
+    const global$ = globalSubj.subscribe({
+      next: () => {
+        this.utilSvc.cDebug(this.CLASSNAME, 'Subscription came back in nginit.getGlobals')
+        this.globalLoad() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving globals: ', error) ;
+      }
+    })
+    setTimeout(() => {  global$.unsubscribe() ; }, 30000);
   }
 
   globalLoad() {

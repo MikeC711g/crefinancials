@@ -140,7 +140,7 @@ export class FirebaseService {
    * @returns {boolean} or {Subject}. Boolean if data is good (ie: we already have it, you
    * can request component parts), Subject if we have to call FB
    */
-  getGlobals(isForce: boolean): boolean | Subject<any> {    // Testing, but should call needGlobals first
+  getGlobals(isForce: boolean): Subject<any> {    // Testing, but should call needGlobals first
     this.updtTimeStmp() ;
     this.utilSvc.cDebug(this.CLASSNAME, 'getGlobals startCnt: %d', this.globalStartCnt)
     const dataReady = new Subject() ;
@@ -156,8 +156,6 @@ export class FirebaseService {
     if (isForce || !this.globalsLoaded || this.globalLoadTime + 900000 < curMillis) {
       this.utilSvc.cDebug(this.CLASSNAME, 'Getting fresh globals loaded: %s Tm: %d  Millis: %d',
         this.globalsLoaded, this.globalLoadTime, curMillis) ;
-      // const globals$ = this.firestore.collection<Globals>(this.globalsNm, ref =>
-      // ref.where('Cid', '==', this.cid)).valueChanges({idField: 'GlobalId'}).pipe(first()).
       const globals$ = collectionData<Globals>(query(
         collection(this.firestore, this.globalsNm) as CollectionReference<Globals>,
         where('Cid', '==', this.cid)), {idField: 'GlobalId'}).pipe(first()).subscribe({
@@ -170,8 +168,8 @@ export class FirebaseService {
             this.processGVals() ;
             this.globalsLoaded = true ;  this.globalStartCnt-- ;
             this.globalLoadTime = new Date().getTime() ;
-            this.utilSvc.cDebug(this.CLASSNAME, 'getGlobalsSubscription about to next on subject') ;
             dataReady.next('Data Ready') ;
+            this.utilSvc.cDebug(this.CLASSNAME, 'getGlobalsSubscription about to next on subject') ;
           }, error: (error) => {
             this.utilSvc.cWarn(this.CLASSNAME, 'Error from retrieval of gloabls: %s', error) ;
             this.globalStartCnt-- ;
@@ -183,7 +181,7 @@ export class FirebaseService {
         }, 60000);
     } else {
       this.globalStartCnt-- ;
-      return true
+      setTimeout(() => { dataReady.next('Data ready')}, 50);  // Give time for caller to get subscrip
     }    // Current version is good
     this.utilSvc.cDebug(this.CLASSNAME, 'Returning subject for caller to subscribe') ;
     return dataReady ;

@@ -22,11 +22,13 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   @Input() hideLabel = '' ;
   @Input() newExpand = true ;
   @Input() modeOp = '' ;      // If in createtran ... after add, reset for more
+  @Input({required: true}) idx = 1
   @Output() tranMod = new EventEmitter<{action: string, tranRec: TranRec}>() ;
 //  @ViewChild('recordForm', { static: false })
 //  recordForm!: NgForm;
   editMode = false ;  newRow = false ;  isDirty = false ; isInDB = false ;
   newProj = false ;   newRule = false ;  // Controls over adding extra info
+  rowStyle = 'font-size: 90%;'
   accounts: KeyVal[] = new Array<KeyVal>() ;
   tranTypes: string[] = new Array<string>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;  curTaxCat: KeyVal = new KeyVal('', '');
@@ -56,6 +58,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     this.isInDB = this.utilSvc.isTranDB(this.tranRec) ;
     this.utilSvc.cDebug(this.CLASSNAME, 'inTranAll isinDB: %s isParent: %s  isChild: %s  TranId: %s',
       this.isInDB, this.isParent, this.isChild, this.tranRec.TranId)
+    if (this.idx % 2 !== 0) this.rowStyle += 'background-color: cornflowerblue;' ;
     if (!this.tranRec.TranId) {
       this.newRow = true ;
       this.expandedView = (this.isChild) ? this.newExpand : true ;

@@ -41,7 +41,7 @@ export class GlobalModsService {
       parmType, newVal, oldVal, globalId) ;
     if (globalId === this.utilSvc.noGid) {
       this.utilSvc.cWarn(this.CLASSNAME,'Did not find GID so cannot process request')
-      return [0, false, ''];
+      return [0, false, 'Failed to update category folder, found no key'];
     }
     let isErr = false ;
     let updResp: string | Promise<any> ;    let delResp: string | Promise<any> ;

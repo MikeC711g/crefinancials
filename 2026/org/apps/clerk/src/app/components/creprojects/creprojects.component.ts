@@ -34,17 +34,13 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
 
   ngOnInit(): void {
     const globRtn = this.fireSvc.getGlobals(false) ;
-    if (typeof globRtn === 'boolean') {
-      // this.fireSvc.getFullHouses() ;
-    } else {
-      this.global$ = globRtn.subscribe({
-        next: () => {
-          // this.fireSvc.getFullHouses() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Failed to get globals to find houses: %s', error) ;
-        }
-      })
-    }
+    this.global$ = globRtn.subscribe({
+      next: () => {
+        // this.fireSvc.getFullHouses() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Failed to get globals to find houses: %s', error) ;
+      }
+    })
     this.onQueryProjects(parseInt(this.dateOpts[2].RVal) ) ;
     const idx = this.utilSvc.dirtyProj.length ;
     if (idx > 0)  this.utilSvc.dirtyProj.splice(0, idx) ;

@@ -75,18 +75,14 @@ export class CrereconComponent implements OnInit, OnDestroy, DeactivatableCompon
   *******************************************************************/
    onRefreshParms(psDate: string, peDate: string): void {
     const globSubj = this.fireSvc.getGlobals(false) ;
-    if (typeof globSubj === 'boolean') {
-      this.globalLoad() ;
-    } else {
-      this.global$ = globSubj.subscribe({
-        next: (fbGlobals) => {
-          this.utilSvc.cDebug(this.CLASSNAME, 'GlobalArrLen: %d', fbGlobals.length) ;
-          this.globalLoad() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'Error retrieving globals: %s', error) ;
-        }
-      })
-    }
+    this.global$ = globSubj.subscribe({
+      next: (fbGlobals) => {
+        this.utilSvc.cDebug(this.CLASSNAME, 'GlobalArrLen: %d', fbGlobals.length) ;
+        this.globalLoad() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error retrieving globals: %s', error) ;
+      }
+    })
 
     const projRtn = this.fireSvc.getProjects(false, 180) ;
     if (Array.isArray(projRtn)) {

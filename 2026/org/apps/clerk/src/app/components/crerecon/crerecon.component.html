@@ -66,7 +66,7 @@
   </div>
   <div class="col-md-12" *ngIf="newRow">
     <hr>
-    <app-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
+    <app-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)" [idx]="1"></app-cretranall>
   </div>
   <div class="col-md-12">
     <!-- <div class="row" *ngIf="!!csvTranRecs && csvTranRecs?.length > 0;else noTrans"> -->
@@ -75,8 +75,8 @@
           (click)="expandDebits = !expandDebits"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
           <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
           <ul *ngIf="expandDebits">
-            <li *ngFor="let tran of debitTranRecs">
-              <app-cretranall [tranRec]="tran"
+            <li *ngFor="let tran of debitTranRecs; index as i">
+              <app-cretranall [tranRec]="tran" [idx]="i"
                 [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
                 (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
           </ul>
@@ -86,8 +86,8 @@
           (click)="expandCredits = !expandCredits"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
           <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
           <ul *ngIf="expandCredits">
-            <li *ngFor="let tran of creditTranRecs">
-              <app-cretranall [tranRec]="tran"
+            <li *ngFor="let tran of creditTranRecs; index as i">
+              <app-cretranall [tranRec]="tran" [idx]="i"
                 [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
                 (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
           </ul>
@@ -97,8 +97,8 @@
       (click)="expandHidden = !expandHidden"> {{expandHidden ? 'Hide' : 'Show'}} Hidden</button>
       <h5 class="col-md-4">Total Hidden: {{ hiddenTotals }}</h5>
       <ul *ngIf="expandHidden">
-        <li *ngFor="let tran of hiddenTranRecs">
-          <app-cretranall [tranRec]="tran"
+        <li *ngFor="let tran of hiddenTranRecs; index as i">
+          <app-cretranall [tranRec]="tran" [idx]="i"
             [isParent]="tran.TranType === 'TPARENT'"
             (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
       </ul>

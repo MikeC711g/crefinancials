@@ -57,26 +57,28 @@ export class AdmcategoryComponent implements OnInit {
   onNewCatFolder() {
     this.utilSvc.cLog(this.CLASSNAME, 'Got new Category Folder: %s', this.newCatFolder)
     if (this.categoryMap.has(this.newCatFolder)) {
-      this.statusMsg = this.newCatFolder + 'already exists as a category'
+      this.statusMsg = this.newCatFolder + 'already exists as a category folder'
     } else {
       const newVal = new KeyVal(this.newCatFolder, '')
       this.parmMod.emit({action: this.utilSvc.actionTypes.Add,
         parmType: this.utilSvc.globalTypes.CategoryFolders, newVal: newVal, oldVal: newVal}) ;
       this.categoryMap.set(this.newCatFolder, []) ;
-      this.categoryFolders.push(new KeyVal(this.newCatFolder, ''))
+      this.categoryFolders.push(newVal)
     }
     // this.onClearSelect()
-    this.addCatFolder = false ;
+    this.addCatFolder = false ;  this.newCatFolder = '' ;
   }
 
   onNewCat() {
       // Take currently selected category, find it in categoryFolder, add Category, update FS
     //  Take currently selected TaxCat and update map .. also update categoryTaxcat in FS
-    this.utilSvc.cLog(this.CLASSNAME, 'Got new Category: %s', this.newCategory)
+    this.curCategory.RKey = this.newCategory ;
+    this.utilSvc.cLog(this.CLASSNAME, 'Got new Category: %s  Folder: %s  TaxCat: %O',
+      this.newCategory, this.curCatFolderKey, this.curCategory) ;
     const categoryArr = this.categoryMap.get(this.curCatFolderKey)!   // Update map for this category
     const categoryTaxcat = new KeyVal(this.newCategory, this.curCategory.RVal)
     categoryArr.push(categoryTaxcat)    // Add to categories tied to this categoryFolder
-    this.categoryTaxcat.push(categoryTaxcat)   // Make sure our list is added to
+    // this.categoryTaxcat.push(categoryTaxcat)   // Make sure our list is added to
     this.parmMod.emit({action: this.utilSvc.actionTypes.Add,
       parmType: this.utilSvc.globalTypes.CategoryTaxcats, newVal: categoryTaxcat, oldVal: categoryTaxcat}) ;
         // Done with Category/Taxcat, now do categoryFolder/category globals
@@ -89,7 +91,8 @@ export class AdmcategoryComponent implements OnInit {
         parmType: this.utilSvc.globalTypes.CategoryFolders, newVal: catFolder, oldVal: origDCat}) ;
     }
     // this.onClearSelect()
-    this.addCategory = false
+    this.addCategory = false ; this.newCategory = '' ;  this.curCatFolderKey = '' ;
+      this.curCategory.RKey = '' ;  this.curCategory.RVal = '' ;
   }
 
   /** ************************************************************************

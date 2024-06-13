@@ -89,23 +89,19 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
    Refresh common files (project list, categories, et al)
   ********************************************************************/
    onRefreshParms(psDate: string, peDate: string): void {
-    const globSubj = this.fireSvc.getGlobals(false) ;
+    // const globSubj = this.fireSvc.getGlobals(false) ;
+    this.global$ = this.fireSvc.getGlobals(false)
     this.utilSvc.cDebug(this.CLASSNAME,'Into tran onRefreshParms called getGlobals') ;
-    if (typeof globSubj === 'boolean') {
-      this.utilSvc.cDebug(this.CLASSNAME, 'Came back as array, so calling globalLoad')
-      this.globalLoad() ;
-    } else {
-      this.global$ = globSubj ;
-      this.utilSvc.cDebug(this.CLASSNAME, 'Came back as subScrib so subscribing')
-      this.global$.subscribe({
-        next: () => {
-          this.utilSvc.cDebug(this.CLASSNAME,'Subscrib returned so calling globalLoad now') ;
-          this.globalLoad() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
-        }
-      })
-    }
+    // this.global$ = globSubj ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'Came back as subScrib so subscribing')
+    this.global$.subscribe({
+      next: () => {
+        this.utilSvc.cDebug(this.CLASSNAME,'Subscrib returned so calling globalLoad now') ;
+        this.globalLoad() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
+      }
+    })
 
     const projRtn = this.fireSvc.getProjects(false, 180) ;
     if (Array.isArray(projRtn)) {
