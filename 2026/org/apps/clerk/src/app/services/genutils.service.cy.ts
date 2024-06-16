@@ -334,7 +334,7 @@ describe('GenUtilsService', () => {
       -250, 'Mtg Prin', 'BE', '111MS', '', '', '', '', 'tidChiDeb2', 'tidParent1')) ;
     tranRecs.push(new TranRec('testCid', '2023-04-01', 'testAcct1', 'chiTran22', 'DEP',
       50, 'Late Fee', 'BI', '123MS', '', '', '', '', 'tidChiCred2', 'tidParent2')) ;
-    service.splitChildren(tranRecs, childMap) ;
+    service.splitChildren(tranRecs, childMap, true) ;
     expect(tranRecs.length).to.equal(4) ;   // After children stripped out
     expect(childMap.size).to.equal(2) ;     // 2 map entries
     let childCount = childMap.get('tidParent1').length ;

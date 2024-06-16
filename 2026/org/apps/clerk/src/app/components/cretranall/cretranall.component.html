@@ -52,7 +52,8 @@
         <div class="form-group">
           <label for="category">Category</label>
           <select class="form-control" id="category" name="category" data-cy="cta-category"
-            [(ngModel)]="tranRec.Category" (change)="chgData()" required #category="ngModel">
+            [(ngModel)]="tranRec.Category" (change)="chgData() ; onPreSetTaxcat()" required
+            #category="ngModel">
             <option [value]="''" [selected]="!tranRec.Category">-- select an option --</option>
             <option *ngFor="let category of categoryTaxcat" [value]="category.RKey" data-cy="cta-catOpt"
               [selected]="category.RKey === tranRec.Category">{{ category.RKey }}</option>
@@ -133,8 +134,8 @@
         <div class="form-group">
           <label for="taxcat">Tax Category</label>
           <select class="form-control" id="taxcat" name="taxcat" data-cy="cta-taxCat" required
-            [(ngModel)]="tranRec.TaxCat" (focus)="onPreSetTaxcat()" (change)="chgData()"
-            #taxcat="ngModel">
+            [(ngModel)]="tranRec.TaxCat" (change)="chgData()" #taxcat="ngModel">
+            <!-- (focus)="onPreSetTaxcat()"  -->
             <option [value]="''" [selected]="!tranRec.TaxCat">-- select an option --</option>
             <option *ngFor="let taxcat of taxCats" [value]="taxcat.RKey" data-cy="cta-tCatOpt"
               [selected]="taxcat.RKey == tranRec.TaxCat">{{ taxcat.RVal }}</option>

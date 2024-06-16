@@ -128,9 +128,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.tranTypes = this.fireSvc.getTranTypes() ;
     this.fullHouses = this.fireSvc.getFullHouses() ;
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
+    this.utilSvc.loadCategoryTaxcat(this.categoryTaxcat) ;    // Give util Svc this array
     this.taxCats = this.fireSvc.getTaxCats() ;
-    const ruleMap = this.fireSvc.getRuleMap() ;
-    this.qfxService.setRuleMap(ruleMap) ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Accounts: %O', this.accounts) ;
   }
 
@@ -179,7 +178,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
         this.csvTranRecs = response ;
         this.utilSvc.cDebug(this.CLASSNAME,'#Trans from onQueryDates: %d', this.csvTranRecs.length) ;
         this.childMap.clear() ;
-        this.utilSvc.splitChildren(this.csvTranRecs, this.childMap) ;
+        this.utilSvc.splitChildren(this.csvTranRecs, this.childMap, true) ;
         this.fireSvc.loadTrans(this.csvTranRecs, this.childMap) ;
         this.tranDB = true ;
         this.dispMsgs.push('Got ' + this.csvTranRecs.length + ' Transactions')
@@ -281,36 +280,56 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
       confirm("There are unsaved changes, exit anyway?") ;
     }
 
-    // hereiam todo ... replace read tran with db tran
   findPreProcdTrans() {   // Find trans from qfx that have already been entered
-    const fitIds: string[] = [] ;
+    const fitIds: string[] = [] ;   // Unique ids for trans to see if this tran already in DB
+    const dbParentIds: string[] = [] ;  // If already in DB AND parent tran, retrieve children
     const iters = this.csvTranRecs.length / 25 ;  // How many loops w/25
     let iterCnt = 0 ;
     for (const curTran of this.csvTranRecs)  fitIds.push(curTran.FitID)
+    console.log('Into findPreProcd with trans: %O  fitIds: %O  iters: %d', this.csvTranRecs, fitIds, iters)
     this.utilSvc.cDebug(this.CLASSNAME, 'findPreProcd tranRecs: %O  fitids: %O  iters: %d', this.csvTranRecs, fitIds, iters) ;
+    this.childMap.clear() ;
     for (let i = 0; i < this.csvTranRecs.length; i += 25) {   // groups of 25 for fb query
       const endIdx = (fitIds.length >= i + 25) ? i + 25 : fitIds.length ;
       const fitidx = fitIds.slice(i, endIdx)
+      let rowMax = 0 ;
+      console.log('Into first iter endIdx: %d  fitIdx: %O', endIdx, fitidx)
       this.fireSvc.checkFitidArray(fitidx).subscribe({
         next: (tranRecs) => {
-          iterCnt++
-          const tmpTrans = tranRecs ;
-          for (const curTran of tmpTrans) {
+          iterCnt++ ; rowMax = tranRecs.length - 1 ;
+          for (let oIdx = 0; oIdx < tranRecs.length; oIdx++) {
+            const curTran = tranRecs[oIdx] ;
             const idx = this.csvTranRecs.findIndex((tran) => tran.FitID === curTran.FitID)
+            console.log('Indiv row %O  idx in DB: %d  oidx: %d', curTran, idx, oIdx)
             if (idx >= 0) {
               this.csvTranRecs[idx] = curTran ;   // Replace file info w/db info
+              if (curTran.TranType === 'TPARENT')  dbParentIds.push(curTran.TranId!) ;
             } else {
               this.utilSvc.cWarn(this.CLASSNAME,'DB FitId for %O not found back in qfx read tranRecs', curTran) ;
             }
+            if (oIdx >= rowMax) {   // Have viewed all rows for this iteration
+              console.log('LastRow, dbParentIds: %O', dbParentIds)
+              if (dbParentIds.length > 0) {   // If we had parent trans already in DB
+                this.fireSvc.getChildrenByParentId(dbParentIds).subscribe({   // Retrieve children
+                  next: (childRecs) => {    // Add child trans to childMap
+                    this.utilSvc.splitChildren(childRecs, this.childMap, false) ;
+                  }, error: (error) => {
+                    this.utilSvc.cWarn(this.CLASSNAME,
+                      'Error %s handling children of ofx rows presplit. Parents: %O', dbParentIds)
+                  }
+                })
+              }
+            }
           }
           if (iterCnt >= iters) {
+            console.log('Ending because iterCnt %d  >= iters  %d', iterCnt, iters)
             this.fireSvc.loadTrans(this.csvTranRecs, this.childMap) ;
             this.utilSvc.repopArrays(this.csvTranRecs, this.creditTranRecs,
               this.debitTranRecs, new Array<TranRec>(), false) ;
             this.reCalcTotals() ;
           }
           this.utilSvc.cDebug(this.CLASSNAME,'i %d  endidx %d  fitidx %O fitIdTranList %O',
-            i, endIdx, fitidx, tmpTrans) ;
+            i, endIdx, fitidx, tranRecs) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error getting fitid Trans: %s', error)
         }

@@ -41,7 +41,6 @@ export class FirebaseService {
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
   categoryFolders: KeyVal[] = new Array<KeyVal>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;  taxCatTime = 0 ;
-  ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ;
   ruleAdmin: RuleData[] = new Array<RuleData>() ;
   tranQ$ = Observable<TranRec[]> ;    // Observable for returning array of trans
   isAdmin = false ;   isGlobalAdmin = false ;   // Current user role and auth info
@@ -332,6 +331,16 @@ export class FirebaseService {
    return collectionData<TranRec>(query(
      collection(this.firestore, this.tranNm) as CollectionReference<TranRec>,
      ...fitQuery), {idField: 'TranId'}).pipe(first())
+  }
+
+  // May need to break up at some point in caller  if > 25 shared trans already entered
+  //  and trans from ofx/qfx reloaded
+  getChildrenByParentId(parentIds: string[]): Observable<TranRec[]> {
+    const parentQuery: QueryConstraint[] = [where('SplitParent', 'in', parentIds),
+      where('Cid', '==', this.cid)] ;
+    return collectionData<TranRec>(query(
+      collection(this.firestore, this.tranNm) as CollectionReference<TranRec>,
+      ...parentQuery), {idField: 'TranId'}).pipe(first())
   }
 
   /**
@@ -710,7 +719,6 @@ export class FirebaseService {
     this.categoryFolders.splice(0, this.categoryFolders.length) ;
     this.taxCats.splice(0, this.taxCats.length) ;
     this.ruleAdmin.splice(0, this.ruleAdmin.length) ;
-    this.ruleMap.clear() ;
     const ruleAdmin: RuleData[] = [] ;
     const categoryTaxcats: KeyVal[] = [] ;
     const categoryFolders: KeyVal[] = [] ;
@@ -742,11 +750,6 @@ export class FirebaseService {
         case(this.utilSvc.globalTypes.RuleData):
           tmpRD = inGlobal.RVal ;
           ruleO = tmpRD ;
-          for (const cAcct of ruleO.accounts) {
-            if (!this.ruleMap.has(cAcct)) { this.ruleMap.set(cAcct, new Array<RuleData>()) ; }
-            const curCsvArr = this.ruleMap.get(cAcct) ;
-            curCsvArr?.push(ruleO) ;
-          }
           ruleAdmin.push(ruleO) ;
           break ;
       }
@@ -761,7 +764,7 @@ export class FirebaseService {
       if (cmp != 0) { return cmp }
       return (a.srchAmt < b.srchAmt) ? -1 : 1 ;
     })
-
+    this.utilSvc.setRules(this.ruleAdmin) ;
     this.categoryTaxcat = categoryTaxcats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
     this.categoryFolders = categoryFolders.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
     this.tranTypes = tranTypes.sort((a, b) => a.localeCompare(b)) ;
@@ -857,14 +860,6 @@ export class FirebaseService {
    */
   getTaxCats(): KeyVal[] {
     return this.taxCats ;
-  }
-
-  /**
-   * function getRuleMap returns a Map of rules associated with each account
-   * @returns {Map} map keyed with account name and val is array of rules for trans in that account
-   */
-  getRuleMap(): Map<string, RuleData[]> {
-    return this.ruleMap ;
   }
 
   /**

@@ -137,9 +137,12 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   addNewChildren() {
     this.splitChildren = new Array<TranRec>() ;
     if (this.tranRec.Category === 'Mortgage Payment') { // Mtg pmt has predefined split
-      this.onAddSplitChild('Mortgage Principal', this.tranRec.House) ;
-      this.onAddSplitChild('Mortgage Escrow', this.tranRec.House) ;
-      this.onAddSplitChild('Mortgage Interest', this.tranRec.House) ;
+      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
+        'Mortgage Principal', this.tranRec.TranType, 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
+      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
+        'Mortgage Escrow', this.tranRec.TranType, 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
+      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
+        'Mortgage Interest', this.tranRec.TranType, 0, '', 'BE', this.tranRec.House, '', '', '', '')) ;
     } else {      // Create 2 generic children for them to start with
       this.onAddSplitChild() ;
       this.onAddSplitChild() ;
@@ -186,19 +189,18 @@ export class CretranallComponent  implements OnInit, OnDestroy {
    * in DB until parent is processed
    * hereiam ... need to consider taking existing DB tran and splitting it
    ***************************************************************************** */
-  onAddSplitChild(category?: string, house?: string) {   // May want new category
-    console.log('oasc cat: %s  house: %s', category, house)
-    if (!category) { category = '' ; }
-    if (!house) house = '' ;
+  onAddSplitChild(tranRec?: TranRec) {   // May want new category
+    console.log('oasc tranRec: %O', tranRec) ;
+    if (!tranRec) {
+      tranRec = new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
+        '', '', 0, '', '', '', '', '', '', '') ;
+    }
     this.childInDb = false ;
-    const newChild = new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-      category, '', 0, '', '', house, '', '', this.tranRec.ReconKey, '', this.utilSvc.generateGuid(), '')
-    console.log('newChild: %O', newChild)
-    this.splitChildren.push(newChild)
+    this.splitChildren.push(tranRec)
     this.useSplitChild.push('') ;
     this.childExpand = true ;
     this.utilSvc.cDebug(this.CLASSNAME, 'added child %O to parent: %O Child array len %d',
-      newChild, this.tranRec, this.splitChildren.length) ;
+      tranRec, this.tranRec, this.splitChildren.length) ;
   }
 
   /*********************************************************************
@@ -396,6 +398,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     [actionCnt, this.newRule, statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
       oldVal, fbGlobals, fullHouse, accountTypes, this.tranTypes, this.accounts,
       categoryFolders, this.categoryTaxcat, ruleAdmin, this.taxCats, this.tranRec.Cid)
+
+    this.utilSvc.addRule(newVal)
   }
     
   /** **********************************************************************************
@@ -491,7 +495,6 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     this.utilSvc.cDebug(this.CLASSNAME, 'parentChg: isParent: %s  tranrec: %O', this.isParent, this.tranRec)
     if (this.isParent)  return this.unsplitTran() ;     // Unsplit if already split
     this.utilSvc.cDebug(this.CLASSNAME, 'Splitting tran %O', this.tranRec) ;
-    this.tranRec.TranType = 'TPARENT' ;   this.tranRec.TaxCat = 'NT'  // Set parent fields
     this.isParent = true ;
     if (!this.isInDB) {   // If not in DB, add it to DB for tranid srch ability
           // Add can fail w/no splitParent. So providing it
@@ -511,6 +514,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.tranMod.emit({ action: this.utilSvc.actionTypes.Split, tranRec: this.tranRec }) ;
     }
     this.addNewChildren()
+    this.tranRec.TranType = 'TPARENT' ;   this.tranRec.TaxCat = 'NT'  // Set parent fields
   }
 
   /*********************************************************************
@@ -549,12 +553,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     Use parameter to see if category defaults to a particular tax category
   ********************************************************************/
   onPreSetTaxcat(): void {
-    if (this.tranRec.Project !== '') {
-      this.tranRec.TaxCat = 'BE' ;
-    } else {
-      const curCategory =
-        this.categoryTaxcat.find( ({RKey}) => RKey === this.tranRec.Category ) ;
-      this.tranRec.TaxCat = (curCategory) ? this.tranRec.TaxCat = curCategory.RVal : '??' ;
+    this.tranRec.TaxCat = this.utilSvc.getTaxcat(this.tranRec.Category) ;
+    if (this.isChild) {
+      console.log('onPresetTC child category %s  tc %s', this.tranRec.Category, this.tranRec.TaxCat )
     }
   }
 

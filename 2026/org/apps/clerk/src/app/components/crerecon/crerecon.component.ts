@@ -146,7 +146,7 @@ export class CrereconComponent implements OnInit, OnDestroy, DeactivatableCompon
   calcRecon(transIn: TranRec[], beginStr: string, endStr: string): void {
     this.expandCredits = false ;    this.expandDebits = false ;  this.expandHidden = false ;
     this.csvTranRecs = transIn ;
-    this.utilSvc.splitChildren(this.csvTranRecs, this.childMap) ;
+    this.utilSvc.splitChildren(this.csvTranRecs, this.childMap, true) ;
     this.fireSvc.loadTrans(this.csvTranRecs, this.childMap) ;
     this.tranDB = true ;
     this.dispMsgs.push('Got ' + this.csvTranRecs.length + ' Transactions')

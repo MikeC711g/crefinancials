@@ -30,7 +30,6 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   taxCats: KeyVal[] = new Array<KeyVal>() ;   // label: taxcats
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ; // label: categoryTaxcat
   categoryFolders: KeyVal[] = new Array<KeyVal>() ; // label: categoryFolders
-  ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ; // label: ruleData
   ruleAdmin: RuleData[] = new Array<RuleData>() ;
   selectedType = '' ;   completeActions = 0 ;
   newRule = false ;  newHouse = false ;  newAccounts = false ;
@@ -84,7 +83,6 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     this.taxCats = this.fireSvc.getTaxCats() ;
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
     this.categoryFolders = this.fireSvc.getCategoryFolders() ;
-    this.ruleMap = this.fireSvc.getRuleMap() ;
     this.ruleAdmin = this.fireSvc.getRuleAdmin() ;
     this.fullHouse = this.fireSvc.getFullHouses() ;
     this.loadLogging() ;    // Retrieve logging info

@@ -104,7 +104,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
   categoryFolders: KeyVal[] = new Array<KeyVal>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;  taxCatTime = 0 ;
-  ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ;
   report$: Subscription = new Subscription() ;
   CLASSNAME = 'reports' ;
 
@@ -662,7 +661,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
     this.categoryFolders = this.fireSvc.getCategoryFolders() ;
     this.taxCats = this.fireSvc.getTaxCats() ;
-    this.ruleMap = this.fireSvc.getRuleMap() ;
     this.forceGlobals = false ;
     this.utilSvc.cDebug(this.CLASSNAME,'Globals loaded, counts: tranTypes: %d  actTypes: %d  accts: %d',
       this.tranTypes.length, this.accountTypes.length, this.accounts.length)

@@ -10,13 +10,8 @@ import { GenutilsService } from './genutils.service';
 export class QfxService {
   tranStringCount = 0 ;
   CLASSNAME = 'qfxService' ;
-  ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ;
 
   constructor(private utilSvc: GenutilsService) { }
-
-  setRuleMap(inMap: Map<string, RuleData[]>) {
-    this.ruleMap = inMap ;
-  }
 
   cleanFinal(xmlArr: string[]) {    // Looking for anything left behind
     for (let i = 0; i < xmlArr.length; i++) {
@@ -113,7 +108,7 @@ export class QfxService {
   readQFX($event: any, account: string): Observable<TranRec[]> {
     // let files = $event.srcElement.files ;
     const tranRecs: TranRec[] = new Array<TranRec>() ;
-    const ruleData: RuleData[] = this.ruleMap.get(account)! ;
+    const ruleData: RuleData[] | undefined = this.utilSvc.getRuleData(account) ;
     this.utilSvc.cDebug(this.CLASSNAME,'qfxSvc readqfx account: %s  RuleData: %O', account, ruleData) ;
     const getRecs = new Observable<TranRec[]>((observer) => {
       const input = $event.target ;

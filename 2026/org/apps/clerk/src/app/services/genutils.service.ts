@@ -1,6 +1,6 @@
+import { RuleData } from '../models/ruleData.model';
 import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
-import { RuleData } from '../models/ruleData.model';
 import { Project } from '../models/project.model';
 import { KeyVal } from '../models/keyval.model';
 
@@ -31,6 +31,8 @@ export class GenutilsService {
   msgLvls = {Verbose: 'verbose', Debug: 'debug', Log: 'log', Warn: 'warn', Error: 'error'} ;
   authSignoff = false ;
   mlValue: Map<string, number> = new Map<string, number>() ;
+  categoryTaxcats: KeyVal[] = new Array<KeyVal>() ;
+  ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]> ;
   CLASSNAME = 'genUtilsService' ;    noGid = 'noGid' ;
 
   constructor() {
@@ -108,6 +110,20 @@ export class GenutilsService {
     }
   }
 
+  setRules(ruleData: RuleData[]) {
+    this.ruleMap.clear() ;
+    for (const curRule of ruleData) this.addRule(curRule)
+  }
+  addRule(cRule: RuleData) {
+    for (const cAcct of cRule.accounts) {
+      if (!this.ruleMap.has(cAcct)) { this.ruleMap.set(cAcct, new Array<RuleData>()) ; }
+      const curCsvArr = this.ruleMap.get(cAcct) ;
+      curCsvArr?.push(cRule) ;
+    }
+  }
+  getRuleData(account: string)  {  return this.ruleMap.get(account) ; }
+
+  loadCategoryTaxcat(catTaxcat: KeyVal[]) {  this.categoryTaxcats = catTaxcat ; }
   dirtyTranUpdt(isDirty: boolean, tranId: string) {
     if (isDirty)  this.dirtyTrans.push(tranId) ;
     else {
@@ -391,7 +407,10 @@ export class GenutilsService {
           // If no amount or amount MATCHES (ie: one or both matched if sent
         if (!rule.srchAmt || rule.srchAmt === 0.0001 || rule.srchAmt === amt2Ck) {
           this.cDebug(this.CLASSNAME, 'Matched on rule: %O', rule) ;
-          if (rule.Category) { tranRec.Category = rule.Category ; }
+          if (rule.Category) {
+            tranRec.Category = rule.Category ;
+            tranRec.TaxCat = this.getTaxcat(tranRec.Category) ;
+          }
           if (rule.TranType)    { tranRec.TranType = rule.TranType ; }
           if (rule.TaxCat)      { tranRec.TaxCat = rule.TaxCat ; }
           if (rule.TranExtra)   { tranRec.TranExtra = (tranRec.TranExtra === '') ?
@@ -404,13 +423,19 @@ export class GenutilsService {
     }
   }
 
+  getTaxcat(category: string) : string {
+    const catTc = this.categoryTaxcats.find(kv => kv.RKey === category) ;
+    console.log('In getTaxcat, got catTc: %O', catTc) ;
+    return (catTc) ? catTc.RVal : '??' ;
+  }
+
   /** ************************************************************************
    * Remove child trans (logical) from array and store them in a map for associated parent
    * tran.  May add: populate amount of parent tran
    * @param tranRecs List of all transactions
    * @param children  Map of array of child trans with key being tranId of parent
    ************************************************************************** */
-  splitChildren(tranRecs: TranRec[], children: Map<string, TranRec[]>) {
+  splitChildren(tranRecs: TranRec[], children: Map<string, TranRec[]>, rmvFromSrc: boolean) {
     this.cDebug(this.CLASSNAME, 'gu:sC tranRecs len: %d', tranRecs.length) ;
     for (let i = tranRecs.length - 1; i >= 0; i--) {  // Backwards due to splice
       if (tranRecs[i].SplitParent) {  // If child
@@ -420,8 +445,7 @@ export class GenutilsService {
         } else {                        // Else add to map with this tran
           children.set(parentId, [tranRecs[i]] ) ;
         }
-        this.cDebug(this.CLASSNAME, 'gu:sC rmv child tran: %s  i %d', tranRecs[i].TranId, i) ;
-        tranRecs.splice(i, 1) ;         // Remove child from source array
+        if (rmvFromSrc)  tranRecs.splice(i, 1) ;         // Remove child from source array
       }
     }
   }
