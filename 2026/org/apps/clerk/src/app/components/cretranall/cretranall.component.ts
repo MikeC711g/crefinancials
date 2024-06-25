@@ -375,10 +375,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   * Customer chose button to take current data and create a rule
   *********************************************************************************** */
   onAddRule() {
-    this.ruleAdd = new RuleData(this.tranRec.TranExtra,
-      this.tranRec.TranExtra + ' : ' + this.tranRec.Annotation, [this.tranRec.Account], 0,
-      this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat, this.tranRec.House,
-      '') ;
+    this.ruleAdd = new RuleData(this.tranRec.TranExtra, this.tranRec.TranExtra, [this.tranRec.Account],
+      0, this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat, this.tranRec.House,
+      this.tranRec.Annotation) ;
     this.newRule = true ;
   }
 
