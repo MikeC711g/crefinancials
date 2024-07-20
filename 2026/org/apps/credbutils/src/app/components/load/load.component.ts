@@ -236,18 +236,18 @@ export class LoadComponent  implements OnInit {
   runLoad(idx: number) {
     console.log('runLoad idx: %d', idx)
     switch (this.labelStr[idx]) {
-      case 'Transaction':
-        if (this.transactions.length > 0) {
-          this.funcStarted[idx] = true ; this.loadTrans() ; this.funcDone[idx] = true
-        } break ;
+      case 'Transaction': // Took out len > 0 as sometimes there are none of some type
+        this.funcStarted[idx] = true ;
+        if (this.transactions.length > 0)  this.loadTrans() ;
+        this.funcDone[idx] = true ; break
       case 'Project':
-        if (this.projects.length > 0) {
-          this.funcStarted[idx] = true ; this.loadProjects() ; this.funcDone[idx] = true
-        } break 
+        this.funcStarted[idx] = true ;
+        if (this.projects.length > 0) this.loadProjects() ;
+        this.funcDone[idx] = true ; break 
       case 'Reconciliation':  
-        if (this.reconciliations.length > 0) {
-          this.funcStarted[idx] = true ; this.loadRecons() ; this.funcDone[idx] = true
-        } break 
+        this.funcStarted[idx] = true ;
+        if (this.reconciliations.length > 0)  this.loadRecons() ;
+        this.funcDone[idx] = true ;  break ;
       case 'Globals':
         if (this.loadedGlobals.length > 0) {
           this.funcStarted[idx] = true ; this.loadGlobals() ; this.funcDone[idx] = true
@@ -345,16 +345,17 @@ export class LoadComponent  implements OnInit {
     if (!cid)  cid = this.destCid ;   if (!dbPref) dbPref = this.destDbPrefix ;
     const projX = this.projectIdXref ;  const projLen = this.projects.length   // For readability
     if (projX.length > 0) projX.splice(0, projX.length)
-    console.log('loadProjects w/arrLen: %d', projLen)
+    console.log('loadProjects w/projects: %O', this.projects)
     let projAdded = 0
     for (const curProj of this.projects) {
       projX.push(new KeyVal(curProj.ProjectId!, ''))
       this.fireSvc.addProjects(cid, dbPref, curProj).then(dbRef => {
-        projX[projX.length-1].RVal = dbRef.id ;
+        curProj.ProjectId = dbRef.id ;
         if (projAdded++ % 20 === 0) console.log('Added %d projects', projAdded)
         if (projAdded >= projLen) {
           console.log('Added all %d projects', projAdded)
-          console.log('projIdXRef: %O', projX)
+          for (let i = 0; i < projLen; i++)  projX[i].RVal = this.projects[i].ProjectId! ;
+          console.log('projects: %O  projIdXRef: %O', this.projects, projX)
         }
       }).catch(error => {
         console.warn('Failed to insert project: ', curProj, ' Err: ', error)
@@ -369,11 +370,13 @@ export class LoadComponent  implements OnInit {
     console.log('loadRecons w/arrLen: %d', reconLen)
     let reconAdded = 0 ;
     for (const curRecon of this.reconciliations) {
+      reconX.push(new KeyVal(curRecon.ReconKey!, ''))
       const oldReconKey = curRecon.ReconKey!
       this.fireSvc.addReconciliations(cid, dbPref, curRecon).then(reconRef => {
-        reconX.push(new KeyVal(oldReconKey, reconRef.id)) ;
+        curRecon.ReconKey = reconRef.id ;
         if (reconAdded++ % 15 === 0) console.log('Added %d recons', reconAdded)
         if (reconAdded >= reconLen) {
+          for (let i = 0; i < reconLen; i++)  reconX[i].RVal = this.reconciliations[i].ReconKey! ;
           console.log('Added all %d recons', reconAdded)
           console.log('reconXRef: %O', reconX)
         }
@@ -408,6 +411,7 @@ export class LoadComponent  implements OnInit {
     const reconX = this.reconIdXref ; const ckRecon = reconX.length > 0 ;
     console.log('projX: %O  reconX: %O  tranLen: %d  rowType: %s', projX, reconX, tranLen, rowType)
     for (const curTran of tranList) {
+      if (!curTran)  continue ;
       const oldTid = curTran.TranId!   // Inside loop so should be OK wrt async
       if (ckProj && curTran.Project)
         curTran.Project = getNewIdx(curTran.Project, this.projectIdXref, 'Project')
@@ -415,6 +419,7 @@ export class LoadComponent  implements OnInit {
         curTran.ReconKey = getNewIdx(curTran.ReconKey, this.reconIdXref, 'Reconciliation')
       if (curTran.SplitParent)
         curTran.SplitParent = getNewIdx(curTran.SplitParent, parentXRef, 'Parent')
+      console.log('RowTp: %s  curTran: %O', rowType, curTran)
       this.fireSvc.addTrans(cid, dbPref, curTran).then(dbRef => {
         curTran.TranId = dbRef.id ;
         if (tranAdded++ % 50 === 0) console.log('%s Added %d trans', rowType, tranAdded)

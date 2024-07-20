@@ -28,7 +28,7 @@ import { UseractionsComponent } from './components/useractions/useractions.compo
     ReportsComponent,
     LoadComponent,
     RepairComponent,
-    UseractionsComponent
+    UseractionsComponent,
   ],
   imports: [
     BrowserModule,
