@@ -20,7 +20,7 @@
           <div class="col-md-6 border-right">
             <div class="form-group">
               <label for="house">House</label>
-              <select class="form-control" id="house" name="house" data-cy="rpt-house"
+              <select class="form-control" id="house" name="house"
                 [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houses">
                 <option [value]="'selectAll'">Select All</option>
                 <option *ngFor="let house of fullHouses" [value]="house.name"
@@ -32,119 +32,57 @@
         <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub3"
           [disabled]="startDt === ''">{{ selectedReport }}</button>
       </form>
-      <div class="row" *ngIf="reportReady">
-        <div class="justify-content-center"><h1>Profit & Loss</h1></div>
-          Start Date: {{ startDt }}   End Date: {{ endDt }}
-        <h3>Income</h3>
-        <div class="row" *ngFor="let catFolder of incomeMap | keyvalue">
-          <div class="col-md-5 offset-md-1"><b> {{ catFolder.key }}</b> </div>
-          <div class="row col-md-12 offset-md-2 col-2" *ngFor="let pnls of catFolder.value.pnlData">
-            <div class="col-md-6"> {{ pnls.category }}</div>
-            <div class="col-md-3 text-end"> {{ pnls.totBal }} </div>
-          </div>
-          <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
-          <div class="row col-md-12 offset-md-2 col-2">
-            <div class="col-md-6"> <b>Total {{ catFolder.key }}</b></div>
-            <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal }}</b> </div>
-          </div>
-        </div>
-        <hr>
-        <div class="row col-md-12 col-2">
-          <div class="col-md-5 offset-md-1"> <b> Total Income</b></div>
-          <div class="col-md-5 text-end"><b> {{ totIncome }} </b></div>
-        </div>
-        <hr>
-        <h3>Expenses</h3>
-        <div class="row" *ngFor="let catFolder of expenseMap | keyvalue">
-          <div class="col-md-5 offset-md-1"> <b>{{ catFolder.key }}</b> </div>
-          <div class="row col-md-12 offset-2 col-2" *ngFor="let pnls of catFolder.value.pnlData">
-            <div class="col-md-6"> {{ pnls.category }}</div>
-            <div class="col-md-3 text-end"> {{ pnls.totBal*-1 }} </div>
-          </div>
-          <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
-          <div class="row col-md-12 offset-md-2 col-2">
-            <div class="col-md-6"><b> Total {{ catFolder.key }}</b></div>
-            <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal*-1 }}</b> </div>
-          </div>
-        </div>
-        <hr>
-        <div class="row col-md-12 col-2">
-          <div class="col-md-5 offset-md-1"> <b> Total Expense</b></div>
-          <div class="col-md-5 text-end"><b> {{ totExpense*-1 }} </b></div>
-        </div>
-        <hr>
-        <div class="row col-md-12 col-2">
-          <div class="col-md-5 offset-md-1"> <b> Net Income</b></div>
-          <div class="col-md-5 text-end"><b> {{ netIncome }} </b></div>
-        </div>
-        <br><hr>
-        <div class="row col-md-12 offset-md-2"><h4>Net Income Summary</h4></div>
-        <div class="row col-md-12 offset-md-3 col-2">
-          <div class="col-md-4">Income</div>
-          <div class="col-md-3 text-end"> {{ totIncome }} </div>
-        </div>
-        <div class="row col-md-12 offset-md-3 col-2">
-          <div class="col-md-4">Expense</div>
-          <div class="col-md-3 text-end"> {{ totExpense }} </div>
-        </div>
-        <hr style="position: relative;left: 70%;width: 15%;border: 1px solid black;">
-        <div class="row col-md-12 offset-md-3 col-2">
-          <div class="col-md-4"><b>NET INCOME</b></div>
-          <div class="col-md-3 text-end"><b> {{ netIncome }} </b></div>
-        </div>
-        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeRTF"
-          (click)="writePnlRtf()">Write RTF</button>
-        <button class="btn btn-secondary col-md-2" type="button" data-cy="rpt-writePDF"
-          (click)="writePnLPDF()">Write PDF</button>
+      <div class="col-md-12" *ngIf="reportReady"> <hr>
+        <app-pnl-report [categoryFolders]="categoryFolders" [startDt]="startDt"
+          [endDt]="endDt" [tranRecs]="transactions"> </app-pnl-report>  <hr>
       </div>
-    </div>
-    <hr>
-    <div *ngIf="selectedReport === 'House I & E' && reportReady">
-      <div class="justify-content-center"><h1>Rent Income by house</h1></div>
-      <div *ngFor="let rentRec of rentIncome">
-        <div *ngIf="rentRec.FitID === 'newHouse'">
-          <div *ngIf="rentRec.Annotation !== '0'">SubTotal: {{ rentRec.Annotation }}</div>
-          <h3>{{ rentRec.House }}</h3>
-        </div>
-        <div class="row col-md-12 col-2">
-          <div class="col-md-3">{{ rentRec.TranDate }} </div>
-          <div class="col-md-3">{{ rentRec.Amount }} </div>
-        </div>
-      </div>
-      SubTotal: {{ riLast }}<br>
-      ****Total****: {{ riTot }}
-      <div class="justify-content-center"><h1>Expenses by house</h1></div>
-      <div *ngFor="let rentRec of houseExp">
-        <div *ngIf="rentRec.FitID === 'newHouse'">
-          <div *ngIf="rentRec.Annotation !== '0'">SubTotal: {{ rentRec.Annotation }}</div>
-          <h3>{{ rentRec.House }}</h3>
-        </div>
-        <div class="row col-md-12 col-3" *ngIf="rentRec.Amount < 0">
-          <div class="col-md-3">{{ rentRec.TranDate }} </div>
-          <div class="col-md-4">{{ rentRec.Category }} </div>
-          <div class="col-md-3">{{ rentRec.Amount }} </div>
-        </div>
-      </div>
-      SubTotal: {{ heLast }}<br>
-      ****Total****: {{ heTot }}
-      <div class="justify-content-center"><h1>Project Expenses by house</h1></div>
-      <div *ngFor="let rentRec of projExp">
-        <div *ngIf="rentRec.FitID === 'newProj'">
-          <div *ngIf="rentRec.Annotation !== '0'">SubTotal: {{ rentRec.Annotation }}</div>
-          <h3>{{ rentRec.Project }}</h3>
-        </div>
-        <div class="col-md-12 col-3 row">
-          <div class="col-md-2">{{ rentRec.TranDate }} </div>
-          <div class="col-md-4">{{ rentRec.Category }} </div>
-          <div class="col-md-3">{{ rentRec.Amount }} </div>
-        </div>
-      </div>
-      SubTotal: {{ peLast }}<br>
-      ****Total****: {{ peTot }}
     </div>
   <hr><hr>
   </div>
-<!-- **************************************************************************** -->
+  <!-- **************************************************************************** -->
+  <div class="row col-md-12" *ngIf="selectedReport === 'Expense By Project'">
+    <form (ngSubmit)="runReport(selectedReport)" #expByProjectForm="ngForm">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="house">House</label>
+          <select class="form-control" id="house" name="house"
+            [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houseexp">
+            <option [value]="'selectAll'">Select All</option>
+            <option *ngFor="let house of fullHouses" [value]="house.name"
+            [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subexp"
+        >{{ selectedReport }}</button>
+      <div class="row" *ngIf="reportReady"> <hr>
+        <app-exp2projreport [tranRecs]="transactions" [projects]="projects"></app-exp2projreport>  <hr>
+      </div>
+    </form>
+  </div>
+  <!-- **************************************************************************** -->
+  <div class="row col-md-12" *ngIf="selectedReport === 'Rent Status'">
+    <form (ngSubmit)="runReport(selectedReport)" #rentStatusForm="ngForm">
+      <div class="col-md-6 border-right">
+        <div class="form-group">
+          <label for="house">House</label>
+          <select class="form-control" id="house" name="house" data-cy="rpt-housers"
+            [(ngModel)]="selectedHouse">
+            <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
+            <option *ngFor="let house of fullHouses" [value]="house.name"
+                [selected]="house.name === selectedHouse">{{ house.name }}</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrei"
+        [disabled]="selectedHouse === ''">{{ selectedReport }}</button>
+      <div class="row" *ngIf="reportReady"> <hr>
+        <app-rentstatreport [tranRecs]="transactions" [rHouse]="selectedHouse"
+          [startDt]="startDt" [endDt]="endDt"> </app-rentstatreport>  <hr>
+      </div>
+    </form>
+  </div>
+  <!-- **************************************************************************** -->
   <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Transactions'">
     <form #tranDumpForm="ngForm">
       <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
@@ -153,11 +91,11 @@
           $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
       </app-transrch>
       <div class="row" *ngIf="reportReady">
-        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSV"
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
           (click)="writeCsv(selectedReport)">Write CSV</button>
-        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJson"
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
           (click)="writeJson(selectedReport)">Write Json</button>
-        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDisp"
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
           (click)="screenDisplay = true">Display on Screen</button>
         <div class="col-md-4">{{ transactions.length }}  Rows to display</div>
       </div>
@@ -188,21 +126,22 @@
         <div class="col-md-6 border-right">
           <div class="form-group">
             <label for="admType">Admin Type</label>
-            <select class="form-control" [(ngModel)]="selectedType" id="admType" name="admType">
+            <select class="form-control" [(ngModel)]="selectedType" id="admType" name="admType"
+              data-cy="rpt-admtype">
               <option [value]="''" [selected]="!selectedType">-- select an option --</option>
               <option *ngFor="let admType of admTypes" [value]="admType">{{ admType }}</option>
             </select>
           </div>
         </div>
       </div>
-      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subRpt"
+      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subdog"
         >{{ selectedReport }}</button>
       <div class="row" *ngIf="reportReady">
-        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-csv2"
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdog"
           (click)="writeCsv(selectedReport)">Write CSV</button>
-        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-json2"
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondog"
           (click)="writeJson(selectedReport)">Write Json</button>
-        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-disp2"
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-writeDispdog"
           (click)="screenDisplay = true">Display on Screen</button>
         <div class="col-md-4">{{ filtGlob.length }}  Rows to display</div>
       </div>
@@ -225,7 +164,7 @@
         <div class="col-md-6 border-right">
           <div class="form-group">
             <label for="house">House</label>
-            <select class="form-control" id="house" name="house" data-cy="rpt-house"
+            <select class="form-control" id="house" name="house" data-cy="rpt-housedop"
               [(ngModel)]="selectedHouse">
               <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
               <option *ngFor="let house of fullHouses" [value]="house.name"
@@ -234,14 +173,14 @@
           </div>
         </div>
       </div>
-      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub3"
+      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subdop"
         [disabled]="startDt === ''">{{ selectedReport }}</button>
       <div class="row" *ngIf="reportReady">
-        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-csv3"
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdop"
           (click)="writeCsv(selectedReport)">Write CSV</button>
-        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-json3"
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondop"
           (click)="writeJson(selectedReport)">Write Json</button>
-        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-disp3"
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-writeDispdop"
           (click)="screenDisplay = true">Display on Screen</button>
         <div class="col-md-4">{{ filtProj.length }}  Rows to display</div>
       </div>
@@ -262,14 +201,14 @@
  <!-- **************************************************************************** -->
   <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Reconciliations'">
     <form (ngSubmit)="runReport(selectedReport)" #reconDumpForm="ngForm">
-      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub4"
+      <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrec"
         [disabled]="startDt === ''">{{ selectedReport }}</button>
       <div class="row" *ngIf="reportReady">
-        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-csv4"
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVrec"
           (click)="writeCsv(selectedReport)">Write CSV</button>
-        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-json4"
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsonrec"
           (click)="writeJson(selectedReport)">Write Json</button>
-        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-disp4"
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-writeDisprec"
           (click)="screenDisplay = true">Display on Screen</button>
         <div class="col-md-4">{{ filtRecon.length }}  Rows to display</div>
       </div>

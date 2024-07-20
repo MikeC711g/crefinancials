@@ -26,6 +26,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   @Output() tranMod = new EventEmitter<{action: string, tranRec: TranRec}>() ;
 //  @ViewChild('recordForm', { static: false })
 //  recordForm!: NgForm;
+  nmDict = { createTran: 'createtran', tParent: 'TPARENT' } ;
   editMode = false ;  newRow = false ;  isDirty = false ; isInDB = false ;
   newProj = false ;   newRule = false ;  // Controls over adding extra info
   rowStyle = 'font-size: 90%;'
@@ -62,7 +63,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     if (!this.tranRec.TranId) {
       this.newRow = true ;
       this.expandedView = (this.isChild) ? this.newExpand : true ;
-      this.tranRec.TranDate = new Date().toISOString().slice(0, 10) ;
+      if (!this.tranRec.TranDate) this.tranRec.TranDate = new Date().toISOString().slice(0, 10) ;
       this.tranRec.TranId = this.utilSvc.generateGuid() ;
       if (this.isParent) this.addNewChildren() ;
     } else {
@@ -136,6 +137,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
 
   addNewChildren() {
     this.splitChildren = new Array<TranRec>() ;
+    console.log('addNewChildren w/tranRec: %O', this.tranRec)
     if (this.tranRec.Category === 'Mortgage Payment') { // Mtg pmt has predefined split
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
         'Mortgage Principal', this.tranRec.TranType, 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
@@ -144,8 +146,10 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
         'Mortgage Interest', this.tranRec.TranType, 0, '', 'BE', this.tranRec.House, '', '', '', '')) ;
     } else {      // Create 2 generic children for them to start with
-      this.onAddSplitChild() ;
-      this.onAddSplitChild() ;
+      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
+        '', '', 0, '', '', '', '', '', '', '')) ;
+      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
+        '', '', 0, '', '', '', '', '', '', '')) ;
     }
     this.childExpand = false ;    // Don't expand multiple new rows, only on one add
     [this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
@@ -238,7 +242,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
           this.utilSvc.cDebug(this.CLASSNAME, 'Added record: %O', locTran ) ;
           this.dispMsgs.push('Successfully added Record: ' + ++this.recordsAdded) ;
           this.tranMod.emit({ action: this.utilSvc.actionTypes.Add, tranRec: locTran }) ;
-          if (this.modeOp === 'createtran' && !this.isChild) this.refreshCreate() 
+          if (this.modeOp === this.nmDict.createTran && !this.isChild) this.refreshCreate() 
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error Adding tran: %s', error) ;
         })
@@ -257,13 +261,20 @@ export class CretranallComponent  implements OnInit, OnDestroy {
             this.storeChildRows(locTran, this.splitChildren, this.useSplitChild) ;
           }
           this.tranMod.emit({ action: this.utilSvc.actionTypes.Update, tranRec: locTran }) ;
-          if (this.modeOp === 'createtran' && !this.isChild) this.refreshCreate() 
+          if (this.modeOp === this.nmDict.createTran && !this.isChild) this.refreshCreate() 
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'UpdtTranErr..RecordService: %s', error) ;
           this.dispMsgs.push('Error updating record') ;
         }) ;
       this.completedActions++ ;
     }
+  }
+
+  displayList(): boolean {
+    // <div class="row" *ngIf="editMode || !expandedView || isChild" [style]="rowStyle">
+    if (this.modeOp === this.nmDict.createTran) return false ;
+    if (this.editMode || !this.expandedView || this.isChild)  return true ;
+    return false ;
   }
 
   refreshCreate() {
@@ -375,6 +386,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   * Customer chose button to take current data and create a rule
   *********************************************************************************** */
   onAddRule() {
+    if (this.tranRec.TranType === this.nmDict.tParent)  this.tranRec.TranType = '' ;
     this.ruleAdd = new RuleData(this.tranRec.TranExtra, this.tranRec.TranExtra, [this.tranRec.Account],
       0, this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat, this.tranRec.House,
       this.tranRec.Annotation) ;
@@ -478,8 +490,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     Cancel work on current record
   ********************************************************************/
   onCancel(): void {
+    console.log('Cancel TranRec: %O', this.tranRec) ;
     this.cleanData()
-    if (this.modeOp === 'createTran')  this.refreshCreate()
+    if (this.modeOp === this.nmDict.createTran)  this.refreshCreate()
     else {
       this.tranMod.emit({ action: this.utilSvc.actionTypes.Cancel, tranRec: this.tranRec }) ;
       this.expandedView = false ;

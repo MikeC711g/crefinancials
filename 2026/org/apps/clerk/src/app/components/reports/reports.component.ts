@@ -5,34 +5,18 @@ import { FirebaseService } from '../../services/firebase.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Globals } from './../../models/globals.model';
 import { KeyVal } from './../../models/keyval.model';
-import { RuleData } from './../../models/ruleData.model';
 import { House } from './../../models/house.model';
 import { TranQ } from './../../models/TranQ.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
-import { jsPDF } from "jspdf";
 
-// import * as PDFDocument from 'pdfkit';
-// import * as blobStream from 'blob-stream'
-
-interface RptInfo {
+interface RptInfo {   // Data for the running of each report
   name: string,
   url: string,
   dateList: KeyVal[],
   acctList: boolean,
   moreData: boolean
-}
-
-interface PnlData {
-  category: string,
-  taxCat: string,
-  totBal: number
-}
-
-interface MapVal {
-  pnlData: PnlData[],
-  totBal: number
 }
 
 @Component({
@@ -47,7 +31,6 @@ interface MapVal {
  * existing dates
  */
 export class ReportsComponent implements OnInit, OnDestroy {
-  // #PDFDocument = {}
   dispMsgs: string[] = new Array<string>() ;
         // Different options for date selection
   dateOptsReport: KeyVal[] = [ new KeyVal('Prior Month', 'pmth'), new KeyVal('Prior Quarter', 'pqtr'),
@@ -60,8 +43,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
   reportList: RptInfo[] = [
     { name: 'Profit and Loss', url: 'profitnloss', dateList: this.dateOptsReport,
       acctList: false, moreData: true},
-    { name: 'House I & E', url: 'xxx', dateList: this.dateOptsReport,
-       acctList: false, moreData: false},
+    { name: 'Rent Status', url: 'rentstat', dateList: this.dateOptsReport,
+      acctList: true, moreData: true},
+    { name: 'Expense By Project', url: 'expbyproj', dateList: this.dateOptsReport,
+      acctList: true, moreData: true},
     { name: 'Dump of Globals', url: 'dumpglobals', dateList: this.noDateOpts,
       acctList: false, moreData: true},
     { name: 'Dump of Projects', url: 'dumpprojects', dateList: this.dateOptsData,
@@ -77,13 +62,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
   reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
   completedActions = 0 ;    // List of global types
   reportArr: string[] = new Array<string>() ;
-        // Structures for P&L report
-  totExpense = 0 ;  totIncome = 0 ;  netIncome = 0 ;
-  incomeMap: Map<string, MapVal> = new Map<string, MapVal>() ;
-  expenseMap: Map<string, MapVal> = new Map<string, MapVal>() ;
         // House I&E
-  rentIncome: TranRec[] = [] ; houseExp: TranRec[] = [] ; projExp: TranRec[] = [] ;
-  riLast = 0 ; riTot = 0 ; heLast = 0 ; heTot = 0 ; peLast = 0 ; peTot = 0 ;
+  // rentIncome: TranRec[] = [] ; houseExp: TranRec[] = [] ; projExp: TranRec[] = [] ;
+  // riLast = 0 ; riTot = 0 ; heLast = 0 ; heTot = 0 ; peLast = 0 ; peTot = 0 ;
         // And the rest
   projects: Project[] = new Array<Project>() ;  project$: Subscription = new Subscription() ;
   projStrtDt = '' ;  projEndDt = '' ;   // Dates when projects last retrieved
@@ -109,9 +90,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService,
     private route: Router) {
-    // for (const tKey in window) { if (tKey === 'PDFDocument')  this.#PDFDocument = window[tKey] }
     for (const rinfo of this.reportList) { this.reportArr.push(rinfo.url) }
-    this.report$ = route.events.subscribe((routeUrl) => {
+    this.report$ = route.events.subscribe((routeUrl) => { // Determine menu item selected
       if (routeUrl instanceof NavigationEnd) {
         const urlParts = routeUrl.url.split('/') ;
         const lastPart = urlParts[urlParts.length-1]
@@ -129,7 +109,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
       this.getGlobals() ;
   }
 
-  onSelectRpt() {
+  /** ************************************************************************
+   * Start determining what to do for selected report
+   ************************************************************************ */
+  onSelectRpt() {   
     this.reportInfo = this.reportList.find((rl) => rl.url === this.selectedReport)! ;
     this.selectedReport = this.reportInfo.name ;    // Go to long version of report
     console.log('selRpt: %s  rptInfo: %O', this.selectedReport, this.reportInfo)
@@ -145,12 +128,17 @@ export class ReportsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** ************************************************************************
+   * Run the logic to create the data structures for the selected report
+   * @param report2Run - selected report
+   ************************************************************************ */
   runReport(report2Run: string) {
     console.log('Came into runReport w/report: ', report2Run)
     this.reportReady = false ;   this.screenDisplay = false ;
     switch (report2Run) {
       case 'Profit and Loss': this.profitNLoss() ; break ;
-      case 'House I & E': this.houseInE() ; break ;
+      case 'Rent Status': this.rentStatus() ; break ;
+      case 'Expense By Project': this.expByProject() ; break ;
       case 'Dump of Globals': this.dumpGlobal() ; break ;
       case 'Dump of Projects': this.dumpProject() ; break ;
       case 'Dump of Reconciliations': this.dumpRecon() ; break ;
@@ -158,13 +146,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
+  /** ************************************************************************
    * onDateMod used by datesel component for date selection
-   * @param numDays
-   * @param startDt
-
-  * @param endDt
-   */
+   * @param numDays Number of days from current selected
+   * @param startDt Actual start date
+   * @param endDt Actual end date
+   ************************************************************************ */
   onDateMod(numDays: number, startDt: string, endDt: string): void {
     this.reportReady = false
     this.startDt = startDt ;  this.endDt = endDt ;
@@ -178,6 +165,18 @@ export class ReportsComponent implements OnInit, OnDestroy {
      {  this.runReport(this.selectedReport) ;  }
   }
 
+  /** ************************************************************************
+   * On advanced tran search, this takes parms and makes call for complex query
+   * @param action 
+   * @param category 
+   * @param tranType 
+   * @param house 
+   * @param project 
+   * @param taxCat 
+   * @param annotationRegEx 
+   * @param minAmt 
+   * @param maxAmt 
+   ************************************************************************ */
   onTranSrch(action: string, category: string[], tranType: string[], house: string[],
     project: string, taxCat: string[], annotationRegEx: string, minAmt: number, maxAmt: number) {
     const tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr, category, tranType,
@@ -187,6 +186,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.dumpTran(tranQ) ;
   }
 
+  /** ************************************************************************
+   * SelectAll was hit on account so this selects all entries in select widget
+   ************************************************************************ */
   accountSelAll() {   // action on option did not work well, so onto select
     if (this.accountArr.includes('selectAll')) {
       this.accountArr = [] ;
@@ -198,6 +200,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
       }
   }
 
+  /** ************************************************************************
+   * Select all houses via SelectAll option
+   ************************************************************************ */
   houseSelAll() {   // action on option did not work well, so onto select
     // todo: Need to handle no house selection. May be OK as you wouldn't come here ...
     if (this.selectedHouseArr.includes('selectAll')) {
@@ -214,59 +219,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.utilSvc.cLog(this.CLASSNAME,'P&L startDt: %s  endDt: %s  houseArr: %O',
       this.startDt, this.endDt, this.selectedHouseArr) ;
     const tranQ = new TranQ(this.startDt, this.endDt, '', [], [], [], 0, 0, [], this.selectedHouseArr)
-    this.fireSvc.getTransFromDB(tranQ).subscribe({
+    this.fireSvc.getTransFromDB(tranQ, false).subscribe({
       next: (tranRecs) => {
         this.transactions = tranRecs ;
-        this.utilSvc.cLog(this.CLASSNAME,'postFilterTranList %O', this.transactions) ;
-          // Need object key to map which recognizes exact equality, so cluging an array
-        const pnlData: PnlData[] = [] ;
-        // let pnlMap: Map<KeyVal, number> = new Map<KeyVal, number>() ;
-        // Filter out parent trans and keep only business taxcats.  Filter here to avoid
-        //  bringing back and re-uniting split trans.
-        const filtTrans = this.transactions.filter(tr =>
-          tr.TranType !== 'TPARENT' && ['BE', 'CE', 'BI'].indexOf(tr.TaxCat) > -1)
-          // (this.selectedHouseArr.length === 0 || this.selectedHouseArr.indexOf(tr.House) > -1))
-        for (const curTran of filtTrans) {
-          if (curTran.Category === '') {
-            this.utilSvc.cWarn(this.CLASSNAME, "Tran had no category: %O", curTran)
-            continue 
-          }
-          const curPnl: PnlData = pnlData.find((pd) =>
-            pd.category === curTran.Category && pd.taxCat === curTran.TaxCat)!
-          if (curPnl) {
-            curPnl.totBal += curTran.Amount ;     // Have this combo, add to total
-            curPnl.totBal = this.utilSvc.fixAmt(curPnl.totBal)
-          } else {
-            pnlData.push({category: curTran.Category, taxCat: curTran.TaxCat,
-              totBal: curTran.Amount})
-          }
-        }
-        this.utilSvc.cDebug(this.CLASSNAME,'pnlData %O', pnlData) ;
-        this.incomeMap.clear() ;    this.expenseMap.clear() ;
-        const incomes: PnlData[] = pnlData.filter((pd) => pd.taxCat === 'BI') ;
-        const expenses: PnlData[] = pnlData.filter((pd) => pd.taxCat !== 'BI') ;
-        this.totExpense = 0 ;  this.totIncome = 0 ;
-        console.log('Incomes: %O  Expenses: %O', incomes, expenses)
-        for (const curCat of this.categoryFolders) {
-          const catInc = incomes.filter((it) => curCat.RVal.includes(it.category)) ;
-          const catExp = expenses.filter((it) => curCat.RVal.includes(it.category)) ;
-          console.log('catInc: %O  catExp: %O', catInc, catExp)
-          if (catInc.length > 0) {
-            const totInc4Cat = this.totArray(catInc)
-            this.incomeMap.set(curCat.RKey, {pnlData: catInc, totBal: this.utilSvc.fixAmt(totInc4Cat)})
-            this.totIncome += totInc4Cat ;
-          }
-          if (catExp.length > 0) {
-            const totExp4Cat = this.totArray(catExp)
-            this.expenseMap.set(curCat.RKey, {pnlData: catExp, totBal: this.utilSvc.fixAmt(totExp4Cat)})
-            this.totExpense += totExp4Cat ;
-          }
-          this.totIncome = this.utilSvc.fixAmt(this.totIncome) ;
-          this.totExpense = this.utilSvc.fixAmt(this.totExpense) ;
-          this.netIncome = this.utilSvc.fixAmt(this.totExpense + this.totIncome) ;
-        }
-        this.utilSvc.cDebug(this.CLASSNAME, 'Incomes: %O  Expenses: %O  incomeMap %O expenseMap: %O',
-          incomes, expenses, this.incomeMap, this.expenseMap) ;
         this.reportReady = true ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME,'Error getting trans for P&L: %s', error)
@@ -274,243 +229,41 @@ export class ReportsComponent implements OnInit, OnDestroy {
     })
   }
 
-  writePnlRtf() {
-    let fStr = '{\\rtf1\\ansi\\deff0\n'+    // Doc header
-      '{\\fonttbl {\\f0 Times New Roman;} {\\f1\\fswiss Arial;} {\\f2\\fmodern Courier New;}}\n' +
-      '\\f0 {\\pard\\fs36\\qc\\b Profit & Loss \\line\\par}\n' +
-      `{\\pard\\fs20\\qc Start Date: ${this.startDt}  End Date: ${this.endDt} \\line\\par}\n` +
-      '{\\pard\\fs32\\b Income \\line\\par}\n'
-    const [incomeTot, iStr] = this.catGrpRtf(false, this.incomeMap) ;
-    fStr += iStr ;    const incomeStr = this.dispFmt(incomeTot)
-    fStr += '  {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-    fStr += '   {\\pard\\intbl\\li420\\fs32\\sb240\\b Total Income \\cell   ' +
-      `\\pard\\intbl\\qr\\fs32\\sb240\\b ${incomeStr} \\cell} \\row}\n`
-
-    fStr += '{\\pard\\fs32\\sb480\\b Expenses \\line\\par}\n'
-    const [expenseTot, eStr] = this.catGrpRtf(true, this.expenseMap) ;
-    fStr += eStr ;    const expenseStr = this.dispFmt(expenseTot)
-    fStr += '  {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-    fStr += '   {\\pard\\intbl\\li420\\fs32\\sb240\\b Total Expense \\cell   ' +
-      `\\pard\\intbl\\qr\\fs32\\sb240\\b ${expenseStr} \\cell} \\row}\n`
-
-    fStr += '  {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-    const netInc = this.dispFmt(incomeTot - expenseTot) ;
-    fStr += `  {\\pard\\intbl\\li420\\fs32\\sb240\\b Net Income \\cell   \\pard\\intbl\\qr\\fs32\\sb240\\b ${netInc} \\cell} \\row}\n`
-    fStr += '   {\\pard\\fs32\\li720\\sb480\\b Net Income Summary \\line\\par}\n'
-    fStr += '   {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-    fStr += `   {\\pard\\intbl\\li720\\fs28 Income \\cell   \\pard\\intbl\\qr ${incomeStr} \\cell} \\row}\n`
-    fStr += '   {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-    fStr += `   {\\pard\\intbl\\li720\\fs28 Expense \\cell   \\pard\\intbl\\qr -${expenseStr} \\cell} \\row}\n`
-    fStr += '  {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-    fStr += `   {\\pard\\intbl\\li720\\sb160\\fs36\\b Net Income \\cell   \\pard\\intbl\\qr\\sb160\\b ${netInc} \\cell} \\row} }\n`
-    console.log('TotIncome: %d  TotExpense: %d', incomeTot, expenseTot)
-    const encodedUri = encodeURI("data:text/plain;charset=utf-8," + fStr) ;
-    // window.open(encodedUri);
-    this.writeFile(encodedUri, 'profitNLoss.rtf') ;
-  }
-
-  catGrpRtf(isExpense: boolean, inMap: Map<string, MapVal>): [number, string] {
-    let cStr = '' ; let hdrSpce = '' ; let ieTot = 0 ;
-    for (const [catGrp, catVal] of inMap) {
-      cStr += `  {\\pard \\fs28${hdrSpce} \\b \\li720 ${catGrp} \\line\\par}\n`
-      hdrSpce = '\\sb360 '
-      const [rStr, tNum] = this.writeCatGrp(catGrp, catVal, isExpense)
-      cStr += rStr ;  ieTot += tNum ;
-      cStr += '   {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-      cStr += '    {\\pard\\intbl\\li720 \\cell   \\pard\\intbl\\qr ---------- \\cell} \\row}\n'
-      cStr += '   {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-      cStr += `    {\\pard\\intbl\\li720\\b\\fs28 Total ${catGrp} \\cell   \\pard\\intbl\\qr\\b ${this.dispFmt(tNum)} \\cell} \\row}\n`
-    }
-    return [ieTot, cStr] ;
-  }
-
-  writeCatGrp(catGrp: string, mapVal: MapVal, isExpense: boolean): [string, number] {
-    let locStr = ''
-    console.log('catGrp: ', catGrp, ' TotBal: ', mapVal.totBal)
-    for (const pnlData of mapVal.pnlData) {
-      locStr += '    {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
-      const pnlTot = (isExpense && pnlData.totBal < 0) ? pnlData.totBal * -1 : pnlData.totBal
-      locStr += `     {\\pard\\intbl\\li720\\fs24 ${pnlData.category} \\cell   \\pard\\intbl\\qr ${this.dispFmt(pnlTot)} \\cell} \\row}\n`
-      console.log('category: %s  tc: %s  bal: %d: ', pnlData.category, pnlData.taxCat, pnlData.totBal)
-    }
-    const mapTot = (isExpense && mapVal.totBal < 0) ? mapVal.totBal *= -1 : mapVal.totBal ;
-    return [locStr, mapTot] ;
-  }
-
-  totArray(pnlData: PnlData[]): number {
-    let totBal = 0
-    for (const curData of pnlData) { totBal += curData.totBal }
-    return this.utilSvc.fixAmt(totBal) ;
-  }
-
-  writePnLPDF() {
-    let yCoord = 10 ; let xCoord = 10 ; let incomeTot = 0 ; let  expenseTot = 0
-    const divLine = '--------------------------------------------------------------------' +
-      '-------------------------'
-    const doc = new jsPDF() ;
-    const xCenter = doc.internal.pageSize.width / 2 ;
-    doc.setFont('Helvetica', 'bold').setFontSize(18).
-      text('Profit & Loss', xCenter, yCoord, {align: 'center'}) ;
-    yCoord += 7 ;
-    const dtStr = `Start Date: ${this.startDt}   End Date: ${this.endDt}` ;
-    doc.setFontSize(10).text(dtStr, xCenter, yCoord, {align: 'center'}) ;  yCoord += 8
-
-    doc.setFontSize(14).text('Income', xCoord, yCoord) ;
-    [incomeTot, xCoord, yCoord] = this.catGrpPdf(doc, xCoord, yCoord+8, this.incomeMap)
-    yCoord += 2
-    doc.setFontSize(14).text('Total Income', xCoord, yCoord).
-      text(this.dispFmt(incomeTot), xCoord+128, yCoord, {align: 'right'})
-    doc.text(divLine, xCenter, yCoord+6, {align: 'center'}) ;
-    doc.text('Expense', xCoord, yCoord+10) ;
-    [expenseTot, xCoord, yCoord] = this.catGrpPdf(doc, xCoord, yCoord+17, this.expenseMap)
-    yCoord += 2
-    doc.setFontSize(14).text('Total Expense', xCoord, yCoord).
-      text(this.dispFmt(expenseTot), xCoord+128, yCoord, {align: 'right'})
-    doc.text(divLine, xCenter, yCoord+6, {align: 'center'}) ;  yCoord += 14
-
-    if (yCoord > 220) yCoord = this.pdfAddPg(doc, yCoord) ;
-    const netInc = incomeTot - expenseTot ;
-    doc.text('Net Income', xCoord, yCoord).
-      text(this.dispFmt(netInc), xCoord+128, yCoord, {align: 'right'})
-    doc.text('Net Income Summary', xCoord, yCoord+10) ;  yCoord += 16
-    doc.setFontSize(12).setFont('Helvetica', 'normal').text('Income', xCoord+8, yCoord).
-      text(this.dispFmt(incomeTot), xCoord+128, yCoord, {align: 'right'}); yCoord += 6 ;
-    doc.text('Expense', xCoord+8, yCoord).
-      text('-' + this.dispFmt(expenseTot), xCoord+128, yCoord, {align: 'right'}) ; yCoord += 4 ;
-    doc.text('---------------', xCoord+128, yCoord, {align: 'right'}) ; yCoord += 4 ;
-    doc.setFontSize(14).setFont('Helvetica', 'bold').text('Net Income', xCoord+4, yCoord).
-      text(this.dispFmt(netInc), xCoord+128, yCoord, {align: 'right'});
-    
-    doc.save('PnL.pdf')
-  }
-
-  catGrpPdf(doc: jsPDF, xCoord: number, yCoord: number, ieMap: Map<string, MapVal> ):
-    [number, number, number] {
-    let ieTot = 0 ;   let catGrpTot = 0 ;
-    for (const [catGrp, catVal] of ieMap) {
-      const yAtBottom = yCoord + (6 * catVal.pnlData.length)
-      if (yAtBottom > 250) yCoord = this.pdfAddPg(doc, yCoord) ;
-      doc.setFontSize(12).text(catGrp, xCoord+4, yCoord) ;
-      [ieTot, xCoord, yCoord] = this.catGrpDtls(doc, catVal, xCoord, yCoord+7, true)
-      catGrpTot += ieTot ;  yCoord -= 3 ;   // Shrink for line of underscores
-      doc.text('---------------', xCoord+128, yCoord, {align: 'right'}) ; yCoord += 5 ;
-      doc.setFont('Helvetica', 'bold').setFontSize(12).text('Total '+catGrp, xCoord+10, yCoord).
-        text(this.dispFmt(ieTot), xCoord+128, yCoord, {align: 'right'}) ;
-      yCoord += 10
-    }
-    return [catGrpTot, xCoord, yCoord]
-  }
-
-  catGrpDtls(doc: jsPDF, catVal: MapVal, xCoord: number, yCoord: number, isExpense: boolean):
-    [number, number, number] {
-    doc.setFontSize(10).setFont('Helvetica', 'normal')
-    let catTotal = 0 ;
-    for (const pnlData of catVal.pnlData) {
-      const pnlTot = (isExpense && pnlData.totBal < 0) ? pnlData.totBal * -1 : pnlData.totBal
-      doc.text(pnlData.category, xCoord+10, yCoord).text(this.dispFmt(pnlTot), xCoord+128, yCoord, {align: 'right'})
-      yCoord += 6 ;  catTotal += pnlTot ;
-    }
-    return [catTotal, xCoord, yCoord]
-  }
-
-  pdfAddPg(doc: jsPDF, yCoord: number): number {
-    doc.addPage() ;
-    return 10 ;
-  }
-
-  dispFmt(inNo: number, prec = 2): string {
-    const oNum = inNo.toFixed(prec) ;
-    const dotPo = oNum.indexOf('.') ;
-    let intPart = oNum.slice(0, dotPo)
-    let curStr = oNum.slice(dotPo)
-    for (let iLen = intPart.length; iLen > 3; iLen -= 3) {
-        curStr = ',' + intPart.slice(iLen - 3) + curStr
-        intPart = intPart.slice(0, iLen-3)
-    }
-    curStr = intPart + curStr
-    return curStr
-  }
-
-  houseInE() {
-    this.utilSvc.cDebug(this.CLASSNAME,'I&E startDt: %s  endDt: %s', this.startDt, this.endDt) ;
-    const tranQ: TranQ = new TranQ(this.startDt, this.endDt, '', []) ;
-    this.fireSvc.getTransFromDB(tranQ).subscribe({
-      next: (tranRecs) => {
+  /** ************************************************************************
+   * Main logic for expenses by project
+   ************************************************************************ */
+  expByProject() {
+    this.utilSvc.cLog(this.CLASSNAME,'expBP startDt: %s  endDt: %s  houseArr: %O',
+      this.startDt, this.endDt, this.selectedHouseArr) ;
+    const tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr, [], [], 0, 0, [], this.selectedHouseArr)
+    this.fireSvc.getTransFromDB(tranQ, false).subscribe({
+      next: (tranRecs) => {   // Filter recs w/out house or filter then sort house/proj/dt
         this.transactions = tranRecs ;
-        const houseRecs = this.transactions.filter(trn => trn.House !== '').sort((a, b) => {
-          const curReturn = a.House.localeCompare(b.House) ;
-          return (curReturn === 0) ? a.TranDate.localeCompare(b.TranDate) : curReturn ;
-        }) ;
-        // have to create sep arrays for each to catch group breaks and subTotals
-        this.rentIncome = houseRecs.filter(hr => hr.Category === 'Rent Income') ;
-        [this.riLast, this.riTot] = this.handleArray(this.rentIncome, false,
-          'newHouse', 'rentIncome.csv')
-        this.utilSvc.cLog(this.CLASSNAME,'HouseRecs %O  rentInc: %O', houseRecs, this.rentIncome)
-
-        this.houseExp = houseRecs.filter(hr => hr.Amount < 0) ;
-        [this.heLast, this.heTot] = this.handleArray(this.houseExp, false,
-          'newHouse', 'houseExpenses.csv')
-
-        const projExp = houseRecs.filter(hr => hr.Project !== '')
-        this.utilSvc.cLog(this.CLASSNAME, 'houseExp %O  projExp: %O', this.houseExp, projExp)
-        this.fireSvc.getProjectsFromDB(0, this.startDt, this.endDt).subscribe({
-          next: (projRecs) => {   // Get project descriptions from keys
-            this.projects = projRecs ;
-            this.utilSvc.cDebug(this.CLASSNAME,'I&E startDt: %s  endDt: %s', this.startDt, this.endDt) ;
-            for (const curProj of projExp) {    // Cvt project key to project description
-              const fullProj = this.projects.find(proj => proj.ProjectId === curProj.Project)
-              if (fullProj)  curProj.Project = fullProj.Description
-              curProj.Project = curProj.House + ' ' + curProj.Project   // House in report
-            }
-            // let curReturn = a.House.localeCompare(b.House) ;
-            // return (curReturn === 0) ? a.TranDate.localeCompare(b.TranDate) : curReturn ;
-
-            this.projExp = projExp.sort((a, b) => {
-              const curReturn = a.Project.localeCompare(b.Project) ;
-              return (curReturn === 0) ? a.TranDate.localeCompare(b.TranDate) : curReturn ;
-            }) ;
-            [this.peLast, this.peTot] = this.handleArray(this.projExp, true,
-              'newProj', 'projectExp.csv')
-
-            this.reportReady = true ;
-          }, error: (projErr) => {
-            this.utilSvc.cWarn(this.CLASSNAME,'Error getting projects for I&E: %s', projErr)
-          }
-        })
+        this.reportReady = true ;
       }, error: (error) => {
-        this.utilSvc.cWarn(this.CLASSNAME, 'Error getting trans for P&L: %s', error)
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting trans for P&L: %s', error)
       }
     })
   }
 
-  // Use unused fields so html can show it well, also write CSV and RTF
-  handleArray(curArr: TranRec[], useProject: boolean, indicatorMsg: string,
-    fName: string): [number, number] {
-    let lastGrpAmt = 0 ; let totAmt = 0 ;  let grpFld: string ;
-    let lastGroup = '' ; let curTot = 0 ;  let csvStr = ''
-    for (const curTran of curArr) {
-      grpFld = (useProject) ? curTran.Project : curTran.House ;
-      if (grpFld !== lastGroup) {  // use fitid to identify first row for house
-        curTran.FitID = indicatorMsg  ;
-        curTran.Annotation = this.utilSvc.fixAmt(curTot).toString() ; totAmt += curTot ;
-        if (curTot !== 0)
-          csvStr += lastGroup + ', SubTot:,' + this.utilSvc.fixAmt(curTot).toString() + '\n\n'
-        csvStr += grpFld + '\n'
-        curTot = 0 ;  lastGroup = grpFld
+  rentStatus() {
+    this.utilSvc.cLog(this.CLASSNAME,'RentStat startDt: %s  endDt: %s  houseArr: %O',
+      this.startDt, this.endDt, this.selectedHouseArr) ;
+    const tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr, ['Rent Income'], [],
+      0, 0, [], [this.selectedHouse ])
+    this.fireSvc.getTransFromDB(tranQ, false).subscribe({
+      next: (tranRecs) => {
+        this.transactions = tranRecs ;
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting trans for P&L: %s', error)
       }
-      curTot += curTran.Amount ;
-      csvStr += curTran.TranDate + ', ' + curTran.Category + ', ' +
-        curTran.Amount.toString() + '\n' ;
-    }
-    lastGrpAmt = this.utilSvc.fixAmt(curTot) ;   totAmt += curTot ;
-    if (curTot !== 0)
-      csvStr += lastGroup + ', SubTot:,' + this.utilSvc.fixAmt(curTot).toString() + '\n\n'
-    csvStr += 'Total: ,,,' + this.utilSvc.fixAmt(totAmt).toString() ;
-    const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvStr) ;
-    this.writeFile(encodedUri, fName) ;
-    return [lastGrpAmt, this.utilSvc.fixAmt(totAmt) ] ;
+    })
   }
 
+  /** ************************************************************************
+   * Dump the globals ... all globals or globals of a particular type
+   ************************************************************************ */
   dumpGlobal() {
     this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpGlobal selType: %s', this.selectedType)
     this.filtGlob =  (this.selectedType) ?
@@ -518,10 +271,18 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.reportReady = true
   }
 
-  jsonStr(inStr: any): string {   // So html can stringify w/out changing source arrays
+  /** ************************************************************************
+   * So html can stringify w/out changing source arrays
+   * @param inStr 
+   * @returns 
+   *************************************************************************/
+  jsonStr(inStr: any): string {   
     return JSON.stringify(inStr)
   }
 
+  /** ************************************************************************
+   * Dump projects for csv or json
+   ************************************************************************ */
   dumpProject() {
     this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpProj sDt: %s  eDt: %s', this.startDt, this.endDt)
     this.filtProj = this.projects.filter((proj) => {
@@ -533,6 +294,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.reportReady = true ;
   }
 
+  /** ************************************************************************
+   * Dump reconciliations for csv or json
+   ************************************************************************ */
   dumpRecon() {
     this.utilSvc.cDebug(this.CLASSNAME,'dumpRecon w/startDt: %s  endDt: %s  accountArr: %O',
       this.startDt, this.endDt, this.accountArr) ;
@@ -548,10 +312,14 @@ export class ReportsComponent implements OnInit, OnDestroy {
     })
   }
 
+  /** ************************************************************************
+   * Dump transactions for CSV or JSON
+   * @param tranQ 
+   ************************************************************************ */
   dumpTran(tranQ?: TranQ) {
     // Removed re-use logic since tq too complex to make it accurate, just requery
     if (!tranQ) tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr)
-    this.fireSvc.getTransFromDB(tranQ).subscribe({
+    this.fireSvc.getTransFromDB(tranQ, true).subscribe({
       next: (tranRecs) => {
         this.transactions = tranRecs ;
         this.showTranResults(this.transactions)
@@ -562,10 +330,18 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.utilSvc.cDebug(this.CLASSNAME,'TranQ: %O  accountArr: %O  tranCnt: %d', tranQ, this.accountArr, this.transactions.length)
   }
 
+  /** ************************************************************************
+   * Func callable from html and ts to identify report ready
+   * @param tranRecs 
+   ************************************************************************ */
   showTranResults(tranRecs: TranRec[]) {
     this.reportReady = true ;
   }
 
+  /** ************************************************************************
+   * Write out CSV for the appropriate dump
+   * @param reportNm 
+   ************************************************************************ */
   writeCsv(reportNm: string) {
     switch (reportNm) {
       case 'Dump of Globals': this.writeGenericCsv(this.filtGlob, 'globals.csv') ; break ;
@@ -575,6 +351,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** ************************************************************************
+   * Writing the JSON file for the dump of data base
+   * @param reportNm 
+   ************************************************************************ */
   writeJson(reportNm: string) {
     switch (reportNm) {
       case 'Dump of Globals': this.writeGenericJson(this.filtGlob, 'globals.json') ; break ;
@@ -584,6 +364,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** ************************************************************************
+   * Process a CSV file by working thru headers, columns, etc..
+   * @param inArr 
+   * @param fName 
+   ************************************************************************ */
   writeGenericCsv(inArr: any[], fName: string) {
     let outCsv = this.jsonArr2CsvStr(inArr) ;
     // outCsv = outCsv.replaceAll('#', 'lb;')
@@ -591,26 +376,25 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.utilSvc.cDebug(this.CLASSNAME, 'outcsv len: ', outCsv.length) ;
     const encodedUri = encodeURI("data:text/csv;charset=utf-8," + outCsv) ;
     // window.open(encodedUri);
-    this.writeFile(encodedUri, fName) ;
+    this.utilSvc.writeFile(encodedUri, fName) ;
   }
 
+  /** ************************************************************************
+   * Generic processor of JSON for db dumps
+   * @param inArr 
+   * @param fName 
+   *************************************************************************/
   writeGenericJson(inArr: any[], fName: string) {
     this.utilSvc.cDebug(this.CLASSNAME, 'writeGenericJson w/arr: %O  nm: %s', inArr, fName)
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(inArr))
-    this.writeFile(dataStr, fName)
+    this.utilSvc.writeFile(dataStr, fName)
   }
 
-  writeFile(encodedData: string, fileName: string) {
-    const dlAnchor = document.createElement('a')
-    dlAnchor.setAttribute("href", encodedData)
-    dlAnchor.setAttribute("download", fileName)
-    dlAnchor.setAttribute("dataType", "rtf")
-    dlAnchor.setAttribute("Content-Disposition", "attachment")
-    document.body.appendChild(dlAnchor)
-    dlAnchor.click()
-    dlAnchor.remove()
-  }
-
+  /** ************************************************************************
+   * Creating a CSV string from a JSON array
+   * @param inArr 
+   * @returns 
+   ************************************************************************ */
   jsonArr2CsvStr(inArr: any[]): string {
     let outStr = ''
     const fldNames: string[] = Object.keys(inArr[0])
@@ -638,6 +422,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
     return outStr ;
   }
 
+  /** ************************************************************************
+   * Retrieve globals from the data base via fireService
+   ************************************************************************ */
   getGlobals() {
     const globalSubj = this.fireSvc.getGlobals(this.forceGlobals) ;
     globalSubj.subscribe({
@@ -652,6 +439,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
     })
   }
 
+  /** ************************************************************************
+   * Now that globals are available, retrieve each global data type needed
+   ************************************************************************ */
   globalLoad() {
     this.globals = this.fireSvc.retrieveGlobals() ;
     this.tranTypes = this.fireSvc.getTranTypes() ;
@@ -667,6 +457,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
       this.utilSvc.cDebug(this.CLASSNAME, 'catTC: %d  taxCat: %d', this.categoryTaxcat.length, this.taxCats.length)
   }
 
+  /** ************************************************************************
+   * Retrieve projects from firebase service
+   ************************************************************************ */
   getProjects() {
     this.projStrtDt = this.startDt ;  this.projEndDt = this.endDt ;
     const projRtn = this.fireSvc.getProjects(false, 0, this.startDt, this.endDt) ;
@@ -689,6 +482,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** ************************************************************************
+   * Delete a message selected for deletion
+   * @param idx 
+   * @param msg 
+   ************************************************************************ */
   onMsgDel(idx: number, msg: string) {
     this.dispMsgs.splice(idx, 1) ;
   }

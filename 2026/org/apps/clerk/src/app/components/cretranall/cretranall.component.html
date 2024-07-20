@@ -1,5 +1,5 @@
 <!-- One component to display trans in 2 columns and allow all tran actions -->
-<div class="row" *ngIf="editMode || !expandedView || isChild" [style]="rowStyle">
+<div class="row" *ngIf="displayList()" [style]="rowStyle">
   <div class="col-md-2" data-cy="cta-ldt"> {{ tranRec.TranDate }} </div>
   <div class="col-md-1" data-cy="cta-ltt"> {{ tranRec.TranType }}     </div>
   <div class="col-md-3" data-cy="cta-ltd"> {{ tranRec.Category }}  </div>

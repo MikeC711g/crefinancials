@@ -219,7 +219,7 @@ export class FirebaseService {
    * @param {string[]} accounts array of accounts for which to pull transaction documents
    * @returns Observable of Tran Documents
    */
-  getTransFromDB(tranQ: TranQ):  Observable<TranRec[]> {
+  getTransFromDB(tranQ: TranQ, fixSplits: boolean):  Observable<TranRec[]> {
     this.updtTimeStmp() ;
     const doTrc = this.utilSvc.isLoggable(this.CLASSNAME, this.utilSvc.msgLvls.Log)
     const tranQuery: QueryConstraint[] = this.bldQuery(tranQ)
@@ -239,7 +239,7 @@ export class FirebaseService {
           next: (dbTranRecs) => {
             const tranRecs: TranRec[] = dbTranRecs
             const filtRecs = this.primaryFilter(tranRecs, tranQ)
-            this.fixSplits(tranRecs, filtRecs, doTrc) ;    // Fix any split trans that don't stay together
+            if (fixSplits) this.fixSplits(tranRecs, filtRecs, doTrc) ;  // Fix split trans?
             tranSub$.next(filtRecs)
           }
         })

@@ -33,11 +33,10 @@
       <label for="inactdt">Date Made Inactive</label>
       <input type="date" class="form-control" [(ngModel)]="house.inactiveDt"
         name="inactdt" id="inactdt" ngModel data-cy="aho-inactDt">
-      <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()">
+      <button class="btn btn-success col-md-3" type="button" data-cy="aho-add" (click)="onAddRecord()">
         {{ newRow ? 'Add' : 'Update' }}</button>
-      <button class="btn btn-primary col-md-3" type="button"
-        (click)="onCancel()">
-        Cancel</button>
+      <button class="btn btn-primary col-md-3" type="button" data-cy="aho-cancel"
+        (click)="onCancel()">Cancel</button>
     </div>
   </div>
 </div>

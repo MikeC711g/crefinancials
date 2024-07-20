@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" *ngIf="haveData">
   <div class="col-md-12">
         <!-- inputs for search -->
     <div class="row" *ngIf="action === 'search'">
@@ -57,7 +57,7 @@
     <app-cretranall [modeOp]="action" [idx]="1"
       (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
   </div>
-  <div class="col-md-12">
+  <div class="col-md-12" *ngIf="action !== 'createtran'">
     <div class="row" *ngIf="!!debitTranRecs && debitTranRecs.length > 0; else noTransDebit">
       <h5 class="col-md-4">{{ debitTranRecs.length }} Total Debits: {{ debitTotals }}</h5>
       <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="ctrn-expDebit"
@@ -68,7 +68,7 @@
           style="width: 16px; height: 16px;" *ngIf="expandDebits">
       </button><p></p>
       <ul data-cy="ctrn-debits" *ngIf="expandDebits">
-        <li *ngFor="let tran of debitTranRecs; index as i" data-cy="ctrn-debitRow">
+        <li *ngFor="let tran of debitTranRecs; index as i">
           <app-cretranall [tranRec]="tran" [idx]="i"
             [isParent]="tran.TranType === 'TPARENT'"
             (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall>
@@ -84,7 +84,7 @@
         <img class="img-responsive" src="assets/images/chevron-down-icon.png"
           style="width: 16px; height: 16px;" *ngIf="expandCredits">
       </button><p></p>
-      <ul data-cy="ctrn-credits" *ngIf="expandCredits">
+      <ul *ngIf="expandCredits">
         <li *ngFor="let tran of creditTranRecs; index as i" data-cy="ctrn-creditRow">
           <app-cretranall [tranRec]="tran" [idx]="i"
             [isParent]="tran.TranType === 'TPARENT'"
@@ -93,11 +93,11 @@
       </ul>
     </div>
     <div>
-      <app-cremessages [dispMsgs]="dispMsgs" data-cy="ctrn-msgs"
+      <app-cremessages [dispMsgs]="dispMsgs"
         (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
     </div>
     <ng-template #noTransDebit>
-      <hr>  <h5 data-cy="ctrn-noDebits">There are no Debit transactions to list</h5>
+      <hr>  <h5>There are no Debit transactions to list</h5>
     </ng-template>
     <ng-template #noTransCredit>
       <hr>  <h5 data-cy="ctrn-noCredits">There are no Credit transactions to list</h5>

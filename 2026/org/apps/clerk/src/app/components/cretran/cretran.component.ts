@@ -34,7 +34,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   creditTranRecs: TranRec[] = new Array<TranRec>() ;
   debitTotals = 0.0 ;  creditTotals = 0.0 ;
   expandDebits = false ;    expandCredits = false ;
-  completeActions = 0 ;
+  completeActions = 0 ;   haveData = false ;
   dateOpts: KeyVal[] = [ new KeyVal('30 days', '30'), new KeyVal('90 days', '90'),
     new KeyVal('6 months', '180'), new KeyVal('Custom Dates', '-1')]
   numDays = -1 ;  startDt = '' ;  endDt = '' ; // Current query parms
@@ -66,6 +66,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   }
 
   ngOnInit(): void {
+    this.haveData = false ;
     const curDt = new Date() ;
     this.endDt = curDt.toISOString().slice(0, 10)
     this.startDt = this.utilSvc.getDate(curDt, -45) ;
@@ -98,6 +99,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
       next: () => {
         this.utilSvc.cDebug(this.CLASSNAME,'Subscrib returned so calling globalLoad now') ;
         this.globalLoad() ;
+        this.haveData = true ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
       }
@@ -169,7 +171,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
    ****************************************************************************/
   onQueryDates(startDate: string = this.startDt, endDate: string = this.endDt, inTranQ?: TranQ): void {
     const tq = (inTranQ) ? inTranQ : new TranQ(startDate, endDate, '', this.accountArr) ;
-    const tranQ$ = this.fireSvc.getTransFromDB(tq) ;
+    const tranQ$ = this.fireSvc.getTransFromDB(tq, true) ;
     console.log('onQueryDates from cretran st: %s  en: %s  tq: %O', startDate, endDate, tq)
     this.tran$ = tranQ$.subscribe({
       next: (response => {

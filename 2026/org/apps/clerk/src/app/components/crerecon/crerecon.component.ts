@@ -133,7 +133,7 @@ export class CrereconComponent implements OnInit, OnDestroy, DeactivatableCompon
    *****************************************************************************/
   onReconcile(startDate: string, endDate: string, beginStr: string, endStr: string): void {
     const tq: TranQ = new TranQ(startDate, endDate, '', [this.account]) ;
-    this.tran$ = this.fireSvc.getTransFromDB(tq).subscribe({
+    this.tran$ = this.fireSvc.getTransFromDB(tq, false).subscribe({
       next: (transIn) => {
         this.calcRecon(transIn, beginStr, endStr) ;
       }, error: (error) => {

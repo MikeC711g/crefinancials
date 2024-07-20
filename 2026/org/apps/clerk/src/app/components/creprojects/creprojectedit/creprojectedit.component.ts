@@ -46,8 +46,8 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
     } else {    // Create new project
       const curDt = new Date() ;
       this.newRow = true ;
-      this.curProj.EndDt = curDt.toISOString().slice(0, 10) ;
-      this.curProj.StartDt = this.utilSvc.getDate(curDt, -90) ;
+      this.curProj.EndDt = this.utilSvc.getDate(curDt, 60) ;
+      this.curProj.StartDt = this.utilSvc.getDate(curDt, -120) ;
       this.origProject.StartDt = this.curProj.StartDt ;
       this.origProject.EndDt = this.curProj.StartDt ;
     }

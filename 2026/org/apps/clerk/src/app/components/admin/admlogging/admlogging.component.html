@@ -3,7 +3,7 @@
   <div class="col-md-9">
     <label for="logLevel">LogLevel</label>
     <select class="form-control" id="logLevel" name="logLevel" [(ngModel)]="level"
-      (change)="editClassLevel()">
+      (change)="editClassLevel()" data-cy="alo-level">
       <option [value]="''" [selected]="!level">-- select an option --</option>
       <option *ngFor="let lLevel of logLevels" [value]="lLevel">{{ lLevel }}</option>
     </select>

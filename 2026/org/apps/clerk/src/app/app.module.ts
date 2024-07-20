@@ -30,6 +30,9 @@ import { AdmcategoryComponent } from './components/admin/admcategory/admcategory
 import { CretranallComponent } from './components/cretranall/cretranall.component';
 import { CremessagesComponent } from './components/cremessages/cremessages.component';
 import { TransrchComponent } from './components/transrch/transrch.component';
+import { PnlReportComponent } from './components/reports/pnl-report/pnl-report.component';
+import { Exp2projreportComponent } from './components/reports/exp2projreport/exp2projreport.component';
+import { RentstatreportComponent } from './components/reports/rentstatreport/rentstatreport.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +54,10 @@ import { TransrchComponent } from './components/transrch/transrch.component';
     AdmcategoryComponent,
     CretranallComponent,
     CremessagesComponent,
-    TransrchComponent
+    TransrchComponent,
+    PnlReportComponent,
+    Exp2projreportComponent,
+    RentstatreportComponent
   ],
   imports: [
     BrowserModule,

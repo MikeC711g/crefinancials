@@ -3,9 +3,9 @@
   <div class="col-md-3"> {{ ruleAdmin.srchStr }}  </div>
   <div class="col-md-1"> {{ srchAmtStr }}         </div>
   <div class="col-md-2"> {{ acctString }}         </div>
-  <button class="btn btn-success btn-toggle col-md-2" type="button"
+  <button class="btn btn-success btn-toggle col-md-2" type="button" data-cy="ard-edit"
     (click)="editMode = true"> Edit</button>
-  <button class="btn btn-danger col-md-2" type="button"
+  <button class="btn btn-danger col-md-2" type="button" data-cy="ard-delete"
     (click)="onDeleteRecord()"> Delete</button>
 </div>
 <p style="background-color: aqua;">{{ statusMsg }}</p>
@@ -68,9 +68,10 @@
         name="annotation" id="annotation" ngModel data-cy="ard-annot"
         title="Detailed explanation, often extracted from ofx/qfx file">
       <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()"
-        [disabled]="ruleAdmin.ruleName === '' || (ruleAdmin.srchStr === '' && !srchAmtStr)">
+        [disabled]="ruleAdmin.ruleName === '' || (ruleAdmin.srchStr === '' && !srchAmtStr)"
+        data-cy="ard-addRec">
         {{ newRow ? 'Add' : 'Update' }}</button>
-      <button class="btn btn-primary col-md-3" type="button"
+      <button class="btn btn-primary col-md-3" type="button" data-cy="ard-cancel"
         (click)="onCancel()">Cancel</button>
     </div>
   </div>

@@ -13,7 +13,7 @@
           <app-creprojectedit *ngIf="newRow"
             (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
       </div>
-      <div data-cy="cpro-msgs">
+      <div>
         <app-cremessages [dispMsgs]="dispMsgs"
           (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
       </div>

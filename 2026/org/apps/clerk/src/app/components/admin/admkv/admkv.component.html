@@ -1,9 +1,9 @@
 <div class="row" *ngIf="!editMode">
   <div class="col-md-3"> {{ kv.RKey }}      </div>
   <div class="col-md-3"> {{ kv.RVal }}      </div>
-  <button class="btn btn-success btn-toggle col-md-2" type="button"
+  <button class="btn btn-success btn-toggle col-md-2" type="button" data-cy="akv-edit"
     (click)="editMode = true"> Edit</button>
-  <button class="btn btn-danger col-md-2" type="button"
+  <button class="btn btn-danger col-md-2" type="button" data-cy="akv-delete"
     (click)="onDeleteRecord()"> Delete</button>
 </div>
 <p style="background-color: aqua;">{{ statusMsg }}</p>
@@ -33,9 +33,9 @@
           <option *ngFor="let domVal of valDomainKV" [value]="domVal.RKey">{{ domVal.RVal }}</option>
         </select>
       </div>
-      <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()">
-        {{ newRow ? 'Add' : 'Update' }}</button>
-      <button class="btn btn-primary col-md-3" type="button"
+      <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()"
+        data-cy="akv-addRec">{{ newRow ? 'Add' : 'Update' }}</button>
+      <button class="btn btn-primary col-md-3" type="button" data-cy="akv-cancel"
         (click)="onCancel()">
         Cancel</button>
     </div>

@@ -493,4 +493,39 @@ export class GenutilsService {
     }
     return inArr
   }
+      
+  /** ************************************************************************
+   * Format a number for reporting
+   * @param inNo Number
+   * @param prec Precision (number of digits right of decimal pt)
+   * @returns Formatted string
+   ************************************************************************ */
+  dispFmt(inNo: number, prec = 2): string {
+    const oNum = inNo.toFixed(prec) ;
+    const dotPo = oNum.indexOf('.') ;
+    let intPart = oNum.slice(0, dotPo)
+    let curStr = oNum.slice(dotPo)
+    for (let iLen = intPart.length; iLen > 3; iLen -= 3) {
+        curStr = (intPart.charAt(0) === '-' ? '' : ',') + intPart.slice(iLen - 3) + curStr
+        intPart = intPart.slice(0, iLen-3)
+    }
+    curStr = intPart + curStr
+    return curStr
+  }
+
+  /** ************************************************************************
+   * HTML file writing
+   * @param encodedData 
+   * @param fileName 
+   ************************************************************************ */
+  writeFile(encodedData: string, fileName: string) {
+    const dlAnchor = document.createElement('a')
+    dlAnchor.setAttribute("href", encodedData)
+    dlAnchor.setAttribute("download", fileName)
+    dlAnchor.setAttribute("dataType", "rtf")
+    dlAnchor.setAttribute("Content-Disposition", "attachment")
+    document.body.appendChild(dlAnchor)
+    dlAnchor.click()
+    dlAnchor.remove()
+  }
 }

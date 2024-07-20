@@ -26,16 +26,16 @@
           style="font-size: large" data-cy="auth-phone">
       </div>
       <div class="row form-group" *ngIf="guiMode !== 'Sign In'">
-        <a (click)="guiMode = 'Sign In'" style="cursor:pointer;text-decoration: underline;color: navy">
-          <br><p>Return to default signIn Mode</p></a>
+        <a (click)="guiMode = 'Sign In'" style="cursor:pointer;text-decoration: underline;color: navy"
+          data-cy="auth-rtn2sign"><br><p>Return to default signIn Mode</p></a>
       </div>
       <div class="row form-group" *ngIf="guiMode !== 'Reset Password'">
-        <a (click)="guiMode = 'Reset Password'" style="cursor:pointer;text-decoration: underline;color: navy">
-          <br><p>Forgot password (or reset/change password)</p></a>
+        <a (click)="guiMode = 'Reset Password'" style="cursor:pointer;text-decoration: underline;color: navy"
+          data-cy="auth-resetpw"> <br><p>Forgot password (or reset/change password)</p></a>
       </div>
       <div class="row form-group" *ngIf="guiMode !== 'Sign Up'">
-        <a (click)="guiMode = 'Sign Up'" style="cursor:pointer;text-decoration: underline;color: navy">
-          <p>Sign Up to join the CLERK community</p></a>
+        <a (click)="guiMode = 'Sign Up'" style="cursor:pointer;text-decoration: underline;color: navy"
+          data-cy="auth-signup"> <p>Sign Up to join the CLERK community</p></a>
       </div>
     </div>
     <div class="col-md-12">
