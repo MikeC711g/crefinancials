@@ -136,6 +136,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
 
   ngOnDestroy() {
     this.utilSvc.cDebug(this.CLASSNAME, 'Desroy admin component w/actionCnt: %d',this.actionCounts) ;
+    if (this.action$) this.action$.unsubscribe() ;
     if (this.actionCounts > 0) {
       this.fireSvc.setGlobals(this.fbGlobals) ;   // returning array w/mods
       this.fireSvc.processGVals() ;   // Make global chgs visible thru service

@@ -173,7 +173,7 @@
             (tranRec.ReconKey !== '' && !isGlobalAdmin)">
           {{ isInDB ? 'Update' : 'Add' }}</button>
       <button class="btn btn-danger col-md-2" type="button" data-cy="cta-delBtn"
-          [disabled]="!editMode || (tranRec.ReconKey !== '' && !isGlobalAdmin)"
+          [disabled]="(!editMode && !isChild) || (tranRec.ReconKey !== '' && !isGlobalAdmin)"
           (click)="onDeleteRecord()">Delete</button>
       <button class="btn btn-warning col-md-2" type="button" data-cy="cta-canBtn"
         (click)="onCancel()">Cancel</button>

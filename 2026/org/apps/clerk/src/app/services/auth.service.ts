@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Auth, UserCredential, User, createUserWithEmailAndPassword, deleteUser,
-  sendPasswordResetEmail, signInWithEmailAndPassword, signOut, 
-  sendEmailVerification, updatePassword} from '@angular/fire/auth' ;
+  sendPasswordResetEmail, signInWithEmailAndPassword, signOut, sendEmailVerification, updatePassword,
+  EmailAuthProvider, reauthenticateWithCredential} from '@angular/fire/auth' ;
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { BehaviorSubject } from 'rxjs';
 import { GenutilsService } from './genutils.service';
 import { cUser } from '../models/cUser.model';
 import { UserRec } from '../models/UserRec.model';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +21,7 @@ export class AuthService {
   newCustNm = 'newCustomer'
 
   constructor(private auth: Auth, private firestore: Firestore,
-    private utilSvc: GenutilsService) {}
+    private utilSvc: GenutilsService, private route: Router) {}
 
   doLogin(eMail: string, password: string): Promise<any> {
     return signInWithEmailAndPassword(this.auth, eMail, password) ;
@@ -41,9 +42,18 @@ export class AuthService {
     return sendPasswordResetEmail(this.auth, eMail)
   }
 
-  changePassword(user: User, oldPw: string, newPw: string): Promise<any> | string {
-    return (this.auth.currentUser) ? updatePassword(this.auth.currentUser!, newPw) :
-      'Must be signed in to use this feature'
+  // This should go away. If I do use it, I should do re-validation to make sure signed in
+  changePw(user: User, eMail: string, oldPw: string, newPw: string, confirmPw: string):
+    Promise<any> {
+    return new Promise< Promise<any> >(( resolve, reject ) => {
+      if (newPw !== confirmPw) reject('New and Confirm passwords do not match') ;
+      if (!user && !this.auth.currentUser) reject('Could not retrieve user info') ;
+      if (!user) user = this.auth.currentUser! ;
+      const credential = EmailAuthProvider.credential(eMail, newPw) ;
+      reauthenticateWithCredential(user, credential).then(() => {
+        resolve(updatePassword(user, newPw)) ;
+      }).catch(error => {reject(`Error ${error} reauthenticating current user`)})
+    })
   }
 
   createUser(email: string, password: string): Promise<UserCredential> {

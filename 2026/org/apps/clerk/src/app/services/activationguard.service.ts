@@ -20,6 +20,7 @@ import { GenutilsService } from './genutils.service';
         case 'projects':
         case 'reconcile':
         case 'reports':
+        case 'profile':
           return !!user ;
         case 'admin':
           return (aUser?.role === utilSvc.roleNames.Admin ||

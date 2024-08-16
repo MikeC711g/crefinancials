@@ -140,11 +140,11 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     console.log('addNewChildren w/tranRec: %O', this.tranRec)
     if (this.tranRec.Category === 'Mortgage Payment') { // Mtg pmt has predefined split
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-        'Mortgage Principal', this.tranRec.TranType, 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
+        'Mortgage Principal', 'DEBIT', 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-        'Mortgage Escrow', this.tranRec.TranType, 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
+        'Mortgage Escrow', 'DEBIT', 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-        'Mortgage Interest', this.tranRec.TranType, 0, '', 'BE', this.tranRec.House, '', '', '', '')) ;
+        'Mortgage Interest', 'DEBIT', 0, '', 'BE', this.tranRec.House, '', '', '', '')) ;
     } else {      // Create 2 generic children for them to start with
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
         '', '', 0, '', '', '', '', '', '', '')) ;
@@ -526,7 +526,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.tranMod.emit({ action: this.utilSvc.actionTypes.Split, tranRec: this.tranRec }) ;
     }
     this.addNewChildren()
-    this.tranRec.TranType = 'TPARENT' ;   this.tranRec.TaxCat = 'NT'  // Set parent fields
+    this.tranRec.TranType = this.nmDict.tParent ;   this.tranRec.TaxCat = 'NT'  // Set parent fields
   }
 
   /*********************************************************************

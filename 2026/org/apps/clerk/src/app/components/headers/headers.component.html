@@ -69,14 +69,17 @@
             data-cy="hdrAdLog">Logging</a></li>
         </ul>
       </li>
-
-      <!--      <li class="nav-item">
-        <a class="nav-link" routerLinkActive="active" routerLink="/admin"
-          *ngIf="isAdmin && isAuthenticated"> Administration</a></li> -->
-    </ul><ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link me-2" routerLinkActive="active" routerLink="/auth" data-cy="hdrLogout"
-          *ngIf="isAuthenticated" (click)="logOut()"> Logout </a>
+    </ul><ul class="navbar-nav" *ngIf="isAuthenticated">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" role="button" data-cy="hdrProf"
+          data-bs-toggle="dropdown" aria-expanded="false">
+           Profile/User</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/profile/chgpw"
+            data-cy="hdrPrChgPw">Change Password</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/auth"
+            (click)="logOut()" data-cy="hdrLogout">Logout</a>
+        </ul>
       </li>
     </ul>
   </div>

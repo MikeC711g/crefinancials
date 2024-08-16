@@ -3,9 +3,13 @@ import { AuthService } from './../../services/auth.service';
 import { AfterViewInit, Component, ElementRef } from '@angular/core';
 import { UserRec } from './../../models/UserRec.model';
 import { cUser } from './../../models/cUser.model';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { GenutilsService } from './../../services/genutils.service';
 import { FirebaseService } from './../../services/firebase.service';
+import { Subscription } from 'rxjs';
+import { User, user } from '@angular/fire/auth';
+
+type GuiMode = 'Sign In' | 'Change Password' | 'Reset Password' | 'Sign Up' 
 
 @Component({
   selector: 'app-auth',
@@ -13,14 +17,28 @@ import { FirebaseService } from './../../services/firebase.service';
   styleUrls: ['./auth.component.css']
 })
 export class AuthComponent implements  AfterViewInit {
-  dispMsgs: string[] = new Array<string>()
+  dispMsgs: string[] = new Array<string>() ;  curUser: any = null ;
+  pwValid = false ;
   uid = '' ;  eMail = '' ;  pw = '' ;  compName = '' ;  phone = ''
-  guiMode = 'Sign In'    // or 'Reset Password' or 'Sign Up'
+  action$: Subscription = new Subscription() ;
+  guiMode: GuiMode = 'Sign In'    // or 'Reset Password' or 'Sign Up'
   loginDelay = 2    // 2 milliseconds, but bumped higher w/failed logins to catch forces
   CLASSNAME = 'auth' ;
 
   constructor(private authSvc: AuthService, private utilSvc: GenutilsService,
-    private fireSvc: FirebaseService, private router: Router, private elementRef: ElementRef) { }
+    private fireSvc: FirebaseService, private router: Router, private elementRef: ElementRef) {
+    this.action$ = router.events.subscribe((routeUrl) => {
+      if (routeUrl instanceof NavigationEnd) {
+        const urlParts = routeUrl.url.split('/') ;
+        const lastPart = urlParts[urlParts.length-1]
+        if (lastPart === 'chgpw') this.guiMode = 'Change Password' ;
+// May need common eMail and [(ngModel)]="eMail" in template then set on this being hit
+// and hopefully eMail will be there (same instance ... or stash eMail/user/cUser in svc)
+        this.pwValid = 'Sign In.Reset Password'.includes(this.guiMode) ;    // no cks here
+        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with guiMode %s  pwValid: %s', this.guiMode, this.pwValid)
+      }
+    })
+  }
 
   ngAfterViewInit() {
     this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = '#2471A3';
@@ -29,18 +47,21 @@ export class AuthComponent implements  AfterViewInit {
   onSubmit(loginForm: NgForm) {
     if (!loginForm.valid) { return ; }   // If form hacked, don't allow it here
     const eMail = loginForm.value.email ;
-    let password = '' ;  this.compName = '' ;  this.phone = ''
+    const oldPw = loginForm.value.oldPw ;   this.compName = '' ;  this.phone = ''
+    let newPw = '' ;   let confirmPw = '' ;
     switch (this.guiMode) {
       case 'Sign In':
-        password = loginForm.value.password ;
-        this.doLogin(eMail, password) ;  break ;
+        this.doLogin(eMail, oldPw) ;  break ;
+      case 'Change Password':
+        newPw = loginForm.value.newPw ;
+        confirmPw = loginForm.value.confirmPw ;
+        this.changePw(eMail, newPw, oldPw, confirmPw) ; break ;
       case 'Reset Password':
         this.resetPw(eMail) ; break ;
       case 'Sign Up':
         this.compName = loginForm.value.compName ;
-        password = loginForm.value.password ;
         this.phone = loginForm.value.phone ;
-        this.createUser(eMail, password, this.compName, this.phone)
+        this.createUser(eMail, oldPw, this.compName, this.phone)
     }
     this.guiMode = 'Sign In'
   }
@@ -56,7 +77,9 @@ export class AuthComponent implements  AfterViewInit {
     this.authSvc.doLogin(eMail, password).
       then(rslt => {
         this.utilSvc.cDebug(this.CLASSNAME, 'login: %s', rslt.user.uid) ;
-        this.uid = rslt.user.uid ;
+        this.curUser = rslt.user ;
+        this.uid = this.curUser.uid ;
+        console.log(rslt.user) ;
         this.authSvc.getUser(rslt.user.uid).
           then(doc => {
             if (doc.exists) {
@@ -105,6 +128,16 @@ export class AuthComponent implements  AfterViewInit {
     })
   }
 
+  changePw(eMail: string, oldPw: string, newPw: string, confirmPw: string) {
+    this.authSvc.changePw(this.curUser, eMail, oldPw, newPw, confirmPw).then(() => {
+      this.dispMsgs.push(`Successfully changed password for user: ${eMail}`)
+      this.router.navigate(['/trans/loadfile']) ;
+    }).catch(error => {
+      this.dispMsgs.push(`Error ${error} occurred changing the password`)
+      this.utilSvc.cWarn(this.CLASSNAME, 'Error changing pw: %s', error)
+    })
+  }
+
   createUser(eMail: string, pw: string, companyName: string, phone: string) {
     this.utilSvc.cLog(this.CLASSNAME, 'cre8user: eMail %s company: %s  pho: %s',
       eMail, companyName, phone)
@@ -144,4 +177,33 @@ export class AuthComponent implements  AfterViewInit {
     this.dispMsgs.splice(idx, 1) ;
   }
 
+  validatePassword(password: string, newPw?: string): boolean {   // Quick boolean for testing in templates
+    if (!'Change Password.Sign Up'.includes(this.guiMode))  return true ; // No ck unless this verb
+    if (newPw && newPw !== password) return false ;
+    const minLength = 8; // Example minimum length
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*]/.test(password);   
+
+    if (password.length >= minLength && hasUppercase && hasLowercase && hasNumber &&
+      hasSpecialChar && (!newPw || newPw === password))
+      return true ;
+    else {
+      let errString = '' ;
+      if (newPw && newPw !== password) errString += 'Password and confirm password do not match '
+      if (password.length < minLength)  errString += `Password must be at least ${minLength} characters<br>`
+      if (!hasUppercase) 'Password has no upper case characters<br>' ;
+      if (!hasLowercase) 'Password has no lower case characters<br>' ;
+      if (!hasNumber) 'Password has no numbers<br>' ;
+      if (!hasSpecialChar) 'Password has no special characters' ;
+      this.dispMsgs.push(errString)
+      return false ;
+    }
+  }
+
+  chgGuiMode(newMode: GuiMode) {
+    this.guiMode = newMode ;
+    this.pwValid = 'Sign In.Reset Password'.includes(this.guiMode) ;    // no cks here
+  }
 }

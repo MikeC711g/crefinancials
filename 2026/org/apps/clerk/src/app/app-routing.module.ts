@@ -38,8 +38,12 @@ const routes: Routes = [
       { path: 'categoryTaxcat', component: AdminComponent },
       { path: 'ruleData', component: AdminComponent },
       { path: 'logging', component: AdminComponent }
-    ] }
-];
+    ] },
+    { path: 'profile', component: AuthComponent, canActivate: [canActivate],
+      canDeactivate: [canDeactivate], children: [
+        { path: 'chgpw', component: AuthComponent }
+      ] }
+  ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

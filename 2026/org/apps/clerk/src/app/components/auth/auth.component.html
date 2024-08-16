@@ -5,36 +5,53 @@
         <label for="email" style="font-size: large;">EMail</label>
         <input type="email" id="email" class="form-control" name="email" data-cy="auth-email"
           required email autocomplete="email" ngModel style="font-size: large;"
-          #email="ngModel">
+          #email="ngModel" [disabled]="guiMode === 'Change Password'">
       </div>
-      <div [hidden]="email.valid || !email.touched"
+      <div [hidden]="email.valid || !email.touched || guiMode === 'Change Password'"
         class="alert alert-danger"> eMail is required </div>
-      <div class="form-group mt-5" *ngIf="guiMode === 'Sign In' || guiMode === 'Sign Up'">
-        <label for="password" style="font-size: large;">Password</label>
-        <input type="password" id="password" class="form-control" name="password"
-            required minlength="6" autocomplete="current-password" ngModel
-            style="font-size: large;" data-cy="auth-password">
+      <div class="form-group mt-5" *ngIf="'Change Password.Sign In'.includes(guiMode)">
+        <label for="oldPw" style="font-size: large;">Current Password</label>
+        <input type="password" id="oldPw" class="form-control" name="oldPw"
+            required minlength="8" autocomplete="current-password" ngModel
+            style="font-size: large;" data-cy="auth-oldPw">
+      </div>
+      <div class="form-group mt-5" *ngIf="'Sign Up.Change Password'.includes(guiMode)">
+        <label for="newPw" style="font-size: large;">New Password</label>
+        <input type="password" id="newPw" class="form-control" name="newPw"
+            required minlength="8" ngModel style="font-size: large;" data-cy="auth-newPw"
+            (change)="pwValid = validatePassword(authForm.value.newPw)">
+      </div>
+      <div class="form-group mt-5" *ngIf="'Sign Up.Change Password'.includes(guiMode)">
+        <label for="confirmPw" style="font-size: large;">Confirm Password</label>
+        <input type="password" id="confirmPw" class="form-control" name="confirmPw"
+            required minlength="8" ngModel style="font-size: large;" data-cy="auth-confirmPw"
+            (change)="pwValid = validatePassword(authForm.value.newPw, authForm.value.confirmPw)">
+      </div>
+      <div class="form-group" *ngIf="guiMode === 'Sign Up'">
+        <label for="dispName" style="font-size: large;">Display Name</label>
+        <input type="text" class="form-control" name="dispName" id="dispName" ngModel required
+          style="font-size: large;" data-cy="auth-dispName">
       </div>
       <div class="form-group" *ngIf="guiMode === 'Sign Up'">
         <label for="compName" style="font-size: large;">Company Name</label>
         <input type="text" class="form-control" name="compName" id="compName" ngModel required
-          style="font-size: large;" data-cy="auth-compName" #compName="ngModel">
+          style="font-size: large;" data-cy="auth-compName">
       </div>
       <div class="form-group" *ngIf="guiMode === 'Sign Up'">
         <label for="phone" style="font-size: large;">Telephone</label>
         <input type="tel" class="form-control" name="phone" id="phone" ngModel required
           style="font-size: large" data-cy="auth-phone">
       </div>
-      <div class="row form-group" *ngIf="guiMode !== 'Sign In'">
-        <a (click)="guiMode = 'Sign In'" style="cursor:pointer;text-decoration: underline;color: navy"
+      <div class="row form-group" [hidden]="'Sign In.Change Password'.includes(guiMode)">
+        <a (click)="chgGuiMode('Sign In')" style="cursor:pointer;text-decoration: underline;color: navy"
           data-cy="auth-rtn2sign"><br><p>Return to default signIn Mode</p></a>
       </div>
-      <div class="row form-group" *ngIf="guiMode !== 'Reset Password'">
-        <a (click)="guiMode = 'Reset Password'" style="cursor:pointer;text-decoration: underline;color: navy"
+      <div class="row form-group" [hidden]="'Reset Password.Change Password'.includes(guiMode)">
+        <a (click)="chgGuiMode('Reset Password')" style="cursor:pointer;text-decoration: underline;color: navy"
           data-cy="auth-resetpw"> <br><p>Forgot password (or reset/change password)</p></a>
       </div>
-      <div class="row form-group" *ngIf="guiMode !== 'Sign Up'">
-        <a (click)="guiMode = 'Sign Up'" style="cursor:pointer;text-decoration: underline;color: navy"
+      <div class="row form-group" [hidden]="'Sign Up.Change Password'.includes(guiMode)">
+        <a (click)="chgGuiMode('Sign Up')" style="cursor:pointer;text-decoration: underline;color: navy"
           data-cy="auth-signup"> <p>Sign Up to join the CLERK community</p></a>
       </div>
     </div>
@@ -44,7 +61,7 @@
     </div>
     <div class="offset-8 col-6 mt-4">
       <button type="submit" class="btn btn-warning btn-lg btn3d" data-cy="auth-submit"
-        [disabled]="!authForm.valid">{{ guiMode }}</button>
+        [disabled]="!authForm.valid || !pwValid">{{ guiMode }}</button>
     </div>
   </form>
 </div>
