@@ -3,6 +3,7 @@ import { AuthService } from './../../services/auth.service';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { GenutilsService } from './../../services/genutils.service';
 import { Router } from '@angular/router';
+import { cUser } from '../../models/cUser.model';
 
 @Component({
   selector: 'app-headers',
@@ -28,9 +29,11 @@ export class HeadersComponent implements OnInit, OnDestroy {
           user.role === this.utilSvc.roleNames.GlobalAdmin) ;
         this.isGlobalAdmin = (user.role === this.utilSvc.roleNames.GlobalAdmin) ;
         this.fireSvc.captureAuth(this.isAuthenticated, user.role, user.cid, user.dbPrefix) ;
+        this.authSvc.setCUser(user) ;
       } else {
         this.isAdmin = false ;  this.isGlobalAdmin = false ;
         this.fireSvc.captureAuth(false, 'none', 'noCid', 'noDBPrefix') ;
+        this.authSvc.setCUser(new cUser('', '', '', '', '', ''))
       }
     })
     setInterval(() => {

@@ -18,7 +18,7 @@ type GuiMode = 'Sign In' | 'Change Password' | 'Reset Password' | 'Sign Up'
 })
 export class AuthComponent implements  AfterViewInit {
   dispMsgs: string[] = new Array<string>() ;  curUser: any = null ;
-  pwValid = false ;
+  npwValid = false ;  cpwValid = false ;  npwMsg = '' ;  cpwMsg = '' ;
   uid = '' ;  eMail = '' ;  pw = '' ;  compName = '' ;  phone = ''
   action$: Subscription = new Subscription() ;
   guiMode: GuiMode = 'Sign In'    // or 'Reset Password' or 'Sign Up'
@@ -31,11 +31,14 @@ export class AuthComponent implements  AfterViewInit {
       if (routeUrl instanceof NavigationEnd) {
         const urlParts = routeUrl.url.split('/') ;
         const lastPart = urlParts[urlParts.length-1]
-        if (lastPart === 'chgpw') this.guiMode = 'Change Password' ;
-// May need common eMail and [(ngModel)]="eMail" in template then set on this being hit
-// and hopefully eMail will be there (same instance ... or stash eMail/user/cUser in svc)
-        this.pwValid = 'Sign In.Reset Password'.includes(this.guiMode) ;    // no cks here
-        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with guiMode %s  pwValid: %s', this.guiMode, this.pwValid)
+        if (lastPart === 'chgpw') {
+          this.guiMode = 'Change Password' ;
+          const cuser: cUser  = authSvc.getCUser() ;
+          this.eMail = cuser.email ;
+        }
+        this.cpwValid = this.npwValid = 'Sign In.Reset Password'.includes(this.guiMode) ;    // no cks here
+        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with guiMode %s  npwValid: %s  cpwValid: %s',
+          this.guiMode, this.npwValid, this.cpwValid)
       }
     })
   }
@@ -46,22 +49,23 @@ export class AuthComponent implements  AfterViewInit {
 
   onSubmit(loginForm: NgForm) {
     if (!loginForm.valid) { return ; }   // If form hacked, don't allow it here
-    const eMail = loginForm.value.email ;
     const oldPw = loginForm.value.oldPw ;   this.compName = '' ;  this.phone = ''
-    let newPw = '' ;   let confirmPw = '' ;
+    let newPw = '' ;   let confirmPw = '' ;   let dispName = '' ;
     switch (this.guiMode) {
       case 'Sign In':
-        this.doLogin(eMail, oldPw) ;  break ;
+        this.doLogin(this.eMail, oldPw) ;  break ;
       case 'Change Password':
         newPw = loginForm.value.newPw ;
         confirmPw = loginForm.value.confirmPw ;
-        this.changePw(eMail, newPw, oldPw, confirmPw) ; break ;
+        this.changePw(this.eMail, oldPw, newPw, confirmPw) ; break ;
       case 'Reset Password':
-        this.resetPw(eMail) ; break ;
+        this.resetPw(this.eMail) ; break ;
       case 'Sign Up':
         this.compName = loginForm.value.compName ;
+        dispName = loginForm.value.dispName ;
         this.phone = loginForm.value.phone ;
-        this.createUser(eMail, oldPw, this.compName, this.phone)
+
+        this.createUser(this.eMail, oldPw, this.compName, dispName, this.phone)
     }
     this.guiMode = 'Sign In'
   }
@@ -74,42 +78,41 @@ export class AuthComponent implements  AfterViewInit {
   }
 
   loginProcess(eMail: string, password: string) {
-    this.authSvc.doLogin(eMail, password).
-      then(rslt => {
-        this.utilSvc.cDebug(this.CLASSNAME, 'login: %s', rslt.user.uid) ;
-        this.curUser = rslt.user ;
-        this.uid = this.curUser.uid ;
-        console.log(rslt.user) ;
-        this.authSvc.getUser(rslt.user.uid).
-          then(doc => {
-            if (doc.exists) {
-              const data = doc.data() as UserRec ;
-              if (data.activeU === false) {
-                this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not active', this.uid) ;
-                this.errLogin(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
-                  'Clerk user is inactive, please contact customer support') ;
-              } else {
-                const user = new cUser(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
-                  data.cid, data.dbPrefix, data.role) ;
-                this.authSvc.user$.next(user) ;
-                this.loginDelay = 2
-                this.dispMsgs.push('You are now logged in') ;
-                this.router.navigate(['/trans/loadfile']) ;
-              }
-            } else {
-              this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not in Users collection', this.uid) ;
-              this.errLogin(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
-                'Clerk user information not available') ;
-            }
-          }).catch(error => {
-            this.utilSvc.cWarn(this.CLASSNAME, 'Failed to retrieve user for this signon, err: %s', error)
+    console.log('LoginProc: eml: %s  pw: %s', eMail, password)
+    this.authSvc.doLogin(eMail, password).then(rslt => {
+      this.utilSvc.cDebug(this.CLASSNAME, 'login: %s', rslt.user.uid) ;
+      this.curUser = rslt.user ;
+      this.authSvc.setAuthuser(this.curUser) ;
+      this.uid = this.curUser.uid ;
+      this.authSvc.getUser(rslt.user.uid).then(doc => {
+        if (doc.exists) {
+          const data = doc.data() as UserRec ;
+          if (data.activeU === false) {
+            this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not active', this.uid) ;
             this.errLogin(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
-              'Failed to get Clerk user information') ;
-          })
+              'Clerk user is inactive, please contact customer support') ;
+          } else {
+            const user = new cUser(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
+              data.cid, data.dbPrefix, data.role) ;
+            this.authSvc.user$.next(user) ;
+            this.loginDelay = 2
+            this.dispMsgs.push('You are now logged in') ;
+            this.router.navigate(['/trans/loadfile']) ;
+          }
+        } else {
+          this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not in Users collection', this.uid) ;
+          this.errLogin(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
+            'Clerk user information not available') ;
+        }
       }).catch(error => {
-        this.utilSvc.cWarn(this.CLASSNAME,'Failed signin with err: %s', error)
-        this.errLogin(eMail, 'NoUid', 'noRefreshToken', 'Failed to sign in to auth uid') ;
+        this.utilSvc.cWarn(this.CLASSNAME, 'Failed to retrieve user for this signon, err: %s', error)
+        this.errLogin(rslt.user.email, rslt.user.uid, rslt.user.refreshToken,
+          'Failed to get Clerk user information') ;
       })
+    }).catch(error => {
+      this.utilSvc.cWarn(this.CLASSNAME,'Failed signin with err: %s', error)
+      this.errLogin(eMail, 'NoUid', 'noRefreshToken', 'Failed to sign in to auth uid') ;
+    })
   }
 
   errLogin(eMail: string, uid: string, refreshToken: string, msgReason: string) {
@@ -120,6 +123,7 @@ export class AuthComponent implements  AfterViewInit {
   }
 
   resetPw(eMail: string) {
+    console.log('resetPw for eml: %s', eMail)
     this.authSvc.resetPassword(eMail).then(() => {
       this.dispMsgs.push('An eMail has been sent to '+ eMail + ' with instructions to reset/change your password')
     }).catch(error => {
@@ -129,7 +133,9 @@ export class AuthComponent implements  AfterViewInit {
   }
 
   changePw(eMail: string, oldPw: string, newPw: string, confirmPw: string) {
-    this.authSvc.changePw(this.curUser, eMail, oldPw, newPw, confirmPw).then(() => {
+    const aUser = this.authSvc.getAuthUser() ;
+    console.log('changePw w/user: %O  eMl: %s  oldPw: %s  newPw: %s  cPw: %s', aUser, eMail, oldPw, newPw, confirmPw)
+    this.authSvc.changePw(aUser, eMail, oldPw, newPw, confirmPw).then(() => {
       this.dispMsgs.push(`Successfully changed password for user: ${eMail}`)
       this.router.navigate(['/trans/loadfile']) ;
     }).catch(error => {
@@ -138,9 +144,9 @@ export class AuthComponent implements  AfterViewInit {
     })
   }
 
-  createUser(eMail: string, pw: string, companyName: string, phone: string) {
-    this.utilSvc.cLog(this.CLASSNAME, 'cre8user: eMail %s company: %s  pho: %s',
-      eMail, companyName, phone)
+  createUser(eMail: string, pw: string, companyName: string, dispName: string, phone: string) {
+    this.utilSvc.cLog(this.CLASSNAME, 'cre8user: eMail %s company: %s  disp: %s  pho: %s',
+      eMail, companyName, dispName, phone)
     this.authSvc.createUser(eMail, pw).then(userCred => {
       const dtAdd = new Date().toISOString().slice(0, 10)
       const uid = userCred.user.uid
@@ -155,6 +161,7 @@ export class AuthComponent implements  AfterViewInit {
       })
       // ToDo ... message about thanks for signing up, you will receive an eMail with
       //  instructions to get you going shortly
+      // ToDo ... Add dispName to userRec
     }).catch(error => {
       this.utilSvc.cWarn(this.CLASSNAME, 'Error %s %s %d creating user for eMail %s',
         error, error.message, error.code, eMail)
@@ -177,33 +184,41 @@ export class AuthComponent implements  AfterViewInit {
     this.dispMsgs.splice(idx, 1) ;
   }
 
-  validatePassword(password: string, newPw?: string): boolean {   // Quick boolean for testing in templates
-    if (!'Change Password.Sign Up'.includes(this.guiMode))  return true ; // No ck unless this verb
-    if (newPw && newPw !== password) return false ;
-    const minLength = 8; // Example minimum length
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*]/.test(password);   
-
-    if (password.length >= minLength && hasUppercase && hasLowercase && hasNumber &&
-      hasSpecialChar && (!newPw || newPw === password))
-      return true ;
-    else {
-      let errString = '' ;
-      if (newPw && newPw !== password) errString += 'Password and confirm password do not match '
-      if (password.length < minLength)  errString += `Password must be at least ${minLength} characters<br>`
-      if (!hasUppercase) 'Password has no upper case characters<br>' ;
-      if (!hasLowercase) 'Password has no lower case characters<br>' ;
-      if (!hasNumber) 'Password has no numbers<br>' ;
-      if (!hasSpecialChar) 'Password has no special characters' ;
-      this.dispMsgs.push(errString)
-      return false ;
+  validatePassword(newPw: string, confirmPw?: string): boolean {   // Quick boolean for testing in templates
+    if (!'Change Password.Sign Up'.includes(this.guiMode)) {
+      this.cpwValid = this.npwValid = true ;   return true ; // No ck unless this verb
     }
+    const minLength = 8; // Example minimum length
+    const hasUppercase = /[A-Z]/.test(newPw);
+    const hasLowercase = /[a-z]/.test(newPw);
+    const hasNumber = /[0-9]/.test(newPw);
+    const hasSpecialChar = /[!@#$%^&*]/.test(newPw); 
+
+    if (newPw.length >= minLength && hasUppercase && hasLowercase && hasNumber &&
+      hasSpecialChar && (!confirmPw || confirmPw === newPw)) {    // All good
+      this.cpwValid = this.npwValid = true ;   this.npwMsg = 'New Password good'
+      if (confirmPw) {
+        this.cpwMsg = 'Confirm Password good' ;
+      } else { this.cpwValid = true ;  this.npwValid = true ; }
+    } else {      // Something wrong, figure it out and set validity and msg
+      if (newPw !== confirmPw) {
+        this.cpwValid = false ;  this.cpwMsg = 'Confirm Password does not equal new password' ;
+      }
+      this.npwMsg = '' ;
+      if (newPw.length < minLength) this.setPwErr('Password too short') ;
+      if (!hasUppercase || !hasLowercase) this.setPwErr('Need upper and lower case characters') ;
+      if (!hasNumber) this.setPwErr('Password must have a number') ;
+      if (!hasSpecialChar) this.setPwErr('Password must have a special character') ;
+    }
+    return this.npwValid && this.cpwValid ;
+  }
+
+  setPwErr(msg: string) {
+    this.npwValid = false ;  this.npwMsg += msg + '\n' ;
   }
 
   chgGuiMode(newMode: GuiMode) {
     this.guiMode = newMode ;
-    this.pwValid = 'Sign In.Reset Password'.includes(this.guiMode) ;    // no cks here
+    this.npwValid = 'Sign In.Reset Password'.includes(this.guiMode) ;    // no cks here
   }
 }

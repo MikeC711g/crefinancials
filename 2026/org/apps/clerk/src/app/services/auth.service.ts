@@ -15,21 +15,27 @@ import { Router } from '@angular/router';
 export class AuthService {
   userAny: any = null ;
   user$ = new BehaviorSubject<cUser>(this.userAny) ;
-  userData: any ;
-  uid = '' ;
+  cUser: cUser = new cUser('', '', '', '', '', '') ;
+  uid = '' ;  aUser: any ;
   CLASSNAME = 'authService' ;
   newCustNm = 'newCustomer'
 
   constructor(private auth: Auth, private firestore: Firestore,
     private utilSvc: GenutilsService, private route: Router) {}
 
+  getCUser() { return this.cUser ; }
+  setCUser(user: cUser) {  this.cUser = user ; }
+  getAuthUser(): User { return (this.aUser) ? this.aUser : this.auth.currentUser ; }
+  setAuthuser(aUser: User) { this.aUser = aUser ; }
+
   doLogin(eMail: string, password: string): Promise<any> {
     return signInWithEmailAndPassword(this.auth, eMail, password) ;
   }
 
-  getUser(uid: string): Promise<any> {
-    this.uid = uid ;
-    const userId = doc(this.firestore, 'Users', uid)
+  getUser(uid?: string): Promise<any> {
+    if (uid)  this.uid = uid ;
+    if (!this.uid)  console.warn('getUser called w/no uid and svc has no uid')
+    const userId = doc(this.firestore, 'Users', this.uid)
     return getDoc(userId) ;
   }
 
@@ -49,7 +55,7 @@ export class AuthService {
       if (newPw !== confirmPw) reject('New and Confirm passwords do not match') ;
       if (!user && !this.auth.currentUser) reject('Could not retrieve user info') ;
       if (!user) user = this.auth.currentUser! ;
-      const credential = EmailAuthProvider.credential(eMail, newPw) ;
+      const credential = EmailAuthProvider.credential(eMail, oldPw) ;
       reauthenticateWithCredential(user, credential).then(() => {
         resolve(updatePassword(user, newPw)) ;
       }).catch(error => {reject(`Error ${error} reauthenticating current user`)})
