@@ -5,7 +5,6 @@ import { Project } from './../../models/project.model';
 import { GenutilsService } from './../../services/genutils.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-transrch',
   templateUrl: './transrch.component.html',
   styleUrls: ['./transrch.component.css']

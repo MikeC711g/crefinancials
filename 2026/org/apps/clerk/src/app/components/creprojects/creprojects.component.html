@@ -7,6 +7,17 @@
           (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
         <hr>
       </div>
+      <div class="form-group">
+        <label for="house">House</label>
+        <select class="form-control" multiple id="house" name="house" data-cy="pro-dho"
+          [(ngModel)]="house">
+          <option [value]="''" [selected]="!house">-- select an option --</option>
+          <option *ngFor="let dHouse of houses" [value]="dHouse.name"
+          [selected]="house.includes(dHouse.name)" >{{ dHouse.name }}</option>
+        </select>
+      </div>
+      <button class="btn btn-info col-md-3"  type="button" id="submitSearch" data-cy="pro-srch"
+        (click)="onQueryProj()" [disabled]="!(numDays || (startDt && endDt))" >Execute Search</button>
       <div class="row">
         <button class="btn btn-success col-3" type="button"
           (click)="newRow=true">New Project</button>

@@ -7,6 +7,7 @@ import { GenutilsService } from './../..//services/genutils.service';
 // import { GenutilsService } from 'src/app/services/genutils.service';
 import { KeyVal } from './../..//models/keyval.model';
 import { DeactivatableComponent } from './../..//interfaces/deactivatableComponent.interface';
+import { House } from '../../models/house.model';
 // import { House } from 'src/app/models/house.model';
 
 @Component({
@@ -15,7 +16,7 @@ import { DeactivatableComponent } from './../..//interfaces/deactivatableCompone
   styleUrls: ['./creprojects.component.css']
 })
 export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableComponent {
-  // houses: House[] = new Array<House>() ;
+  houses: House[] = new Array<House>() ;   house: string [] = new Array<string>() ;
   projects: Project[] = new Array<Project>() ;
   completedActions = 0 ;
   numDays = 0 ;  startDt = '' ;  endDt = '' ;
@@ -36,7 +37,7 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
     const globRtn = this.fireSvc.getGlobals(false) ;
     this.global$ = globRtn.subscribe({
       next: () => {
-        // this.fireSvc.getFullHouses() ;
+        this.houses = this.fireSvc.getFullHouses() ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME, 'Failed to get globals to find houses: %s', error) ;
       }
@@ -57,8 +58,9 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
    *****************************************************************************/
     onDateMod(numDays: number, startDt: string, endDt: string): void {
     this.numDays = numDays ;  this.startDt = startDt ;  this.endDt = endDt ;
-    this.onQueryProjects(numDays, startDt, endDt) ;
+    // this.onQueryProjects(numDays, startDt, endDt) ;
   }
+
 
   /*****************************************************************************
      Event occurred to a row in child component cretranedit
@@ -67,6 +69,10 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
     let statusMsg = '' ;
     [statusMsg, this.newRow] = this.utilSvc.onProjMod(action, project) ;
     this.dispMsgs.push(statusMsg)
+  }
+
+  onQueryProj() {
+    this.onQueryProjects(this.numDays, this.startDt, this.endDt) ;
   }
 
   /*********************************************************************
@@ -80,12 +86,11 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
     } else {
       this.projQuery$ = projRtn.subscribe({
         next: (dbProj) => {
-          this.projects = dbProj ;
               // Notify all listeners (including self) of new projects
-          this.utilSvc.cLog(this.CLASSNAME, 'Projects did Q and nexting w/len: %d', this.projects.length)
-          this.fireSvc.project$.next(this.projects) ;
-          this.utilSvc.cDebug(this.CLASSNAME,'Retrieved %d projects for days: %d startDt: %s  endDt: %s',
-            this.projects.length, numDays, startDt, endDt)
+          this.fireSvc.project$.next(dbProj) ;
+          this.projects = (this.house.length <= 0) ? dbProj : dbProj.filter(cpro => this.house.includes(cpro.House)) ;
+          this.utilSvc.cLog(this.CLASSNAME, 'Proj Q numD: %d  strt: %s  end: %s w/dtLen: %d  totLen: %d',
+            numDays, startDt, endDt, dbProj.length, this.projects.length)
           this.dispMsgs.push('Loaded: ' + this.projects.length + ' Projects')
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Failed to retrieve projects, error: %s', error) ;
