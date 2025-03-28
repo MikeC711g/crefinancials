@@ -20,6 +20,7 @@ const routes: Routes = [
   ]},
   { path: 'dbmaint', component: LoadComponent, canActivate: [AuthGuard], children: [
     { path: 'removedb', component: LoadComponent },
+    { path: 'splitglobals', component: LoadComponent },
     { path: 'clearglobals', component: LoadComponent },
     { path: 'cleartrans', component: LoadComponent },
     { path: 'clearprojects', component: LoadComponent },

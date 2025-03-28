@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { KeyVal } from '../models/keyval.model';
 import { RuleData } from '../models/ruledata.model';
 import { House } from '../models/house.model';
-import { Globals } from '../models/globals.model'
 import { TranRec } from '../models/tranRec.model';
+import { Globals } from '../models/Globals.model';
+import { GlobalX } from '../models/Globalx.model';
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class GenutilsService {
   globalTypes = { RuleData: 'ruleData', TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
     Houses: 'houses', TranType: 'tranType', Accounts: 'accounts', AccountType: 'accountType',
@@ -30,8 +32,7 @@ export class GenutilsService {
     }
   }    // End of getnewidx function def
 
-
-  processGVals(globals: Globals[]) {
+  processGValsX(globals: GlobalX[]) {
     const ruleAdmin: RuleData[] = [] ;    const tranTypes: string[] = []
     const houses: House[] = [] ;      const accountTypes: string[] = [] ;
     const accounts: KeyVal[] = [] ;       const descripTaxcats: KeyVal[] = [] ;
@@ -66,11 +67,40 @@ export class GenutilsService {
     this.accountTypes = accountTypes.sort((a, b) => a.localeCompare(b)) ;
     this.taxCats = taxCats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
   }
+
+  processGVals(globals: Globals[]) {
+    const tranTypes: string[] = [] ;      const accountTypes: string[] = [] ;
+    const accounts: KeyVal[] = [] ;       const categoryTaxcats: KeyVal[] = [] ;
+    const categoryFolders: KeyVal[] = [] ;   const taxCats: KeyVal[] = [] ;
+
+    for (const inGlobal of globals) {
+      switch(inGlobal.GType) {
+        case(this.globalTypes['TranType']): tranTypes.push(inGlobal.RKey) ; break ;
+        case(this.globalTypes['AccountType']):  accountTypes.push(inGlobal.RKey) ; break ;
+        case(this.globalTypes['Accounts']):   accounts.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
+        case(this.globalTypes['CategoryTaxcats']):
+          categoryTaxcats.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
+        case(this.globalTypes['TaxCats']):   taxCats.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
+        case(this.globalTypes['CategoryFolders']):
+          categoryFolders.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
+      }
+    }
+    this.descripTaxcats = categoryTaxcats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
+    this.descripCategories = categoryFolders.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
+    this.tranTypes = tranTypes.sort((a, b) => a.localeCompare(b)) ;
+    this.accounts = accounts.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
+    this.accountTypes = accountTypes.sort((a, b) => a.localeCompare(b)) ;
+    this.taxCats = taxCats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
+  }
+
+  setRuleData(inRuleData: RuleData[]) { this.ruleData = inRuleData }
+  setHouses(inHouses: House[]) { this.houses = inHouses }
+
   getRuleData() {  return this.ruleData }
+  getHouses() { return this.houses }
   getDescripTaxcats() { return this.descripTaxcats }
   getDescripCategories() { return this.descripCategories }
   getTranTypes() { return this.tranTypes }
-  getHouses() { return this.houses }
   getAccounts() { return this.accounts }
   getAccountTypes() { return this.accountTypes }
   getTaxcats() { return this.taxCats }

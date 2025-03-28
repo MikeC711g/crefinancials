@@ -2,7 +2,7 @@ import { cUser } from '../../models/cUser.model';
 import { TranRec } from '../../models/tranRec.model';
 import { FirebaseService } from '../../services/firebase.service';
 import { Component, OnInit } from '@angular/core';
-import { Globals } from '../../models/globals.model';
+import { Globals } from '../../models/Globals.model';
 import { KeyVal } from '../../models/keyval.model';
 import { RuleData } from '../../models/ruledata.model';
 import { House } from '../../models/house.model';
@@ -11,7 +11,6 @@ import { GenutilsService } from '../../services/genutils.service';
 import { CommonFuncsService } from '../../services/common-funcs.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-
 
 @Component({
   selector: 'app-useractions',
@@ -146,20 +145,20 @@ export class UseractionsComponent implements OnInit {
    ***************************************************************************** */
   // 2do: newCustomer table NOT userRec as action and date are extra
   // Verify this in all interactions w/the table
-  addUser(lUUid: string, cid: string, dbPrefix: string, cName: string, role: string,
+  addUser(lUUid: string, cid: string, dbPref: string, cName: string, role: string,
     eMail: string, phone: string) {
     console.log('luuid %s  lRole: %s  destCid: %s  destDBPref: %s  email: %s',
-      lUUid, role, cid, dbPrefix, eMail)
+      lUUid, role, cid, dbPref, eMail)
     if (!lUUid)  console.log('If user already added, provide UUID in input')
     else {
       const todayDate = new Date().toISOString().slice(0, 10)
-      const userRec: UserRec = new UserRec('add', cid, cName, todayDate, dbPrefix,
+      const userRec: UserRec = new UserRec('add', cid, dbPref, cName, todayDate,
         eMail, phone, role, false, lUUid )
-      this.fireSvc.addUsers(cid, dbPrefix, userRec).then(urow => {
+      this.fireSvc.addUsers(cid, userRec).then(urow => {
         userRec.uuid = lUUid
         console.log('Successfully added %O', userRec)
         this.statusMsg = 'Successfully added user ' + userRec.uuid
-        this.addGlobals(cid, dbPrefix)
+        this.addGlobals(cid)
       }).catch(error => {
         console.warn('Error %s adding users row %O', error, userRec)
         this.statusMsg = 'Failed to add user ', userRec.uuid
@@ -206,12 +205,12 @@ export class UseractionsComponent implements OnInit {
     if (sArr.findIndex(sa => sa === mKey) < 0)  sArr.push(mKey)
   }
 
-  addGlobals(cid: string, dbPref: string) {
-    const srcCid = 'globalBase' ; const srcDbPref = ''   // PseudoCid/DBPref where default globals are stored
-    this.fireSvc.getAllGlobals(srcCid, srcDbPref).subscribe({
+  addGlobals(cid: string) {
+    const srcCid = 'globalBase' ;   // PseudoCid where default globals are stored
+    this.fireSvc.getAllGlobals(srcCid).subscribe({
       next: (globRef) => {
         const globals: Globals[] = globRef
-        this.statusMsg = this.commons.addGlobals(cid, dbPref, globals)
+        this.statusMsg = this.commons.addGlobals(cid, globals)
       }, error: (error) => {
         console.log('Err getting %s globals to load new globals, Error: %s', srcCid, error)
       }
@@ -222,8 +221,8 @@ export class UseractionsComponent implements OnInit {
    * Hard remove a user and remove all data tied to their cid
    ***************************************************************************** */
   removeUser() {
-    console.log('rmvUser luuid %s  lRole: %s  srceCid: %s  srceDBPref: %s',
-      this.lUUid, this.lRole, this.sourceCid, this.sourceDbPrefix)
+    console.log('rmvUser luuid %s  lRole: %s  srceCid: %s',
+      this.lUUid, this.lRole, this.sourceCid)
     let userRec: UserRec
     this.fireSvc.getUser(this.lUUid).then(userRow => {
       userRec = userRow.data() as UserRec
@@ -233,9 +232,9 @@ export class UseractionsComponent implements OnInit {
       }).catch(error => {
         console.warn('Error %s deleting user row: %O', error, userRec)
       })
-      this.commons.clearGlobals(userRec.cid, userRec.dbPrefix)
-      this.commons.clearProjects(userRec.cid, userRec.dbPrefix, '2015-01-01', '2035-12-31')
-      this.commons.clearRecons(userRec.cid, userRec.dbPrefix, '2015-01-01', '2035-12-31')
+      this.commons.clearGlobals(userRec.cid)
+      this.commons.clearProjects(userRec.cid, '2015-01-01', '2035-12-31')
+      this.commons.clearRecons(userRec.cid, '2015-01-01', '2035-12-31')
       this.commons.clearTrans(userRec.cid, userRec.dbPrefix, '2015-01-01', '2035-12-31')
     }).catch(error => {
       console.log('Error %s deleting row for uid: %s', error, this.lUUid)
@@ -243,8 +242,8 @@ export class UseractionsComponent implements OnInit {
   }
 
   sendPasswordResetEMail() {
-    console.log('pwResetEMail luuid %s  lRole: %s  srceCid: %s  srceDBPref: %s',
-      this.lUUid, this.lRole, this.sourceCid, this.sourceDbPrefix)
+    console.log('pwResetEMail luuid %s  lRole: %s  srceCid: %s',
+      this.lUUid, this.lRole, this.sourceCid)
   }
 
   // Use urecselected to drive addUser then null urecsselected and confirm/delete newCust row

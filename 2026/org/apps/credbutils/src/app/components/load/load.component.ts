@@ -1,10 +1,12 @@
+import { Mortgage } from '../../models/mortgages.model';
 import { Component, OnInit } from '@angular/core';
 import { FirebaseService } from '../../services/firebase.service';
 import { GenutilsService } from '../../services/genutils.service';
 import { KeyVal } from '../../models/keyval.model';
 import { Project } from '../../models/project.model';
 import { Reconciliation } from '../../models/reconciliation.model';
-import { Globals } from '../../models/globals.model';
+import { Globals } from '../../models/Globals.model';
+import { GlobalX } from '../../models/Globalx.model';
 import { TranRec } from '../../models/tranRec.model';
 import { CommonFuncsService } from '../../services/common-funcs.service';
 import { House } from '../../models/house.model';
@@ -18,10 +20,10 @@ import { Subscription } from 'rxjs';
   styleUrl: './load.component.css'
 })
 export class LoadComponent  implements OnInit {
-  loadUnloadActions = ['removedb', 'clearglobals', 'cleartrans', 'clearprojects', 'clearrecons',
-    'rmvglobalbytype', 'addglobals', 'loadtranprojrecon', 'listtrans', 'listglobals',
-    'cloneglobals'] // 11
-  needSourceCid = [ 'removedb', 'listglobals', 'listtrans', 'cloneglobals',
+  loadUnloadActions = ['removedb', 'splitglobals', 'clearglobals', 'cleartrans', 'clearprojects',
+    'clearrecons', 'rmvglobalbytype', 'addglobals', 'loadtranprojrecon', 'listtrans',
+    'listglobals',  'cloneglobals'] // 12
+  needSourceCid = [ 'removedb', 'splitglobals', 'listglobals', 'listtrans', 'cloneglobals',
     'clearglobals', 'cleartrans', 'clearprojects', 'clearrecons', 'rmvglobalbytype' ]
   needGlobTypes = [ 'rmvglobalbytype' ]
   needDestCid = [ 'cloneglobals', 'loadtranprojrecon', 'addglobals' ] ;
@@ -30,7 +32,7 @@ export class LoadComponent  implements OnInit {
   sourceCid = '' ;  sourceDbPrefix = '' ; destCid = '' ;  destDbPrefix = '' ;
     startDt = '' ;  endDt = '' ;
     funcDone: boolean[] = [] ; funcStarted: boolean[] = []
-    labelStr:string[] = [] ;  loadedGlobals: Globals[] = [] ; 
+    labelStr:string[] = [] ;  loadedGlobals: Globals[] = [] ; globalX: GlobalX[] = [] ;
   projectIdXref: KeyVal[] = new Array<KeyVal>() ;
   reconIdXref: KeyVal[] = new Array<KeyVal>() ;
   projects: Project[] = new Array<Project>() ;
@@ -77,16 +79,17 @@ export class LoadComponent  implements OnInit {
   doAction() {
     switch(this.selectedAction) {
       case 'removedb':     this.removeDB() ; break ;
+      case 'splitglobals':  this.splitGlobals() ; break ;
       case 'listglobals':   this.listGlobals() ; break ;
       case 'listtrans':     this.listTrans() ; break ;
       case 'cloneglobals':  this.cloneGlobals() ; break ;
-      case 'clearglobals':  this.commons.clearGlobals(this.sourceCid, this.sourceDbPrefix) ; break ;
+      case 'clearglobals':  this.commons.clearGlobals(this.sourceCid) ; break ;
       case 'cleartrans':     this.commons.clearTrans(this.sourceCid, this.sourceDbPrefix,
         this.startDt, this.endDt) ; break ;
-      case 'clearprojects':     this.commons.clearProjects(this.sourceCid, this.sourceDbPrefix,
-        this.startDt, this.endDt) ; break ;
-      case 'clearrecons':     this.commons.clearRecons(this.sourceCid, this.sourceDbPrefix,
-        this.startDt, this.endDt) ; break ;
+      case 'clearprojects':     this.commons.clearProjects(this.sourceCid, this.startDt, this.endDt) ;
+        break ;
+      case 'clearrecons':     this.commons.clearRecons(this.sourceCid, this.startDt, this.endDt) ;
+        break ;
       case 'rmvglobalbytype':     this.rmvGlobalByType() ; break ;
       case 'addglobals':     this.addGlobals() ; break ;
       case 'loadtranprojrecon':  this.loadTranProjRecon(); break ;
@@ -96,18 +99,26 @@ export class LoadComponent  implements OnInit {
     this.getGlobalTypes = false ;
   }
 
-  onChgCid() {
+  onChgCid() {    // hereiam ... when X is gone and all new globals, add ruledata/houses
     this.commons.onChgCid(this.sourceCid, this.sourceDbPrefix).then((globals) => {
-      this.loadedGlobals = globals  ; this.haveGlobals = true ;
-      console.log('onChgCid globalLen: %d', this.loadedGlobals.length)
+      this.globals = globals  ; this.haveGlobals = true ;
+      console.log('onChgCid globalLen: %d', this.globals.length)
       this.getAllGlobals()
     })
+    this.fireSvc.getHouses(this.sourceCid).subscribe({
+      next: (houses) => { this.houses = houses;  this.utilSvc.setHouses(this.houses) },
+      error: (error) => { console.error('Error fetching houses:', error);  }
+    });
+    this.fireSvc.getTranRules(this.sourceCid).subscribe({
+      next: (tranRules) => { this.ruleAdmin = tranRules;  this.utilSvc.setRuleData(this.ruleAdmin) },
+      error: (error) => { console.error('Error fetching houses:', error);  }
+    });
   }
 
   getAllGlobals() {
-    this.ruleAdmin = this.utilSvc.getRuleData()
+    // this.ruleAdmin = this.utilSvc.getRuleData()
     this.tranTypes = this.utilSvc.getTranTypes()
-    this.houses = this.utilSvc.getHouses()
+    // this.houses = this.utilSvc.getHouses()
     this.accountTypes = this.utilSvc.getAccountTypes()
     this.accounts = this.utilSvc.getAccounts()
     this.descripTaxcat = this.utilSvc.getDescripTaxcats()
@@ -132,27 +143,102 @@ export class LoadComponent  implements OnInit {
    ***************************************************************************** */
   removeDB() {
     console.log('Doing remove of prefix %s  cid %s', this.sourceDbPrefix, this.sourceCid)
-    this.commons.clearProjects(this.sourceCid, this.sourceDbPrefix, this.startDt, this.endDt)
-    this.commons.clearGlobals(this.sourceCid, this.sourceDbPrefix)
-    this.commons.clearRecons(this.sourceCid, this.sourceDbPrefix, this.startDt, this.endDt)
+    this.commons.clearProjects(this.sourceCid, this.startDt, this.endDt)
+    this.commons.clearGlobals(this.sourceCid)
+    this.commons.clearRecons(this.sourceCid, this.startDt, this.endDt)
     this.commons.clearTrans(this.sourceCid, this.sourceDbPrefix, this.startDt, this.endDt)
   }
 
   /** ****************************************************************************
+   * Modify old globals to new, removing complex rows (rules/houses)
+   * Slightly different format and adding mortgage rows
+   ***************************************************************************** */
+  splitGlobals() {
+    console.log('Splitting globals for prefix %s  cid %s', this.sourceDbPrefix, this.sourceCid)
+    const globSub = this.fireSvc.getAllGlobalX(this.sourceCid).subscribe(dbRef => {
+      this.globalX = dbRef ;
+      this.haveGlobals = true
+      console.log('Loaded %d globals', this.globalX.length) ;
+      this.writeGlobals(this.globalX) ;
+    })
+    setTimeout(() => {    // Wait 10 seconds, then clear subscription
+      globSub.unsubscribe() ;
+    }, 10000);
+    console.log('Down to write the 3 Mortgage rows')
+    const mtgRec1: Mortgage = new Mortgage(this.sourceCid, '5422EI', 2.75, 15.0, 1526.90, 2017, 3,
+      223430.0) ;
+    this.fireSvc.addMortgage(mtgRec1.Cid, mtgRec1) ;
+    const mtgRec2: Mortgage = new Mortgage(this.sourceCid, '251PB', 3.0, 15.0, 535.20, 2024, 1, 22046.69) ;
+    this.fireSvc.addMortgage(mtgRec2.Cid, mtgRec2);
+    const mtgRec3: Mortgage = new Mortgage(this.sourceCid, '1317SM', 2.975, 30.0, 1303.23, 2023, 1, 154645.09) ;
+    this.fireSvc.addMortgage(mtgRec3.Cid, mtgRec3);
+    console.log('Should have written the 3 Mortgage rows')
+  }
+
+  writeGlobals(globalx: GlobalX[]) {
+    let tmpRVal: any ;  let tmpKv: KeyVal ;  let tmpHouse: House ; let tmpRule: RuleData ;
+    let globCnt = 0 ;
+    for (const global of globalx) {
+      if (++globCnt % 50 === 0) console.log('Writing global %d', globCnt)
+      if (globCnt >= globalx.length) console.log('Wrote all %d globals', globCnt)
+      switch (global.RKey) {
+        case 'accountType':
+        case 'tranType': {
+          const newGlobRec = new Globals(global.Cid, global.RKey, global.RVal) ;
+          delete newGlobRec.RVal ;
+          this.fireSvc.addGlobal(newGlobRec.Cid, newGlobRec)          
+          break;
+        }
+        case 'accounts':
+        case 'categoryTaxcat':
+        case 'categoryFolders':
+        case 'taxCats': {
+          tmpRVal = global.RVal ;     tmpKv = tmpRVal ;
+          const newGlobRec = new Globals(global.Cid, global.RKey, tmpKv.RKey, tmpKv.RVal) ;
+          this.fireSvc.addGlobal(newGlobRec.Cid, newGlobRec)          
+          break;
+        }
+        case 'houses': {
+          tmpRVal = global.RVal ;     tmpHouse = tmpRVal ;
+          const newHouseRec = new House(global.Cid, tmpHouse.name, tmpHouse.Addr,
+            tmpHouse.City, tmpHouse.State, tmpHouse.zipCode, tmpHouse.activeDt,
+            tmpHouse.inactiveDt) ;
+          this.fireSvc.addHouse(newHouseRec.Cid, newHouseRec) ;
+          break;
+        }
+        case 'ruleData': {
+          tmpRVal = global.RVal ;     tmpRule = tmpRVal ;
+          const newRuleRec = new RuleData(global.Cid, tmpRule.ruleName, tmpRule.srchStr,
+            tmpRule.accounts, tmpRule.srchAmt, tmpRule.Category, tmpRule.TranType,
+            tmpRule.TranExtra, tmpRule.TaxCat, tmpRule.House, tmpRule.Annotation) ;
+          if (!newRuleRec.Category) delete newRuleRec.Category ;
+          if (!newRuleRec.TranType) delete newRuleRec.TranType ;
+          if (!newRuleRec.TranExtra) delete newRuleRec.TranExtra ;
+          if (!newRuleRec.TaxCat) delete newRuleRec.TaxCat ;
+          if (!newRuleRec.House) delete newRuleRec.House ;
+          if (!newRuleRec.Annotation) delete newRuleRec.Annotation ;
+          this.fireSvc.addRuleData(newRuleRec.Cid, newRuleRec) ;
+          break;
+        }
+      }
+    }
+  }
+
+   /** ****************************************************************************
    * Retrieve all globals and print them to console
    ***************************************************************************** */
   listGlobals() {
     if (this.haveGlobals) console.dir(this.loadedGlobals)
     else {
-      const globSub = this.fireSvc.getAllGlobals(this.sourceCid, this.sourceDbPrefix).subscribe(dbRef => {
+      const globSub = this.fireSvc.getAllGlobals(this.sourceCid).subscribe(dbRef => {
         this.loadedGlobals = dbRef ;
         this.haveGlobals = true
-        console.dir(this.globals)
+        console.dir(this.loadedGlobals)
       })
-      setTimeout(() => {    // Wait 5 seconds, then clear subscription
+      setTimeout(() => {    // Wait 10 seconds, then clear subscription
         globSub.unsubscribe() ;
       }, 10000);
-      }
+    }
   }
 
   /** ****************************************************************************
@@ -172,7 +258,7 @@ export class LoadComponent  implements OnInit {
         console.warn('Failed to get trans w/err: ', error) ;
       }
     })
-    this.fireSvc.getProjectsForDateRange(cid, dbPref, startDt, endDt).subscribe({
+    this.fireSvc.getProjectsForDateRange(cid, startDt, endDt).subscribe({
       next: (projRec) => {
         this.projects = projRec ;
         console.dir(this.projects) ;
@@ -180,7 +266,7 @@ export class LoadComponent  implements OnInit {
         console.warn('Failed to get projects w/err:', error) ;
       }
     })
-    this.fireSvc.getReconciliationsForDateRange(cid, dbPref, startDt, endDt, []).subscribe({
+    this.fireSvc.getReconciliationsForDateRange(cid, startDt, endDt, []).subscribe({
       next: (reconRec) => {
         this.reconciliations = reconRec ;
         console.dir(this.reconciliations) ;
@@ -196,9 +282,9 @@ export class LoadComponent  implements OnInit {
   cloneGlobals(cid?: string, dbPref?: string, destCid?: string, destDbPref?: string) {
     if (!cid) cid = this.sourceCid ;  if (!dbPref)  dbPref = this.sourceDbPrefix
     if (!destCid) destCid = this.destCid ;  if (!destDbPref)  destDbPref = this.destDbPrefix
-    const globSub = this.fireSvc.getAllGlobals(cid, dbPref).subscribe(dbRef => {
+    const globSub = this.fireSvc.getAllGlobals(cid).subscribe(dbRef => {
       this.loadedGlobals = dbRef ;
-      this.commons.addGlobals(destCid!, destDbPref!, this.loadedGlobals)
+      this.commons.addGlobals(destCid!, this.loadedGlobals)
     })
     setTimeout(() => {    // Wait 5 seconds, then clear subscription
       globSub.unsubscribe() ;
@@ -213,12 +299,12 @@ export class LoadComponent  implements OnInit {
     if (!cid)  cid = this.sourceCid ;  if (!dbPref)  dbPref = this.sourceDbPrefix
     let rmvCnt = 0 ;
     console.log('rmvGlobByType Selected globals: ', this.selectedGlobalType)
-    this.fireSvc.getGlobalType(cid, dbPref, this.selectedGlobalType).subscribe({
+    this.fireSvc.getGlobalType(cid, this.selectedGlobalType).subscribe({
       next: (globRef) => {
         const locGlobs: Globals[] = globRef ;  const globLen = locGlobs.length
         console.log(this.selectedGlobalType, ': ', locGlobs) ;
         for (const curGlobal of locGlobs) {
-          this.fireSvc.delGlobals(cid!, dbPref!, curGlobal).
+          this.fireSvc.delGlobals(cid!, curGlobal).
             then(() => {
               if (rmvCnt++ % 40 === 0) console.log('Removed %d globals, curTp: %s',
                 rmvCnt, this.selectedGlobalType)
@@ -338,7 +424,7 @@ export class LoadComponent  implements OnInit {
 
   loadGlobals(cid?: string, dbPref?: string) {
     if (!cid)  cid = this.destCid ;   if (!dbPref) dbPref = this.destDbPrefix ;
-    this.commons.addGlobals(cid, dbPref, this.loadedGlobals)
+    this.commons.addGlobals(cid, this.loadedGlobals)
   }
   
   loadProjects(cid?: string, dbPref?: string) {
@@ -349,7 +435,7 @@ export class LoadComponent  implements OnInit {
     let projAdded = 0
     for (const curProj of this.projects) {
       projX.push(new KeyVal(curProj.ProjectId!, ''))
-      this.fireSvc.addProjects(cid, dbPref, curProj).then(dbRef => {
+      this.fireSvc.addProjects(cid, curProj).then(dbRef => {
         curProj.ProjectId = dbRef.id ;
         if (projAdded++ % 20 === 0) console.log('Added %d projects', projAdded)
         if (projAdded >= projLen) {
@@ -372,7 +458,7 @@ export class LoadComponent  implements OnInit {
     for (const curRecon of this.reconciliations) {
       reconX.push(new KeyVal(curRecon.ReconKey!, ''))
       const oldReconKey = curRecon.ReconKey!
-      this.fireSvc.addReconciliations(cid, dbPref, curRecon).then(reconRef => {
+      this.fireSvc.addReconciliations(cid, curRecon).then(reconRef => {
         curRecon.ReconKey = reconRef.id ;
         if (reconAdded++ % 15 === 0) console.log('Added %d recons', reconAdded)
         if (reconAdded >= reconLen) {

@@ -4,7 +4,6 @@ import { AuthService } from './../../services/auth.service';
 import { FirebaseService } from './../../services/firebase.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-headers',
   templateUrl: './headers.component.html',
   styleUrls: ['./headers.component.css']

@@ -45,26 +45,8 @@
         [(ngModel)]="globalQ.RKey" (change)="deRefGlobals()">
         <option *ngFor="let gType of gtArray" [value]="gType">{{ gType }}</option>
       </select>
-      <div class="row" *ngIf="!isGlobMulti">
-        <label for="rval">rVal (str)</label>
-        <input type="text" name="rval" id="rval" [(ngModel)]="globalQ.RVal" ngModel>
-      </div>
       <label for="gid">ID</label>
       <input type="text" name="gid" id="gid" [(ngModel)]="globalQ.GlobalId" ngModel>
-      <div class="row" *ngIf="isGlobMulti">
-        <label for="rv1lab">RVal subFld1</label>
-        <select class="form-control" id="rv1lab" name="rv1lab" [(ngModel)]="globLab1">
-          <option *ngFor="let lblVal of fldList" [value]="lblVal">{{ lblVal }}</option>
-        </select>
-        <label for="rv1val">Value of subFld1</label>
-        <input type="text" name="rv1val" id="rv1val" [(ngModel)]="globVal1" ngModel>
-        <label for="rv2lab">RVal subFld2</label>
-        <select class="form-control" id="rv2lab" name="rv2lab" [(ngModel)]="globLab2">
-          <option *ngFor="let lblVal of fldList" [value]="lblVal">{{ lblVal }}</option>
-        </select>
-        <label for="rv2val">Value of subFld2</label>
-        <input type="text" name="rv2val" id="rv2val" [(ngModel)]="globVal2" ngModel>
-      </div>
       <div class="row">
         <button class="btn btn-primary col-md-2" type="button"
         (click)="queryGlobals()">Query globals info</button>

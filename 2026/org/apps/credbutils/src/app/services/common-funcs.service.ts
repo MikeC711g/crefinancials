@@ -1,16 +1,18 @@
 import { Injectable } from '@angular/core';
 import { GenutilsService } from './genutils.service';
 import { FirebaseService } from './firebase.service';
-import { Globals } from '../models/globals.model';
+import { Globals } from '../models/Globals.model';
 import { TranRec } from '../models/tranRec.model';
 import { Project } from '../models/project.model';
 import { Reconciliation } from '../models/reconciliation.model';
+import { GlobalX } from '../models/Globalx.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CommonFuncsService {
   saveCid = '' ;  saveDbPref = '' ; haveGlobals = false ;  globals: Globals[] = []
+  globalX: GlobalX[] = []
 
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
 
@@ -21,7 +23,7 @@ export class CommonFuncsService {
     console.log('onChgCid new cid: %s  new dbPref %s  saveCid: %s  saveDb: %s', cid, dbPref, this.saveCid, this.saveDbPref)
     return new Promise<Globals[]>(( resolve, reject ) => {
       if (cid && (cid !== this.saveCid || !this.haveGlobals)) {
-        this.fireSvc.getAllGlobals(cid, dbPref).subscribe({
+        this.fireSvc.getAllGlobals(cid).subscribe({
           next: (globalRef) => {
             this.haveGlobals = true ;
             this.globals = globalRef
@@ -34,29 +36,29 @@ export class CommonFuncsService {
           }
         })
         this.saveCid = cid ;  this.saveDbPref = dbPref
-      } else resolve(this.globals)
+      } else resolve(this.globals) ;
     })
   }
 
   /** ****************************************************************************
    * Remove all globals for a DB
    ***************************************************************************** */
-  clearGlobals(cid: string, dbPref: string) {
-    const globSub = this.fireSvc.getAllGlobals(cid, dbPref).subscribe(dbRef => {
-        const globals: Globals[] = dbRef
-        setTimeout(() => {
-          this.utilSvc.writeGenericJson(globals, 'globals.'+cid+'.json') // Save to json file first
-        }, 10);
-        let globCnt = 0 ;  const globLen = globals.length
-        for (const globRow of globals) {
-          this.fireSvc.delGlobals(cid!, dbPref!, globRow).then(() => {
-              if (globCnt++ % 50 === 0)  console.log('Deleted %d globals', globCnt);
-              if (globCnt >= globLen) console.log('Deleted all %d globals', globCnt)
-            }).catch(error => {
-              console.warn('Error %s deleting global %O: ', error, globRow) ;
-            })
-        }
-      })
+  clearGlobals(cid: string) {
+    const globSub = this.fireSvc.getAllGlobals(cid).subscribe(dbRef => {
+      const globals: Globals[] = dbRef
+      setTimeout(() => {
+        this.utilSvc.writeGenericJson(globals, 'globals.'+cid+'.json') // Save to json file first
+      }, 10);
+      let globCnt = 0 ;  const globLen = globals.length
+      for (const globRow of globals) {
+        this.fireSvc.delGlobals(cid, globRow).then(() => {
+            if (globCnt++ % 50 === 0)  console.log('Deleted %d globals', globCnt);
+            if (globCnt >= globLen) console.log('Deleted all %d globals', globCnt)
+          }).catch(error => {
+            console.warn('Error %s deleting global %O: ', error, globRow) ;
+          })
+      }
+    })
     setTimeout(() => {    // Wait 5 seconds, then clear subscription
       globSub.unsubscribe() ;
     }, 5000);
@@ -96,9 +98,9 @@ export class CommonFuncsService {
   /** ****************************************************************************
    * Remove projects for a date range ... Does not clear trans with these projects
    ***************************************************************************** */
-  clearProjects(cid: string, dbPref: string, startDt: string, endDt: string) {
-    console.log('clearProj w/cid: %s  dbp: %s  sDt: %s  eDt: %s', cid, dbPref, startDt, endDt)
-    this.fireSvc.getProjectsForDateRange(cid, dbPref, startDt, endDt).subscribe({
+  clearProjects(cid: string, startDt: string, endDt: string) {
+    console.log('clearProj w/cid: %s  sDt: %s  eDt: %s', cid, startDt, endDt)
+    this.fireSvc.getProjectsForDateRange(cid, startDt, endDt).subscribe({
       next: (projRef) => {
         const projects: Project[] = projRef ;
         setTimeout(() => {
@@ -107,7 +109,7 @@ export class CommonFuncsService {
         let projCnt = 0 ;  const projLen = projects.length
         console.log('Got %d projects', projLen)
         for (const curProj of projects) {
-          this.fireSvc.delProjects(cid!, dbPref!, curProj).
+          this.fireSvc.delProjects(cid!, curProj).
             then(() => {
               if (projCnt++ % 40 === 0) console.log('Deleted %d projects', projCnt)
               if (projCnt >= projLen) console.log('Deleted all %d projects', projCnt)
@@ -116,7 +118,7 @@ export class CommonFuncsService {
             })
         }
       }, error: (error) => {
-        console.warn('Error %s retrieving projects from cid %s  dbprefix %s', error, cid, dbPref)
+        console.warn('Error %s retrieving projects from cid %s', error, cid)
       }
     })
   }
@@ -124,9 +126,9 @@ export class CommonFuncsService {
   /** ****************************************************************************
    * Remove all reconciliations for a date range  Does NOT unreconcile trans with these reconciliations
    ***************************************************************************** */
-  clearRecons(cid: string, dbPref: string, startDt: string, endDt: string) {
+  clearRecons(cid: string, startDt: string, endDt: string) {
     console.log('Called into clearRecons')
-    this.fireSvc.getReconciliationsForDateRange(cid, dbPref, startDt, endDt, []).subscribe({
+    this.fireSvc.getReconciliationsForDateRange(cid, startDt, endDt, []).subscribe({
       next: (reconRef) => {
         const recons: Reconciliation[] = reconRef
         setTimeout(() => {
@@ -135,7 +137,7 @@ export class CommonFuncsService {
         let reconCnt = 0 ; const reconLen = recons.length
         console.log('Got %d reconciliations', reconLen)
         for (const curRecon of recons) {
-          this.fireSvc.delRecons(cid, dbPref, curRecon).
+          this.fireSvc.delRecons(cid, curRecon).
             then(() => {
               if (reconCnt++ % 20 === 0) console.log('Deleted %d recons', reconCnt)
               if (reconCnt >= reconLen) console.log('Deleted all %d recons', reconCnt)
@@ -144,33 +146,21 @@ export class CommonFuncsService {
             })
         }
       }, error: (error) => {
-        console.warn('Error %s retrieving recons from cid %s  dbprefix %s', error, cid, dbPref)
+        console.warn('Error %s retrieving recons from cid %s', error, cid)
       }
     })
   }
 
-  addGlobals(cid: string, dbPref: string, inGlobs: Globals[]): string {
+  addGlobals(cid: string, inGlobs: Globals[]): string {
     let isrtCnt = 0 ;  const globCnt = inGlobs.length ; let statusMsg = ''
     for (const curGlob of inGlobs) {
       if (curGlob.Cid !== cid)  curGlob.Cid = cid   // Make sure cid set correctly
-      const globMulti = (curGlob.RKey === this.utilSvc.globalTypes.TranType ||
-        curGlob.RKey === this.utilSvc.globalTypes.AccountType) ? false : true
-      if (globMulti) {
-        this.fireSvc.addGlobalMultFld(cid, dbPref, curGlob.RKey, curGlob.RVal).
-          then(() => {
-            if (isrtCnt++ % 20 === 0) console.log('Inserted %d of %d', isrtCnt, globCnt)
-            if (isrtCnt >= globCnt)  statusMsg = 'Added all globals for user'
-        }).catch(error => {
-          console.warn('Error %O adding multiFld global %O', error, curGlob)
-        })
-      } else {
-        this.fireSvc.addGlobal(cid, dbPref, curGlob).then(() => {
-          if (isrtCnt++ % 20 === 0) console.log('Inserted %d of %d', isrtCnt, globCnt)
-          if (isrtCnt >= globCnt)  statusMsg = 'Added all globals for user'
-        }).catch(error => {
-          console.warn('Error %O adding singleFld global %O', error, curGlob)
-        })
-      }
+      this.fireSvc.addGlobal(cid, curGlob).then(() => {
+        if (isrtCnt++ % 20 === 0) console.log('Inserted %d of %d', isrtCnt, globCnt)
+        if (isrtCnt >= globCnt)  statusMsg = 'Added all globals for user'
+      }).catch(error => {
+        console.warn('Error %O adding singleFld global %O', error, curGlob)
+      })
     }
     return statusMsg
   }

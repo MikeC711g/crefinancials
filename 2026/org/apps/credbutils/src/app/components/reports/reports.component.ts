@@ -3,10 +3,11 @@ import { Project } from './../../models/project.model';
 import { TranRec } from './../../models/tranRec.model';
 import { FirebaseService } from '../../services/firebase.service';
 import { Component, OnInit } from '@angular/core';
-import { Globals } from '../../models/globals.model';
+import { Globals } from '../../models/Globals.model';
 import { KeyVal } from '../../models/keyval.model';
 import { RuleData } from '../../models/ruledata.model';
 import { House } from '../../models/house.model';
+import { GenutilsService } from '../../services/genutils.service';
 
 interface DbMeta {
   Cid: string,
@@ -65,9 +66,8 @@ export class ReportsComponent implements OnInit {
   taxCats: KeyVal[] = new Array<KeyVal>() ;  taxCatTime = 0 ;
   ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]>() ;
   fldList: string[] = new Array<string>() ;
-  isGlobMulti = false ;   // Is global for this type multiple flds or one (gval)
 
-  constructor(private fireSvc: FirebaseService) { }
+  constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
 
   ngOnInit(): void {
     this.idxMap.set(this.tableNames.GlobalVars, ['Cid', 'RKey']) ;
@@ -78,11 +78,11 @@ export class ReportsComponent implements OnInit {
   }
 
   getGlobals() {
-    this.fireSvc.getAllGlobals(this.sourceCid, this.sourceDbPrefix).subscribe(
+    this.fireSvc.getAllGlobals(this.sourceCid).subscribe(
       (globalRef) => {
         this.globals = globalRef ;
         console.log('Got %d globals from DB', this.globals.length) ;
-        this.processGVals() ;
+        this.utilSvc.processGVals(this.globals) ;
       }, (error) => {
         console.warn('Error retrieving globals: ', error) ;
       })
@@ -102,8 +102,7 @@ export class ReportsComponent implements OnInit {
       }, (error) => {
         console.warn('Error retrieving transactions: ', error) ;
       })
-    this.fireSvc.getProjectsForDateRange(this.sourceCid, this.sourceDbPrefix,
-      this.minDate, this.maxDate).subscribe(
+    this.fireSvc.getProjectsForDateRange(this.sourceCid, this.minDate, this.maxDate).subscribe(
       (projRef) => {
         this.projects = projRef ;
         console.log('Got %d projects from DB', this.projects.length) ;
@@ -111,7 +110,7 @@ export class ReportsComponent implements OnInit {
         console.warn('Error fetching projects: ', error) ;
       })
 
-    this.fireSvc.getReconciliationsForDateRange(this.sourceCid, this.sourceDbPrefix,
+    this.fireSvc.getReconciliationsForDateRange(this.sourceCid,
       this.minDate, this.maxDate, this.accountArr).subscribe(
       (reconRef) => {
         this.reconciliations = reconRef ;
@@ -155,20 +154,11 @@ export class ReportsComponent implements OnInit {
     console.log(' And Labs: %s and %s with Vals: %s and %s', this.globLab1, this.globLab2,
       this.globVal1, this.globVal2) ;
     this.filtGlob = this.globals.filter(globRec => {
-      if (this.globalQ.RKey !== globRec.RKey) { return false ; }
-      if (!this.isGlobMulti && this.globalQ.RVal !== '' &&
+      if (this.globalQ.GType !== globRec.GType) { return false ; }
+      if (this.globalQ.RVal && globRec.RVal &&
         globRec.RVal.includes(this.globalQ.RVal)) { return false ; }
       if (this.globalQ.GlobalId !== '' && this.globalQ.GlobalId !== globRec.GlobalId) {
         return false ;
-      }
-      if (this.isGlobMulti) {
-        const recVal: any = globRec.RVal ;
-        if (this.globVal1 !== '' && recVal[this.globLab1] !== this.globVal1) {
-          return false ;
-        }
-        if (this.globVal2 !== '' && recVal[this.globLab2] !== this.globVal2) {
-          return false ;
-        }
       }
       return true ;
     })
@@ -192,23 +182,14 @@ export class ReportsComponent implements OnInit {
   deRefGlobals() {
     console.log('Into deRefGlobals w/rkey: ', this.globalQ.RKey) ;
     this.fldList = [] ;   // No flds, and a ny single val globals will leave this empty
-    this.isGlobMulti = false ;    // Assume one field global
-    let lRule: RuleData ;  let kv: KeyVal ;  let lHouse: House ;
+    let kv: KeyVal ;
     switch (this.globalQ.RKey) {
-      case (this.globalTypes.RuleData):
-        lRule = new RuleData('', '', [], 0.0001, '', '', '', '', '', '') ;
-        this.fldList = Object.getOwnPropertyNames(lRule) ;
-        this.isGlobMulti = true ;  break ;
       case (this.globalTypes.Accounts):
       case (this.globalTypes.DescripHints):
       case (this.globalTypes.TaxCats):
         kv = new KeyVal('', '') ;
         this.fldList = Object.getOwnPropertyNames(kv) ;
-        this.isGlobMulti = true ;  break ;
-      case (this.globalTypes.Houses):
-        lHouse = new House('', '', '', '', '', '', '')
-        this.fldList = Object.getOwnPropertyNames(lHouse) ;
-        this.isGlobMulti = true ;  break ;
+        break ;
     }
   }
 
@@ -304,78 +285,5 @@ export class ReportsComponent implements OnInit {
       return true ;
     })
     console.log('FP Len: ', this.filtProj.length, ' Projects: ', this.filtProj)
-  }
-
-  processGVals(): void {
-    console.debug('processGVals running') ;
-    this.tranTypes.splice(0, this.tranTypes.length) ;
-    this.houses.splice(0, this.houses.length) ;
-    this.fullHouses.splice(0, this.fullHouses.length) ;
-    this.accountTypes.splice(0, this.accountTypes.length) ;
-    this.accounts.splice(0, this.accounts.length) ;
-    this.descripInfo.splice(0, this.descripInfo.length) ;
-    this.taxCats.splice(0, this.taxCats.length) ;
-    this.ruleMap.clear ;
-    const ruleAdmin: RuleData[] = [] ;
-    const descripInfo: KeyVal[] = [] ;
-    const tranTypes: string[] = [] ;    const accountTypes: string[] = [] ;
-    const houses: string[] = [] ;       const fullHouses: House[] = [] ;
-    const accounts: KeyVal[] = [] ;     const taxCats: KeyVal[] = [] ;
-      // Now for each item in parm table update appropriate parm array or map
-    let tmpHouse: any ;  let houseInfo: House ;
-    let tmpAcc: any ;    let lAcct: KeyVal ;
-    let tmpParts: any ;  let descripParts: KeyVal ;
-    let tmpTCs: any ;    let lTaxCat: KeyVal ;
-    let tmpRD: any ;     let ruleO : RuleData ;
-    for (const inGlobal of this.globals) {
-      switch(inGlobal.RKey) {
-        case(this.globalTypes.TranType):
-          tranTypes.push(inGlobal.RVal) ; break ;
-        case(this.globalTypes.Houses):
-          tmpHouse = inGlobal.RVal ;
-          houseInfo = tmpHouse ;
-          houses.push(houseInfo.name) ;
-          fullHouses.push(houseInfo) ;
-          break ;
-        case(this.globalTypes.Accounts):
-          tmpAcc = inGlobal.RVal ;
-          lAcct = tmpAcc ;
-          accounts.push(lAcct) ; break ;
-        case(this.globalTypes.AccountType):
-          accountTypes.push(inGlobal.RVal) ; break ;
-        case(this.globalTypes.DescripHints):
-          // const descripParts = JSON.parse(inGlobal.RVal) ;
-          tmpParts = inGlobal.RVal ;
-          descripParts = tmpParts ;
-          descripInfo.push(descripParts) ; break ;
-        case(this.globalTypes.TaxCats):
-          tmpTCs = inGlobal.RVal ;
-          lTaxCat = tmpTCs ;
-          taxCats.push(lTaxCat) ; break ;
-        case(this.globalTypes.RuleData):
-          tmpRD = inGlobal.RVal ;
-          ruleO = tmpRD ;
-          // const csvParts: RuleData = JSON.parse(inGlobal.RVal) ;
-          for (const cAcct of ruleO.accounts) {
-            if (!this.ruleMap.has(cAcct)) { this.ruleMap.set(cAcct, new Array<RuleData>()) ; }
-            const curCsvArr = this.ruleMap.get(cAcct) ;
-            curCsvArr?.push(ruleO) ;
-          }
-          ruleAdmin.push(ruleO) ;
-          break ;
-      }
-    }
-    this.descripInfo = descripInfo.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
-    this.tranTypes = tranTypes.sort((a, b) => a.localeCompare(b)) ;
-    this.houses = houses.sort((a, b) => a.localeCompare(b)) ;
-    this.fullHouses = fullHouses.sort((a, b) => a.name.localeCompare(b.name)) ;
-    this.accounts = accounts.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
-    this.accountTypes = accountTypes.sort((a, b) => a.localeCompare(b)) ;
-    this.taxCats = taxCats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
-    console.debug('taxCats: ', this.taxCats, ' Accounts: ', this.accounts,
-      '  tranTypes: ', this.tranTypes) ;
-    console.log('PG Lens desc: %d  hou: %d  acc: %d  tCats: %d  tTypes: %d  sAcc: %d',
-      this.descripInfo.length, this.houses.length, this.accounts.length,
-      this.taxCats.length, this.tranTypes.length, accounts.length)
   }
 }
