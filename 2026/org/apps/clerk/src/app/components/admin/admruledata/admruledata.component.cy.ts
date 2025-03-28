@@ -47,7 +47,7 @@ describe('AdmHousesComponent', () => {
   it('ruleContent', () => {
     const fixture = TestBed.createComponent(AdmruledataComponent) ;
     const component = fixture.componentInstance ;
-    component.ruleAdmin = new RuleData('testSrch', ['TestAcct1', 'TestAcct2'], 35.77, 'TestDescrip',
+    component.tranRule = new RuleData('testSrch', ['TestAcct1', 'TestAcct2'], 35.77, 'TestDescrip',
       'TestTranType', 'TestTranExtra', 'CE', '111ThatHouse', 'TestAnnotation') ;
     fixture.detectChanges() ;
     const htmlEls: HTMLElement = fixture.nativeElement ;

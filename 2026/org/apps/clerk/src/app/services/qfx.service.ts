@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TranRec } from '../models/TranRec.model';
-import { RuleData } from '../models/ruleData.model';
+import { RuleData } from '../models/ruledata.model';
 import { GenutilsService } from './genutils.service';
 
 @Injectable({
@@ -108,8 +108,8 @@ export class QfxService {
   readQFX($event: any, account: string): Observable<TranRec[]> {
     // let files = $event.srcElement.files ;
     const tranRecs: TranRec[] = new Array<TranRec>() ;
-    const ruleData: RuleData[] | undefined = this.utilSvc.getRuleData(account) ;
-    this.utilSvc.cDebug(this.CLASSNAME,'qfxSvc readqfx account: %s  RuleData: %O', account, ruleData) ;
+    const tranRules: RuleData[] | undefined = this.utilSvc.getRuleData(account) ;
+    this.utilSvc.cDebug(this.CLASSNAME,'qfxSvc readqfx account: %s  RuleData: %O', account, tranRules) ;
     const getRecs = new Observable<TranRec[]>((observer) => {
       const input = $event.target ;
       const reader = new FileReader() ;
@@ -141,8 +141,8 @@ export class QfxService {
           const tranRec = new TranRec('', this.cvt2Date(dtPosted), account, '', trnType,
             parseFloat(trnAmt), tranExtra, 'NT', '', '', '', '', fitId, this.utilSvc.generateGuid()) ;
             this.utilSvc.cDebug(this.CLASSNAME, 'tranRec: %O  Acct: %s tNm: %s  Memo: %s', tranRec, account, tName, tMemo) ;
-          if (ruleData !== undefined) {
-            this.utilSvc.prefillDoc(tranRec.TranExtra, tranRec.Amount, ruleData, tranRec) ;
+          if (tranRules !== undefined) {
+            this.utilSvc.prefillDoc(tranRec.TranExtra, tranRec.Amount, tranRules, tranRec) ;
           }
           tranRecs.push(tranRec) ;
         }

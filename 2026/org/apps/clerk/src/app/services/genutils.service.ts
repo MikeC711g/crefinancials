@@ -1,8 +1,9 @@
-import { RuleData } from '../models/ruleData.model';
+import { RuleData } from '../models/ruledata.model';
 import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
 import { Project } from '../models/project.model';
 import { KeyVal } from '../models/keyval.model';
+import { Mortgage } from '../models/mortgages.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,17 +15,20 @@ export class GenutilsService {
     // dirty arrays are arrays of IDs of that type that have unsaved changes
   projects: Project[] = new Array<Project>() ;   dirtyProj: string[] = new Array<string>() ;
   trans: TranRec[] = new Array<TranRec>() ;  dirtyTrans: string[] = new Array<string>() ;
-  globalTypes = { RuleData: 'ruleData', TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
-    Houses: 'houses', TranType: 'tranType', Accounts: 'accounts', AccountType: 'accountType',
-    CategoryFolders: 'categoryFolders', Logging: 'logging' } ;
-  noAdminGlobalTypes = [this.globalTypes.TranType, this.globalTypes.AccountType,
+  globalTypes = { TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
+    TranTypes: 'tranType', Accounts: 'accounts', AccountTypes: 'accountType',
+    CategoryFolders: 'categoryFolders', Logging: 'logging', RuleData: 'ruleData', Houses: 'houses',
+    Mortgages: 'mortgages' } 
+  noAdminGlobalTypes = [this.globalTypes.TranTypes, this.globalTypes.AccountTypes,
     this.globalTypes.CategoryFolders] ;
+  adminGlobalTypes = [this.globalTypes.TaxCats, this.globalTypes.CategoryTaxcats,
+    this.globalTypes.Logging, this.globalTypes.Accounts, this.globalTypes.CategoryFolders] ;
   addOnlyGlobalTypes = [this.globalTypes.TaxCats] ;
   actionTypes = { Add: 'add', Update: 'update', Hide: 'hide', UnHide: 'unHide',
     Cancel: 'cancel', Delete: 'delete', Split: 'split', UnSplit: 'unSplit',
     SplitNew: 'splitNew', DirtyData: 'dirtyData', CleanData: 'cleanData' } ;
   colorTypes = {Parent: 'Magenta', NotInDB: 'Beige', Default: 'White' } ;
-  tblNames = { Globals: 'GlobalVars', Transactions: 'Transactions',
+  tblNames = { Globals: 'Globals', Transactions: 'Transactions',
     Projects: 'Projects', Reconciliations: 'Reconciliations', NewCustomer: 'newCustomer' } ;
   roleNames = { User: 'User', Admin: 'Admin', GlobalAdmin: 'globalAdmin'}
   accountTypes = {Checking: 'checking', Savings: 'savings', Credit: 'credit'} ;
@@ -32,6 +36,7 @@ export class GenutilsService {
   authSignoff = false ;
   mlValue: Map<string, number> = new Map<string, number>() ;
   categoryTaxcats: KeyVal[] = new Array<KeyVal>() ;
+  mortgages: Mortgage[] = new Array<Mortgage>() ;
   ruleMap: Map<string, RuleData[]> = new Map<string, RuleData[]> ;
   CLASSNAME = 'genUtilsService' ;    noGid = 'noGid' ;
 
@@ -122,6 +127,8 @@ export class GenutilsService {
     }
   }
   getRuleData(account: string)  {  return this.ruleMap.get(account) ; }
+  setMortgages(mortgages: Mortgage[]) { this.mortgages = mortgages ; }
+  getMortgages() { return this.mortgages ; }
 
   loadCategoryTaxcat(catTaxcat: KeyVal[]) {  this.categoryTaxcats = catTaxcat ; }
   dirtyTranUpdt(isDirty: boolean, tranId: string) {
@@ -379,6 +386,44 @@ export class GenutilsService {
       default: statusMsg = 'Invalid action notification of: ' + action ;
     }
     return [statusMsg, newRow]
+  }
+
+  genChildTransForMtg(tranRec: TranRec): TranRec[] {
+    const mtgTrans: TranRec[] = [] ;
+    const mtg = this.mortgages.find(mtg => mtg.house === tranRec.House) ;
+    let runPrin = 0.0, curInt = 0.0 , curPrin = 0.0, escrowPmt = 0.0 ;
+    if (!mtg) {
+      this.cWarn(this.CLASSNAME, 'No mortgage found for house: %s', tranRec.House) ; return mtgTrans ;
+    } else {
+      const amtNeg = (tranRec.Amount < 0) ;   // Mtg paid vs received
+      const lPmt = (amtNeg) ? -1 * tranRec.Amount : tranRec.Amount ;
+      if (mtg.lpmt > lPmt) {    // TranAmt should be >= loan payment as loan pmt is Prin + Int only
+        this.cWarn(this.CLASSNAME, 'Loan payment %d greater than tran Amt: %d for house: %s',
+          mtg.lpmt, tranRec.Amount, tranRec.House) ;
+      }
+      const curYr = parseInt(tranRec.TranDate.slice(0, 4)) ;
+      const curMth = parseInt(tranRec.TranDate.slice(5, 7)) ;
+      const rate = mtg.rate / 100 / 12 ;
+      const dateDiff = (curYr - mtg.balYr) * 12 + curMth - mtg.balMth ;
+      runPrin = mtg.cBal ;
+      for (let i = 0; i < dateDiff; i++) {
+        curInt = runPrin * rate ;
+        curPrin = mtg.lpmt - curInt ;
+        runPrin -= curPrin ;
+      }
+      curPrin = this.fixAmt(curPrin) ;  curInt = this.fixAmt(curInt) ;
+      escrowPmt = lPmt - curPrin - curInt ;
+      escrowPmt = this.fixAmt(escrowPmt) ;
+      if (amtNeg) { curPrin *= -1 ; curInt *= -1 ; escrowPmt *= -1 ; }
+    }
+    mtgTrans.push(new TranRec(tranRec.Cid, tranRec.TranDate, tranRec.Account, 'Mortgage Principal',
+      'DEBIT', curPrin, '', 'NT', tranRec.House, '', '', '', '')) ;
+    mtgTrans.push(new TranRec(tranRec.Cid, tranRec.TranDate, tranRec.Account, 'Mortgage Interest',
+      'DEBIT', curInt, '', 'BE', tranRec.House, '', '', '', '')) ;
+    if (escrowPmt !== 0)
+      mtgTrans.push(new TranRec(tranRec.Cid, tranRec.TranDate, tranRec.Account, 'Mortgage Escrow',
+        'DEBIT', escrowPmt, '', 'NT', tranRec.House, '', '', '', '')) ;
+    return mtgTrans;
   }
 
   /**

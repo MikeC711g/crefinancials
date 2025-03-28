@@ -10,7 +10,9 @@ import { GenutilsService } from './../../services/genutils.service';
 import { KeyVal } from './../../models/keyval.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { House } from './../../models/house.model';
+import { RuleData } from '../../models/ruledata.model';
 import { NavigationEnd, Router } from '@angular/router';
+import { Mortgage } from '../../models/mortgages.model';
 
 @Component({
   selector: 'app-cretran',
@@ -24,8 +26,8 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   tranTypes: string[] = new Array<string>() ;
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;
-  fullHouses: House[] = new Array<House>() ;
-  projects: Project[] = new Array<Project>() ;
+  houses: House[] = new Array<House>() ;   ruleData: RuleData[] = new Array<RuleData>() ;
+  projects: Project[] = new Array<Project>() ;  mortgages: Mortgage[] = new Array<Mortgage>() ;
   csvTranRecs: TranRec[] = new Array<TranRec>() ;
   qfxPreProcdTrans: TranRec[] = new Array<TranRec>() ;    // These trans already processed
   accountArr: string[] = new Array<string>() ;   accountOne = '' ;
@@ -90,20 +92,64 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
    Refresh common files (project list, categories, et al)
   ********************************************************************/
    onRefreshParms(psDate: string, peDate: string): void {
-    // const globSubj = this.fireSvc.getGlobals(false) ;
-    this.global$ = this.fireSvc.getGlobals(false)
-    this.utilSvc.cDebug(this.CLASSNAME,'Into tran onRefreshParms called getGlobals') ;
-    // this.global$ = globSubj ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'Came back as subScrib so subscribing')
-    this.global$.subscribe({
-      next: () => {
-        this.utilSvc.cDebug(this.CLASSNAME,'Subscrib returned so calling globalLoad now') ;
-        this.globalLoad() ;
-        this.haveData = true ;
-      }, error: (error) => {
-        this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
-      }
-    })
+    const globRtn = this.fireSvc.getGlobals(false) ;
+    if (Array.isArray(globRtn)) {
+      this.globalLoad() ;
+      this.haveData = true ;
+    } else {
+      globRtn.subscribe({
+        next: (globals) => {
+          const globArr = globals as Globals[] ;
+          this.fireSvc.setGlobals(globArr) ;
+          this.globalLoad() ;
+          this.haveData = true ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
+        }
+      })
+    }
+
+    const houseRtn$ = this.fireSvc.getHouseDB() ;
+    if (Array.isArray(houseRtn$)) {
+      this.houses = houseRtn$ ;
+    } else {
+      houseRtn$.subscribe({
+        next: (response) => {
+          this.houses = response ;
+          this.fireSvc.setHouses(this.houses) ;
+          this.utilSvc.cDebug(this.CLASSNAME, 'Got %d houses', this.houses.length) ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'HouseErr..FireService: %s', error) ;
+        }
+      })
+    }
+
+    const tranRuleRtn$ = this.fireSvc.getTranRuleDB();
+    if (Array.isArray(tranRuleRtn$)) {
+      this.utilSvc.setRules(tranRuleRtn$) ;
+      console.log('cretran TranRules thru array %O', tranRuleRtn$) ;
+    } else {
+      tranRuleRtn$.subscribe({
+        next: (response) => {
+          this.fireSvc.setTranRules(response) ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'TranRuleErr..FireService: %s', error) ;
+        }
+      })
+    }
+
+    const mortgageRtn$ = this.fireSvc.getMortgageDB() ;
+    if (Array.isArray(mortgageRtn$)) {
+      this.mortgages = mortgageRtn$ ;
+    } else {
+      mortgageRtn$.subscribe({
+        next: (response) => {
+          this.fireSvc.setMortgages(response) ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'MortgageErr..FireService: %s', error) ;
+        }
+      });
+    }
 
     const projRtn = this.fireSvc.getProjects(false, 180) ;
     if (Array.isArray(projRtn)) {
@@ -128,7 +174,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.accounts = this.fireSvc.getAccounts() ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Into globalLoad and loaded %d accounts', this.accounts.length) ;
     this.tranTypes = this.fireSvc.getTranTypes() ;
-    this.fullHouses = this.fireSvc.getFullHouses() ;
+    this.houses = this.fireSvc.getHouses() ;
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
     this.utilSvc.loadCategoryTaxcat(this.categoryTaxcat) ;    // Give util Svc this array
     this.taxCats = this.fireSvc.getTaxCats() ;

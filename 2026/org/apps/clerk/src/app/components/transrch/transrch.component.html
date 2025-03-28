@@ -29,7 +29,7 @@
       <select class="form-control" multiple id="house" name="house" data-cy="te-dho"
         [(ngModel)]="house">
         <option [value]="''" [selected]="!house">-- select an option --</option>
-        <option *ngFor="let dHouse of fullHouses" [value]="dHouse.name"
+        <option *ngFor="let dHouse of houses"[value]="dHouse.name"
         [selected]="house.includes(dHouse.name)" >{{ dHouse.name }}</option>
       </select>
     </div>

@@ -1,6 +1,7 @@
 import { TranQ } from './../../models/TranQ.model';
 import { FirebaseService } from './../../services/firebase.service';
 import { Reconciliations } from './../../models/reconciliations.model';
+import { Globals } from './../../models/globals.model';
 import { Subscription } from 'rxjs';
 import { MsgInfo } from '../../models/MsgInfo.model';
 import { TranRec } from './../../models/TranRec.model';
@@ -33,7 +34,6 @@ import { KeyVal } from './../../models/keyval.model';
  *************************************************************************************/
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-crerecon',
   templateUrl: './crerecon.component.html',
   styleUrls: ['./crerecon.component.css']
@@ -74,15 +74,20 @@ export class CrereconComponent implements OnInit, OnDestroy, DeactivatableCompon
    Refresh common files (project list, categories, et al)
   *******************************************************************/
    onRefreshParms(psDate: string, peDate: string): void {
-    const globSubj = this.fireSvc.getGlobals(false) ;
-    this.global$ = globSubj.subscribe({
-      next: (fbGlobals) => {
-        this.utilSvc.cDebug(this.CLASSNAME, 'GlobalArrLen: %d', fbGlobals.length) ;
-        this.globalLoad() ;
-      }, error: (error) => {
-        this.utilSvc.cWarn(this.CLASSNAME,'Error retrieving globals: %s', error) ;
-      }
-    })
+    const globRtn = this.fireSvc.getGlobals(false) ;
+    if (Array.isArray(globRtn)) {
+      this.globalLoad() ;
+    } else {
+      globRtn.subscribe({
+        next: (fbGlobals) => {
+          const globArr = fbGlobals as Globals[] ;
+          this.fireSvc.setGlobals(globArr) ;
+          this.globalLoad() ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME,'Error retrieving globals: %s', error) ;
+        }
+      })
+    }
 
     const projRtn = this.fireSvc.getProjects(false, 180) ;
     if (Array.isArray(projRtn)) {

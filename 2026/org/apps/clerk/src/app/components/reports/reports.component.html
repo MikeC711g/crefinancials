@@ -14,7 +14,8 @@
         [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
       </select>
     </div>
-    <div class="row col-md-12" *ngIf="selectedReport === 'Profit and Loss'">
+    <div class="row col-md-12"
+      *ngIf="selectedReport === 'Profit and Loss' || selectedReport === 'Personal Profit and Loss'">
       <form (ngSubmit)="runReport(selectedReport)" #PnLForm="ngForm">
         <div class="row">
           <div class="col-md-6 border-right">
@@ -23,7 +24,7 @@
               <select class="form-control" id="house" name="house"
                 [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houses">
                 <option [value]="'selectAll'">Select All</option>
-                <option *ngFor="let house of fullHouses" [value]="house.name"
+                <option *ngFor="let house of houses" [value]="house.name"
                 [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
               </select>
             </div>
@@ -34,7 +35,8 @@
       </form>
       <div class="col-md-12" *ngIf="reportReady"> <hr>
         <app-pnl-report [categoryFolders]="categoryFolders" [startDt]="startDt"
-          [endDt]="endDt" [tranRecs]="transactions"> </app-pnl-report>  <hr>
+          [endDt]="endDt" [tranRecs]="transactions" [debitTaxCats]="expCats"
+          [creditTaxCats]="incCats" [title]="title"> </app-pnl-report>  <hr>
       </div>
     </div>
   <hr><hr>
@@ -48,7 +50,7 @@
           <select class="form-control" id="house" name="house"
             [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houseexp">
             <option [value]="'selectAll'">Select All</option>
-            <option *ngFor="let house of fullHouses" [value]="house.name"
+            <option *ngFor="let house of houses" [value]="house.name"
             [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
           </select>
         </div>
@@ -56,7 +58,8 @@
       <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subexp"
         >{{ selectedReport }}</button>
       <div class="row" *ngIf="reportReady"> <hr>
-        <app-exp2projreport [tranRecs]="transactions" [projects]="projects"></app-exp2projreport>  <hr>
+        <app-exp2projreport [tranRecs]="transactions" [projects]="projects"
+          [startDt]="startDt" [endDt]="endDt"></app-exp2projreport>  <hr>
       </div>
     </form>
   </div>
@@ -69,7 +72,7 @@
           <select class="form-control" id="house" name="house" data-cy="rpt-housers"
             [(ngModel)]="selectedHouse">
             <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
-            <option *ngFor="let house of fullHouses" [value]="house.name"
+            <option *ngFor="let house of houses" [value]="house.name"
                 [selected]="house.name === selectedHouse">{{ house.name }}</option>
           </select>
         </div>
@@ -86,7 +89,7 @@
   <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Transactions'">
     <form #tranDumpForm="ngForm">
       <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
-        [fullHouses]="fullHouses" [projects]="projects" [taxCats]="taxCats"
+        [houses]="houses" [projects]="projects" [taxCats]="taxCats"
         (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
           $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
       </app-transrch>
@@ -167,7 +170,7 @@
             <select class="form-control" id="house" name="house" data-cy="rpt-housedop"
               [(ngModel)]="selectedHouse">
               <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
-              <option *ngFor="let house of fullHouses" [value]="house.name"
+              <option *ngFor="let house of houses" [value]="house.name"
                   [selected]="house.name === selectedHouse">{{ house.name }}</option>
             </select>
           </div>

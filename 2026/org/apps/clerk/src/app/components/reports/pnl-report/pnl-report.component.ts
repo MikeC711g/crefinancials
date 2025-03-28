@@ -27,9 +27,12 @@ export class PnlReportComponent  implements OnInit {
   @Input() tranRecs: TranRec[] = [] ;
   @Input() categoryFolders: KeyVal[] = [] ;
   @Input() startDt = '' ;    @Input() endDt = '' ;
+  @Input() debitTaxCats = ['BE', 'CE'] ;  @Input() creditTaxCats = ['BI'] ;
+  @Input() 'title' = 'Profit & Loss Report' ;
 
         // Structures for P&L report
   totExpense = 0 ;  totIncome = 0 ;  netIncome = 0 ;
+  allTaxCats = [''] ;
   incomeMap: Map<string, MapVal> = new Map<string, MapVal>() ;
   expenseMap: Map<string, MapVal> = new Map<string, MapVal>() ;
   CLASSNAME = 'pnlreport' ;
@@ -39,6 +42,7 @@ export class PnlReportComponent  implements OnInit {
   ngOnInit(): void {
     this.utilSvc.cLog(this.CLASSNAME, "In w/tranRecs: %O  dts: %s %s catFolders: %O",
       this.tranRecs, this.startDt, this.endDt, this.categoryFolders)
+    this.allTaxCats = this.creditTaxCats.concat(this.debitTaxCats) ;
     this.profitNLoss() ;
   }
 
@@ -54,7 +58,7 @@ export class PnlReportComponent  implements OnInit {
     // Filter out parent trans and keep only business taxcats.  Filter here to avoid
     //  bringing back and re-uniting split trans.
     const filtTrans = this.tranRecs.filter(tr =>
-      tr.TranType !== 'TPARENT' && ['BE', 'CE', 'BI'].indexOf(tr.TaxCat) > -1)
+      tr.TranType !== 'TPARENT' && this.allTaxCats.indexOf(tr.TaxCat) > -1)
       // (this.selectedHouseArr.length === 0 || this.selectedHouseArr.indexOf(tr.House) > -1))
     for (const curTran of filtTrans) {
       if (curTran.Category === '') {
@@ -73,8 +77,8 @@ export class PnlReportComponent  implements OnInit {
     }
     this.utilSvc.cDebug(this.CLASSNAME,'pnlData %O', pnlData) ;
     this.incomeMap.clear() ;    this.expenseMap.clear() ;
-    const incomes: PnlData[] = pnlData.filter((pd) => pd.taxCat === 'BI') ;
-    const expenses: PnlData[] = pnlData.filter((pd) => pd.taxCat !== 'BI') ;
+    const incomes: PnlData[] = pnlData.filter((pd) => this.creditTaxCats.indexOf(pd.taxCat) > -1) ;
+    const expenses: PnlData[] = pnlData.filter((pd) => this.debitTaxCats.indexOf(pd.taxCat) > -1) ;
     this.totExpense = 0 ;  this.totIncome = 0 ;
     console.log('Incomes: %O  Expenses: %O', incomes, expenses)
     for (const curCat of this.categoryFolders) {
@@ -105,7 +109,7 @@ export class PnlReportComponent  implements OnInit {
   writePnlRtf() {
     let fStr = '{\\rtf1\\ansi\\deff0\n'+    // Doc header
       '{\\fonttbl {\\f0 Times New Roman;} {\\f1\\fswiss Arial;} {\\f2\\fmodern Courier New;}}\n' +
-      '\\f0 {\\pard\\fs36\\qc\\b Profit & Loss \\line\\par}\n' +
+      `\\f0 {\\pard\\fs36\\qc\\b ${this.title} \\line\\par}\n` +
       `{\\pard\\fs20\\qc Start Date: ${this.startDt}  End Date: ${this.endDt} \\line\\par}\n` +
       '{\\pard\\fs32\\b Income \\line\\par}\n'
     const [incomeTot, iStr] = this.catGrpRtf(false, this.incomeMap) ;
@@ -199,7 +203,7 @@ export class PnlReportComponent  implements OnInit {
     const doc = new jsPDF() ;
     const xCenter = doc.internal.pageSize.width / 2 ;
     doc.setFont('Helvetica', 'bold').setFontSize(18).
-      text('Profit & Loss', xCenter, yCoord, {align: 'center'}) ;
+      text(this.title, xCenter, yCoord, {align: 'center'}) ;
     yCoord += 7 ;
     const dtStr = `Start Date: ${this.startDt}   End Date: ${this.endDt}` ;
     doc.setFontSize(10).text(dtStr, xCenter, yCoord, {align: 'center'}) ;  yCoord += 8

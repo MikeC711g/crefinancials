@@ -1,6 +1,7 @@
 export class RuleData {
 
   constructor(
+    public Cid: string,
     public ruleName: string,
     public srchStr: string,
     public accounts: string[],
@@ -10,5 +11,7 @@ export class RuleData {
     public TranExtra?: string,
     public TaxCat?: string,
     public House?: string,
-    public Annotation?: string) {}
+    public Annotation?: string,
+    public RuleId?: string) {}
 }
+

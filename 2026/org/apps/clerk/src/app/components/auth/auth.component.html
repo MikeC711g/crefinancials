@@ -14,6 +14,7 @@
         <input type="password" id="oldPw" class="form-control" name="oldPw"
             required minlength="8" autocomplete="current-password" ngModel
             style="font-size: large;" data-cy="auth-oldPw">
+        <input type="checkbox" (click)="pwVisible('oldPw')">Show Password
       </div>
       <div *ngIf="'Sign Up.Change Password'.includes(guiMode)">
         <div class="form-group mt-5">
@@ -21,6 +22,7 @@
           <input type="password" id="newPw" class="form-control" name="newPw"
               required minlength="8" ngModel style="font-size: large;" data-cy="auth-newPw"
               (input)="validatePassword(authForm.value.newPw)">
+          <input type="checkbox" (click)="pwVisible('newPw')">Show Password
         </div>
         <div class="row">{{ npwMsg }} </div>
         <div class="form-group mt-5">
@@ -28,6 +30,7 @@
           <input type="password" id="confirmPw" class="form-control" name="confirmPw"
               required minlength="8" ngModel style="font-size: large;" data-cy="auth-confirmPw"
               (input)="validatePassword(authForm.value.newPw, authForm.value.confirmPw)">
+          <input type="checkbox" (click)="pwVisible('confirmPw')">Show Password
         </div>
       </div>
       <div class="row">{{ cpwMsg }} </div>

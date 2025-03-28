@@ -23,6 +23,7 @@ const routes: Routes = [
     canDeactivate: [canDeactivate] },
   { path: 'reports', component: ReportsComponent, canActivate: [canActivate], children: [
     { path: 'profitnloss', component: ReportsComponent },
+    { path: 'perspnl', component: ReportsComponent },
     { path: 'expbyproj', component: ReportsComponent },
     { path: 'rentstat', component: ReportsComponent },
     { path: 'dumpglobals', component: ReportsComponent },

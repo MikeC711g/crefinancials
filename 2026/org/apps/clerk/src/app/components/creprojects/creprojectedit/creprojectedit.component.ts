@@ -51,7 +51,7 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
       this.origProject.StartDt = this.curProj.StartDt ;
       this.origProject.EndDt = this.curProj.StartDt ;
     }
-    this.houses = this.fireSvc.getFullHouses() ;
+    this.houses = this.fireSvc.getHouses() ;
   }
 
   /*********************************************************************

@@ -1,6 +1,6 @@
 <div class="row" *ngIf="!editMode">
-  <div class="col-md-2"> {{ ruleAdmin.ruleName }} </div>
-  <div class="col-md-3"> {{ ruleAdmin.srchStr }}  </div>
+  <div class="col-md-2"> {{ tranRule.ruleName }} </div>
+  <div class="col-md-3"> {{ tranRule.srchStr }}  </div>
   <div class="col-md-1"> {{ srchAmtStr }}         </div>
   <div class="col-md-2"> {{ acctString }}         </div>
   <button class="btn btn-success btn-toggle col-md-2" type="button" data-cy="ard-edit"
@@ -13,12 +13,12 @@
   <div class="col-md-5">
     <div class="form-group">
       <label for="ruleNm">Name of Rule</label>
-      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.ruleName"
+      <input type="text" class="form-control" [(ngModel)]="tranRule.ruleName"
         name="ruleNm" id="ruleNm" required ngModel data-cy="ard-name"
         title="Any name to help you recognize the rule">
       Fill in Search String or Search Amount.  If both filled, both must be true to match
       <label for="srchStr">Search String</label>
-      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.srchStr"
+      <input type="text" class="form-control" [(ngModel)]="tranRule.srchStr"
         name="srchStr" id="srchStr" style="text-transform:uppercase" ngModel
         (change)="onChgSrchStr(true)" data-cy="ard-srchStr"
         title="Enough text for uniqueness but not so much that it might often fail to match">
@@ -28,47 +28,47 @@
         title="Leave blank if amount not same every time">
       <label for="acctList">Account List</label>
       <select class="form-control" id="acctList" name="acctList" multiple
-        (change)="multiSelAll()" [(ngModel)]="ruleAdmin.accounts" data-cy="ard-acctList">
+        (change)="multiSelAll()" [(ngModel)]="tranRule.accounts" data-cy="ard-acctList">
         <option [value]="'selectAll'">Select All</option>
         <option *ngFor="let account of accounts" [value]="account.RKey"
-          [selected]="ruleAdmin.accounts.includes(account.RKey)">
+          [selected]="tranRule.accounts.includes(account.RKey)">
           {{ account.RKey }}</option>
       </select>
       <label for="category">Category</label>
       <select class="form-control" id="category" name="category"
-        [(ngModel)]="ruleAdmin.Category" data-cy="ard-category">
-        <option [value]="''" [selected]="!ruleAdmin.Category">-- select an option --</option>
+        [(ngModel)]="tranRule.Category" data-cy="ard-category">
+        <option [value]="''" [selected]="!tranRule.Category">-- select an option --</option>
         <option *ngFor="let category of categoryTaxcat" [value]="category.RKey"
-          [selected]="category.RKey === ruleAdmin.Category">{{ category.RKey }}</option>
+          [selected]="category.RKey === tranRule.Category">{{ category.RKey }}</option>
       </select>
       <label for="tranType">Transaction Type</label>
-      <select class="form-control" id="tranType" name="tranType" [(ngModel)]="ruleAdmin.TranType"
+      <select class="form-control" id="tranType" name="tranType" [(ngModel)]="tranRule.TranType"
         data-cy="ard-tranType" title="If left blank, tranType can come from ofx/qfx info">
-        <option [value]="''" [selected]="!ruleAdmin.TranType"> -- select an option -- </option>
+        <option [value]="''" [selected]="!tranRule.TranType"> -- select an option -- </option>
         <option *ngFor="let tranType of tranTypes" [value]="tranType">{{ tranType }}</option>
       </select>
       <label for="tranExtra">Extra Tran Info</label>
-      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.TranExtra"
+      <input type="text" class="form-control" [(ngModel)]="tranRule.TranExtra"
         name="tranExtra" id="tranExtra" ngModel data-cy="ard-tranExt"
         title="Brief description of transaction">
       <label for="taxCat">Tax Category</label>
-      <select class="form-control" id="taxCat" name="taxCat" [(ngModel)]="ruleAdmin.TaxCat"
+      <select class="form-control" id="taxCat" name="taxCat" [(ngModel)]="tranRule.TaxCat"
         data-cy="ard-taxCat">
-        <option [value]="''" [selected]="!ruleAdmin.TaxCat"> -- select an option -- </option>
+        <option [value]="''" [selected]="!tranRule.TaxCat"> -- select an option -- </option>
         <option *ngFor="let taxCat of taxCats" [value]="taxCat.RKey">{{ taxCat.RVal }}</option>
       </select>
       <label for="house">House</label>
-      <select class="form-control" id="house" name="house" [(ngModel)]="ruleAdmin.House"
+      <select class="form-control" id="house" name="house" [(ngModel)]="tranRule.House"
         data-cy="ard-house">
-        <option [value]="''" [selected]="!ruleAdmin.House"> -- select an option -- </option>
+        <option [value]="''" [selected]="!tranRule.House"> -- select an option -- </option>
         <option *ngFor="let house of houses" [value]="house.name">{{ house.name }}</option>
       </select>
       <label for="annotation">Tran Annotation</label>
-      <input type="text" class="form-control" [(ngModel)]="ruleAdmin.Annotation"
+      <input type="text" class="form-control" [(ngModel)]="tranRule.Annotation"
         name="annotation" id="annotation" ngModel data-cy="ard-annot"
         title="Detailed explanation, often extracted from ofx/qfx file">
       <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()"
-        [disabled]="ruleAdmin.ruleName === '' || (ruleAdmin.srchStr === '' && !srchAmtStr)"
+        [disabled]="tranRule.ruleName === '' || (tranRule.srchStr === '' && !srchAmtStr)"
         data-cy="ard-addRec">
         {{ newRow ? 'Add' : 'Update' }}</button>
       <button class="btn btn-primary col-md-3" type="button" data-cy="ard-cancel"

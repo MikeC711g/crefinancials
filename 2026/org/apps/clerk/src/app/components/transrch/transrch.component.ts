@@ -13,7 +13,7 @@ export class TransrchComponent {
 
   @Input() categoryTaxcat:  KeyVal[] = new Array<KeyVal>() ;
   @Input() tranTypes: string[] = new Array<string>() ;
-  @Input() fullHouses: House[] = new Array<House>() ;
+  @Input() houses: House[] = new Array<House>() ;
   @Input() projects: Project[] = new Array<Project>()
   @Input() taxCats: KeyVal[] = new Array<KeyVal>()
   @Output() tranSrch = new EventEmitter<{action: string, category: string[], tranType: string[],

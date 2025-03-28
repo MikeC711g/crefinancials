@@ -115,6 +115,12 @@ export class AuthComponent implements  AfterViewInit {
     })
   }
 
+  pwVisible(elId: string) {
+    const pwEl = document.getElementById(elId) as HTMLInputElement ;
+    if (pwEl)  pwEl.type = (pwEl.type === 'password') ? 'text' : 'password' ;
+    else console.warn('Could not find oldPw element') ;
+  }
+
   errLogin(eMail: string, uid: string, refreshToken: string, msgReason: string) {
     this.loginDelay += (this.loginDelay === 2) ? 250 : 5000
     const user = new cUser(eMail, uid, refreshToken, 'noCid', 'noDBprefix', 'noRole') ;

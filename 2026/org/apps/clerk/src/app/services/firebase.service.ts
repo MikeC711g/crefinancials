@@ -8,11 +8,12 @@ import { Injectable } from '@angular/core';
 import { Firestore, collectionData, collection, query, where, CollectionReference,
   QueryConstraint, limit, orderBy, addDoc, doc, updateDoc, deleteDoc, runTransaction,
   DocumentReference} from '@angular/fire/firestore';
-import { Globals } from '../models/globals.model';
-import { RuleData } from '../models/ruleData.model';
+import { Globals } from '../models/globals.model'
+import { RuleData } from '../models/ruledata.model';
 import { House } from '../models/house.model';
 import { GenutilsService } from './genutils.service';
 import { KeyVal } from '../models/keyval.model';
+import { Mortgage } from '../models/mortgages.model';
 
 @Injectable({
   providedIn: 'root'
@@ -27,13 +28,15 @@ export class FirebaseService {
   childMap: Map<string, TranRec[]> = new Map<string, TranRec[]>() ;
     // Global info and some loading indicators
   fbGlobals: Globals[] = new Array<Globals>() ;  globalsLoaded = false ;
-  globalLoadTime = 0 ;  globalStartCnt = 0 ;  need2LoadGlobals = false ;
+  globalLoadTime = 0 ;  globalsLoading = false ;  need2LoadGlobals = false ;
     // Array of projects and some load indicators
   projects: Project[] = new Array<Project>() ;  projectsLoaded = false ;
     projectsStarted = false ;  projectLoadTime = 0 ;  projectLoadDays = 0 ;
     projsDt = '' ; projeDt = '' ;
     // Arrays of items from globals
-  fullHouses: House[] = new Array<House>() ;
+  houses: House[] = new Array<House>() ;  houseLoadTime: number ;
+  tranRules: RuleData[] = new Array<RuleData>() ;  ruleLoadTime: number ;
+  mortgages: Mortgage[] = new Array<Mortgage>() ;  mortgageLoadTime: number ;
   accounts: KeyVal[] = new Array<KeyVal>() ;
   authMillis = 0 ;
   accountTypes: string[] = new Array<string>() ;
@@ -41,15 +44,15 @@ export class FirebaseService {
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
   categoryFolders: KeyVal[] = new Array<KeyVal>() ;
   taxCats: KeyVal[] = new Array<KeyVal>() ;  taxCatTime = 0 ;
-  ruleAdmin: RuleData[] = new Array<RuleData>() ;
   tranQ$ = Observable<TranRec[]> ;    // Observable for returning array of trans
   isAdmin = false ;   isGlobalAdmin = false ;   // Current user role and auth info
   cid = 'test1' ;   dbPrefix = '' ;  role = 'Admin' ;    // DB ref info
   isAuthenticated = false ; newCustNm = ''
   globalsNm = '' ;  tranNm = '' ;  projNm = '' ;  reconNm = '' ;  // Used for full table nm
+  tranRuleNm = 'TranRules' ; houseNm = 'Houses' ;
   tran$ = new BehaviorSubject<TranRec []>(this.tranRecs) ;
   project$ = new BehaviorSubject<Project []>(this.projects) ;
-  projLoc$ = new Subscription() ;
+  projLoc$ = new Subscription() ;   global$ = new Observable<Globals[]> ;
   CLASSNAME = 'firebaseService' ;
 
   /**
@@ -59,6 +62,9 @@ export class FirebaseService {
    */
   // constructor(private firestore: AngularFirestore, private utilSvc: GenutilsService) { }
   constructor(private firestore: Firestore, private utilSvc: GenutilsService) {
+    this.houseLoadTime = new Date().getTime() - 86400000;  // Set to 1 day ago (timed out)
+    this.ruleLoadTime = new Date().getTime() - 86400000; 
+    this.mortgageLoadTime = new Date().getTime() - 86400000;
     this.projLoc$ = this.project$.subscribe(proj => {
       const preLen = this.projects.length ;
       this.projects = proj ;
@@ -100,7 +106,6 @@ export class FirebaseService {
       this.projNm = this.utilSvc.tblNames.Projects ;
       this.reconNm = this.utilSvc.tblNames.Reconciliations ;
       this.newCustNm = this.utilSvc.tblNames.NewCustomer ;
-      this.getGlobals(true) ;
     }
   }
 
@@ -139,70 +144,67 @@ export class FirebaseService {
    * @returns {boolean} or {Subject}. Boolean if data is good (ie: we already have it, you
    * can request component parts), Subject if we have to call FB
    */
-  getGlobals(isForce: boolean): Subject<any> {    // Testing, but should call needGlobals first
+  getGlobals(isForce: boolean): Observable<Globals[]> | Globals [] { 
+    const curMillis = new Date().getTime() ;  
+    this.utilSvc.cDebug(this.CLASSNAME, 'getGlobals loading: %s  force: %s  loaded: %s  Tm: %d',
+      this.globalsLoading, isForce, this.globalsLoaded, this.globalLoadTime) ;
+    if (!isForce && this.globalsLoaded && this.globalLoadTime + 600000 > curMillis)
+      return this.fbGlobals ;  // If data is good, return it
+    if (this.globalsLoading) { return this.global$ ; }  // If already loading, return subject
     this.updtTimeStmp() ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'getGlobals startCnt: %d', this.globalStartCnt)
-    const dataReady = new Subject() ;
-    if (++this.globalStartCnt > 1) {    // Even if force, existing one OK since very fresh
-      this.utilSvc.cDebug(this.CLASSNAME, 'in > 1 startcnt: %d', this.globalStartCnt)
-      this.checkComplete(0, [100, 200, 400, 800, 1600, 3200, 30000], dataReady)
-      this.globalStartCnt-- ;
-      return dataReady ;
-    }
-    this.utilSvc.cDebug(this.CLASSNAME, 'Into getGlobals isForce: %s', isForce)
     // Determine if we need to call FB for fresh globals
-    const curMillis = new Date().getTime() ;
-    if (isForce || !this.globalsLoaded || this.globalLoadTime + 900000 < curMillis) {
-      this.utilSvc.cDebug(this.CLASSNAME, 'Getting fresh globals loaded: %s Tm: %d  Millis: %d',
-        this.globalsLoaded, this.globalLoadTime, curMillis) ;
-      const globals$ = collectionData<Globals>(query(
-        collection(this.firestore, this.globalsNm) as CollectionReference<Globals>,
-        where('Cid', '==', this.cid)), {idField: 'GlobalId'}).pipe(first()).subscribe({
-          next: (globalArr) => {
-            this.fbGlobals = globalArr ;
-            if (this.utilSvc.isLoggable(this.CLASSNAME, this.utilSvc.msgLvls.Verbose)) {
-              this.utilSvc.cVerbose(this.CLASSNAME, 'Retrieved FBGlobals w/ruleData: %O',
-                this.fbGlobals.filter((glob) => glob.RKey === 'ruleData'))
-            }
-            this.processGVals() ;
-            this.globalsLoaded = true ;  this.globalStartCnt-- ;
-            this.globalLoadTime = new Date().getTime() ;
-            dataReady.next('Data Ready') ;
-            this.utilSvc.cDebug(this.CLASSNAME, 'getGlobalsSubscription about to next on subject') ;
-          }, error: (error) => {
-            this.utilSvc.cWarn(this.CLASSNAME, 'Error from retrieval of gloabls: %s', error) ;
-            this.globalStartCnt-- ;
-            dataReady.error(error) ;
-          }
-        })
-        setTimeout(() => {    // Unsubscribe after 60 seconds .. should never hit this
-          globals$.unsubscribe() ;
-        }, 60000);
-    } else {
-      this.globalStartCnt-- ;
-      setTimeout(() => { dataReady.next('Data ready')}, 50);  // Give time for caller to get subscrip
-    }    // Current version is good
-    this.utilSvc.cDebug(this.CLASSNAME, 'Returning subject for caller to subscribe') ;
-    return dataReady ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'Getting fresh globals loaded: %s Tm: %d  Millis: %d',
+      this.globalsLoaded, this.globalLoadTime, curMillis) ;
+    this.globalsLoading = true ;
+    this.global$ = collectionData<Globals>(query(
+      collection(this.firestore, this.globalsNm) as CollectionReference<Globals>,
+      where('Cid', '==', this.cid)), {idField: 'GlobalId'}).pipe(first())
+    return this.global$
   }
 
-  checkComplete(idx: number, delayVals: number[], dataReady: Subject<any>) {
-    setTimeout(() => {    // Try short delay to let processing finish
-      this.utilSvc.cDebug(this.CLASSNAME, 'Ck globals cmplt w/isLoaded: %s  and cur IDX: %d', this.globalsLoaded, delayVals[idx]) ;
-      if (this.globalsLoaded) {
-        dataReady.next('Got it') ;
-      } else {
-        if (++idx < delayVals.length) this.checkComplete(idx, delayVals, dataReady)
-      }
-    }, delayVals[idx]);
+  getHouseDB(): Observable<House[]> | House[] {
+    if (this.houseLoadTime + 600000 > new Date().getTime()) return this.houses ;
+    this.updtTimeStmp();
+    const house$ = collectionData<House>(query(
+      collection(this.firestore, 'Houses') as CollectionReference<House>,
+      where('Cid', '==', this.cid)), {idField: 'HouseId'}).pipe(first()) ;
+    this.houseLoadTime = new Date().getTime() ;
+    return house$
   }
 
+  setHouses(houses: House[]) {
+    this.houses = houses.sort((a, b) => a.name.localeCompare(b.name)) ;
+  }
+
+  getTranRuleDB(): Observable<RuleData[]> | RuleData[] {
+    if (this.ruleLoadTime + 600000 > new Date().getTime()) return this.tranRules ;
+    console.log('fb gtrdb Out to do firebase')
+    this.updtTimeStmp() ;
+    const tranRule$ = collectionData<RuleData>(query(
+      collection(this.firestore, this.tranRuleNm) as CollectionReference<RuleData>,
+      where('Cid', '==', this.cid)), {idField: 'RuleId'}).pipe(first())
+    this.ruleLoadTime = new Date().getTime() ;
+    return tranRule$
+  }
+
+  getMortgageDB(): Observable<Mortgage[]> | Mortgage[] {
+    if (this.mortgageLoadTime + 600000 > new Date().getTime()) return this.mortgages ;
+    this.updtTimeStmp();
+    const mortgage$ = collectionData<Mortgage>(query(
+      collection(this.firestore, 'Mortgages') as CollectionReference<Mortgage>,
+      where('Cid', '==', this.cid)), {idField: 'mortgageId'}).pipe(first()) ;
+    this.mortgageLoadTime = new Date().getTime() ;
+    return mortgage$
+  }
   /**
    * retrieveGlobals function brings back full array (not separated by types)
    * @returns full global array
    */
   setGlobals(fbGlobals: Globals[]) {
     this.fbGlobals = fbGlobals ;
+    this.processGVals() ;
+    this.globalsLoaded = true ;  this.globalsLoading = false ;
+    this.globalLoadTime = new Date().getTime() ;
   }
 
   /**
@@ -250,7 +252,7 @@ export class FirebaseService {
   }
 
   isAdvancedQuery(tranQ: TranQ): boolean {
-    let truthLn = -1 ;
+    // let truthLn = -1 ;
     if (tranQ.AnnotationRegEx || (tranQ.Category && tranQ.Category.length > 0)) return true ;
     if ((tranQ.House && tranQ.House.length > 0) || tranQ.MaxAmount || tranQ.MinAmount) return true ;
     if (tranQ.Project || (tranQ.TaxCat && tranQ.TaxCat.length > 0)) return true
@@ -623,56 +625,36 @@ export class FirebaseService {
   /**
    * function addGlobal adds a document to the GlobalVars collection
    * It is complex as there are numerous different record types for different global info
-   * @param {string} rKey type of global row (ruledata, house, account, trantype, ...)
+   * @param {string} gType type of global row (ruledata, house, account, trantype, ...)
    * @param {string} rVal value which can be a JSON object with numerous values
    * @returns {Promise} based on add action to FB collection
    */
-  addGlobal(rKey: string, rVal: any): Promise<any> {
+  addGlobal(globRow: Globals): Promise<any> {
     this.updtTimeStmp() ;
-    this.utilSvc.cDebug(this.CLASSNAME, `Into addGlobal w/rKey: ${rKey} and rVal ${rVal}`)
-    let cRule: RuleData ;  let cHouse: House ;  let cGlobal: KeyVal ;
-    switch(rKey) {
-      case this.utilSvc.globalTypes.RuleData:
-        cRule = rVal ;    // Capture rule data from RVal
-        return addDoc(collection(this.firestore, this.globalsNm),
-          { RKey: rKey, RVal: { ...cRule }, Cid: this.cid }) ;  break ;
-      case this.utilSvc.globalTypes.Houses:
-        cHouse = rVal ;      // Capture house data from RVal
-        return addDoc(collection(this.firestore, this.globalsNm),
-          { RKey: rKey, RVal: { ...cHouse }, Cid: this.cid }) ;  break ;
-      case this.utilSvc.globalTypes.CategoryTaxcats:
-      case this.utilSvc.globalTypes.CategoryFolders:
-      case this.utilSvc.globalTypes.Accounts:
-      case this.utilSvc.globalTypes.TaxCats:
-        cGlobal = rVal ;   // Capture KeyVal pair
-        return addDoc(collection(this.firestore, this.globalsNm),
-          { RKey: rKey, RVal: { ...cGlobal }, Cid: this.cid }) ;  break ;
-      default:    // Presumably one of the 1 field globals like accountType or TranType
-      return addDoc(collection(this.firestore, this.globalsNm),
-        { RKey: rKey, RVal: rVal, Cid: this.cid })
-    }
+    if (!globRow.RVal)  delete globRow.RVal ;
+    delete globRow.GlobalId ;
+    return addDoc(collection(this.firestore, this.globalsNm),
+      {  ...globRow }) ;
   }
 
   /**
    * function updateGlobal updates an existing document in the GlobalVars collection
    * @param {string} rKey type of global document
-   * @param {any} orVal original document
-   * @param {any} nrVal new document
+   * @param {any} oldGlob original document
+   * @param {any} newGlob new document
    * @param {string} globalId FB document ID
    * @returns {Promise} or {string}. string if error before call, promise if call is made
    */
-  updateGlobal(rKey: string, orVal: any, nrVal: any, globalId: string): Promise<any> | string {
+  updateGlobal(rKey: string, oldGlob: Globals, newGlob: Globals, globalId: string): Promise<any> | string {
     this.updtTimeStmp() ;
     if (globalId === 'noGid') {
-      return 'Error updating '+ rKey + ' Failed to find key for ' + orVal ;
+      return 'Error updating '+ rKey + ' Failed to find Gid for ' + oldGlob ;
     }
+    if (!newGlob.RVal)  delete newGlob.RVal ;
+    delete newGlob.GlobalId ;
     const dbGlob = doc(this.firestore, this.globalsNm, globalId)
-    this.utilSvc.cDebug(this.CLASSNAME, 'Updating Global for key: %s  Val: %O ', globalId, nrVal ) ;
-    if (typeof nrVal === 'object') {
-      this.utilSvc.cLog(this.CLASSNAME, 'Updating RVal w/object %O', nrVal) ;
-        return updateDoc(dbGlob, { RVal: {...nrVal } }) ;
-    }
-    return updateDoc(dbGlob, { RVal: {...nrVal } }) ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'Updating Global for key: %s  Val: %O ', globalId, newGlob ) ;
+    return updateDoc(dbGlob, { ...newGlob }) ;
   }
 
   /**
@@ -688,8 +670,89 @@ export class FirebaseService {
       return 'Error deleting '+ rKey + ' Failed to find key for ' + rVal ;
     }
     const dbGlob = doc(this.firestore, this.globalsNm, globalId)
-    this.utilSvc.cDebug(this.CLASSNAME, 'Deleting Global: %s', globalId) ;
     return deleteDoc( dbGlob ) ;
+  }
+
+  /**
+   * function addRule adds a document to the GlobalVars collection
+   * It is complex as there are numerous different record types for different global info
+   * @param {RuleData} Rule to add to table
+   * @returns {Promise} based on add action to FB collection
+   */
+  addTranRule(inRule: RuleData): Promise<any> {
+    this.updtTimeStmp() ;
+    delete inRule.RuleId ;
+    if (!inRule.Annotation)  delete inRule.Annotation ;
+    if (!inRule.Category)  delete inRule.Category ;
+    if (!inRule.TaxCat)  delete inRule.TaxCat ;
+    if (!inRule.House)  delete inRule.House ;
+    if (!inRule.TranExtra)  delete inRule.TranExtra ;
+    if (!inRule.TranType)  delete inRule.TranType ;
+    inRule.Cid = this.cid ;
+    return addDoc(collection(this.firestore, this.tranRuleNm),
+      { ...inRule }) ;
+  }
+
+  /**
+   * function updateGlobal updates an existing document in the GlobalVars collection
+   * @param {RuleData} oldRule is original image of rule (pre-update)
+   * @param {RuleData} newRule is updated image of rule
+   * @returns {Promise} or {string}. string if error before call, promise if call is made
+   */
+  updateTranRule(oldRule: RuleData, newRule: RuleData ): Promise<any> | string {
+    this.updtTimeStmp() ;
+    const ruleTranDoc = doc(this.firestore, this.tranRuleNm, oldRule.RuleId!)
+    newRule.Cid = this.cid ;
+    return updateDoc(ruleTranDoc, { ...newRule }) ;
+  }
+
+  /**
+   * function deleteGlobal to remove a document from GlobalVars collection
+   * @param {RuleData} tranRule to be deleted
+   * @returns {string} or {Promise}. String if early error, Promise if FB call made
+   */
+  deleteTranRule(delRule: RuleData): Promise<any> | string {
+    this.updtTimeStmp() ;
+    const ruleTranDoc = doc(this.firestore, this.tranRuleNm, delRule.RuleId!)
+    return deleteDoc( ruleTranDoc ) ;
+  }
+
+  /**
+   * function addRule adds a document to the GlobalVars collection
+   * It is complex as there are numerous different record types for different global info
+   * @param {House} House to add to table
+   * @returns {Promise} based on add action to FB collection
+   */
+  addHouse(inHouse: House): Promise<any> {
+    this.updtTimeStmp() ;
+    delete inHouse.HouseId ;
+    inHouse.Cid = this.cid ;
+    return addDoc(collection(this.firestore, this.houseNm),
+      { ...inHouse }) ;
+  }
+
+  /**
+   * function updateGlobal updates an existing document in the GlobalVars collection
+   * @param {RuleData} oldHouse is original image of rule (pre-update)
+   * @param {RuleData} newHouse is updated image of rule
+   * @returns {Promise} or {string}. string if error before call, promise if call is made
+   */
+  updateHouse(oldHouse: House, newHouse: House ): Promise<any> | string {
+    this.updtTimeStmp() ;
+    const houseDoc = doc(this.firestore, this.houseNm, oldHouse.HouseId!)
+    newHouse.Cid = this.cid ;
+    return updateDoc(houseDoc, { ...newHouse }) ;
+  }
+
+  /**
+   * function deleteGlobal to remove a document from GlobalVars collection
+   * @param {House} house to be deleted
+   * @returns {string} or {Promise}. String if early error, Promise if FB call made
+   */
+  deleteHouse(delHouse: House): Promise<any> | string {
+    this.updtTimeStmp() ;
+    const houseDoc = doc(this.firestore, this.houseNm, delHouse.HouseId!)
+    return deleteDoc(houseDoc) ;
   }
 
   /**
@@ -712,75 +775,52 @@ export class FirebaseService {
   processGVals(): void {
     this.utilSvc.cDebug(this.CLASSNAME, 'processGVals running') ;
     this.tranTypes.splice(0, this.tranTypes.length) ; // Clear arrays
-    this.fullHouses.splice(0, this.fullHouses.length) ;
     this.accountTypes.splice(0, this.accountTypes.length) ;
     this.accounts.splice(0, this.accounts.length) ;
     this.categoryTaxcat.splice(0, this.categoryTaxcat.length) ;
     this.categoryFolders.splice(0, this.categoryFolders.length) ;
     this.taxCats.splice(0, this.taxCats.length) ;
-    this.ruleAdmin.splice(0, this.ruleAdmin.length) ;
-    const ruleAdmin: RuleData[] = [] ;
     const categoryTaxcats: KeyVal[] = [] ;
     const categoryFolders: KeyVal[] = [] ;
     const tranTypes: string[] = [] ;    const accountTypes: string[] = [] ;
-    const fullHouses: House[] = [] ;
     const accounts: KeyVal[] = [] ;     const taxCats: KeyVal[] = [] ;
       // Now for each item in parm table update appropriate parm array or map
-    let tmpHouse: any ; let houseInfo: House ;
-    let tmpRD: any ; let ruleO : RuleData ;
     for (const inGlobal of this.fbGlobals) {
-      switch(inGlobal.RKey) {
-        case(this.utilSvc.globalTypes.TranType):
-          tranTypes.push(inGlobal.RVal) ; break ;
-        case(this.utilSvc.globalTypes.Houses):
-          tmpHouse = inGlobal.RVal ;
-          houseInfo = tmpHouse ;
-          fullHouses.push(houseInfo) ;
-          break ;
-        case(this.utilSvc.globalTypes.AccountType):
-          accountTypes.push(inGlobal.RVal) ; break ;
+      switch(inGlobal.GType) {
+        case(this.utilSvc.globalTypes.TranTypes):
+          tranTypes.push(inGlobal.RKey) ; break ;
+        case(this.utilSvc.globalTypes.AccountTypes):
+          accountTypes.push(inGlobal.RKey) ; break ;
         case(this.utilSvc.globalTypes.Accounts):
-          accounts.push(this.getKV(inGlobal.RVal)) ; break ;
+          accounts.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
         case(this.utilSvc.globalTypes.CategoryTaxcats):
-          categoryTaxcats.push(this.getKV(inGlobal.RVal)) ;  break ;
+          categoryTaxcats.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ;  break ;
         case(this.utilSvc.globalTypes.TaxCats):
-          taxCats.push(this.getKV(inGlobal.RVal)) ; break ;
+          taxCats.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
         case(this.utilSvc.globalTypes.CategoryFolders):
-          categoryFolders.push(this.getKV(inGlobal.RVal)) ; break ;
-        case(this.utilSvc.globalTypes.RuleData):
-          tmpRD = inGlobal.RVal ;
-          ruleO = tmpRD ;
-          ruleAdmin.push(ruleO) ;
-          break ;
+          categoryFolders.push(new KeyVal(inGlobal.RKey, inGlobal.RVal!)) ; break ;
       }
     }
-    this.utilSvc.cDebug(this.CLASSNAME, 'PG Lens catTC: %d  hou: %d  acc: %d  tCats: %d  tTypes: %d',
-      categoryTaxcats.length, fullHouses.length, accounts.length,
+    this.utilSvc.cDebug(this.CLASSNAME, 'PG Lens catTC: %d  acc: %d  tCats: %d  tTypes: %d',
+      categoryTaxcats.length, accounts.length,
         taxCats.length, tranTypes.length)
           // Sort local arrays into global arrays
-    // this.ruleAdmin = ruleAdmin.sort((a, b) => a.srchStr.localeCompare(b.srchStr));
-    this.ruleAdmin = ruleAdmin.sort((a, b) => {
+    /* this.ruleAdmin = ruleAdmin.sort((a, b) => {
       const cmp = a.srchStr.localeCompare(b.srchStr) ;
       if (cmp != 0) { return cmp }
       return (a.srchAmt < b.srchAmt) ? -1 : 1 ;
-    })
-    this.utilSvc.setRules(this.ruleAdmin) ;
+    }) */
+//    this.utilSvc.setRules(this.ruleAdmin) ;
     this.categoryTaxcat = categoryTaxcats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
     this.categoryFolders = categoryFolders.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
     this.tranTypes = tranTypes.sort((a, b) => a.localeCompare(b)) ;
-    this.fullHouses = fullHouses.sort((a, b) => a.name.localeCompare(b.name)) ;
     this.accounts = accounts.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
     this.accountTypes = accountTypes.sort((a, b) => a.localeCompare(b)) ;
     this.taxCats = taxCats.sort((a, b) => a.RKey.localeCompare(b.RKey)) ;
     this.utilSvc.cDebug(this.CLASSNAME, 'taxCats: %O  Account: %O  acctTps: %O', this.taxCats, this.accounts, this.accountTypes) ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'PG Lens catTC: %d  hou: %d  acc: %d  tCats: %d  tTypes: %d',
-      this.categoryTaxcat.length, this.fullHouses.length, this.accounts.length,
+    this.utilSvc.cDebug(this.CLASSNAME, 'PG Lens catTC: %d  acc: %d  tCats: %d  tTypes: %d',
+      this.categoryTaxcat.length, this.accounts.length,
       this.taxCats.length, this.tranTypes.length)
-  }
-
-  getKV(inVal: any): KeyVal {
-    const tmpKv: KeyVal = inVal ;
-    return tmpKv ;
   }
 
   /**
@@ -806,11 +846,11 @@ export class FirebaseService {
   }
 
   /**
-   * function getFullHouses retrieves entire house record
+   * function getHouses retrieves house record
    * @returns
    */
-  getFullHouses(): House[] {
-    return this.fullHouses ;
+  getHouses(): House[] {
+    return this.houses ;
   }
 
   /**
@@ -862,11 +902,19 @@ export class FirebaseService {
     return this.taxCats ;
   }
 
-  /**
-   * function getRuleAdmin returns the rules organized differently (not by account)
-   * @returns {RuleData[]} list of rules
-   */
-  getRuleAdmin(): RuleData[] {
-    return this.ruleAdmin ;
+  // Return a sorted array vs trusting ts/js impl
+  setTranRules(rules: RuleData []): RuleData[] {
+    this.tranRules = rules.sort((a, b) => a.ruleName.localeCompare(b.ruleName)) ;
+    this.utilSvc.setRules(this.tranRules) ;
+    return this.tranRules;
+  }
+
+  getTranRules(): RuleData[] {
+    return this.tranRules ;
+  }
+
+  setMortgages(mortgages: Mortgage[]) {
+    this.mortgages = mortgages ;
+    this.utilSvc.setMortgages(mortgages) ;
   }
 }

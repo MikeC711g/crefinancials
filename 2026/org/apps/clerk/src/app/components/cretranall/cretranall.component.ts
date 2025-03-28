@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { GenutilsService } from './../../services/genutils.service';
 import { KeyVal } from './../../models/keyval.model';
 import { House } from './../../models/house.model';
-import { RuleData } from '../../models/ruleData.model';
+import { RuleData } from '../../models/ruledata.model';
 import { GlobalModsService } from '../../services/globalMods.service';
 
 @Component({
@@ -35,7 +35,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   taxCats: KeyVal[] = new Array<KeyVal>() ;  curTaxCat: KeyVal = new KeyVal('', '');
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
   houses: House[] = new Array<House>() ;
-  ruleAdd: RuleData = new RuleData('', '', [], 0, '', '', '', '', '', '')
+  ruleAdd: RuleData = new RuleData('', '', '', [], 0)
   projects: Project[] = new Array<Project>() ;
   filteredProjects: Project[] = new Array<Project>() ;
   noProj = new Project('None', '', '2015-01-01', '2030-12-31', '', 'Miscellaneous') ;
@@ -46,6 +46,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   splitChildren: TranRec[] = new Array<TranRec>() ;   // Array of child trans
   useSplitChild: string[] = new Array<string>() ;   // Is child ready for DB
   allocdAmt = 0 ;     // Amount of total that is currently allocated to child trans
+  savedAmt = 0 ;      // Sum of amounts of saved child trans
   deltaAmt = 0 ;      // Amount difference between parent tran and sum of child trans
   expandedView = false ;        // Showing list or expanded detail
   childExpand = true ;
@@ -86,7 +87,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.utilSvc.cDebug(this.CLASSNAME, 'Child row: newrow: %s  newexp: %s expView: %s  editmd: %s  tranRec: %O',
         this.newRow, this.newExpand, this.expandedView, this.editMode, this.tranRec)
     if (this.isParent) {
-      [this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
+      [this.savedAmt, this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
       if (this.deltaAmt !== 0) {    // Older splits 0'd out amount, this should fix that
         if (this.tranRec.Amount === 0) {
           this.tranRec.Amount = this.allocdAmt
@@ -130,7 +131,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       this.filteredProjects.push(curProj) ;
     }
     // this.filteredProjects = this.projects ;
-    this.houses = this.fireSvc.getFullHouses() ;
+    this.houses = this.fireSvc.getHouses() ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Parent %s editMd: %s  expand: %s  childCnt: %d  tranAmt: %d',
       this.isParent, this.editMode, this.expandedView, this.splitChildren.length, this.tranRec.Amount) ;
   }
@@ -139,12 +140,10 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     this.splitChildren = new Array<TranRec>() ;
     console.log('addNewChildren w/tranRec: %O', this.tranRec)
     if (this.tranRec.Category === 'Mortgage Payment') { // Mtg pmt has predefined split
-      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-        'Mortgage Principal', 'DEBIT', 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
-      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-        'Mortgage Escrow', 'DEBIT', 0, '', 'NT', this.tranRec.House, '', '', '', '')) ;
-      this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
-        'Mortgage Interest', 'DEBIT', 0, '', 'BE', this.tranRec.House, '', '', '', '')) ;
+      const mtgTrans = this.utilSvc.genChildTransForMtg(this.tranRec) ;
+      for (const mtgChild of mtgTrans) {
+        this.onAddSplitChild(mtgChild, 'add') ;
+      }
     } else {      // Create 2 generic children for them to start with
       this.onAddSplitChild(new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
         '', '', 0, '', '', '', '', '', '', '')) ;
@@ -152,18 +151,21 @@ export class CretranallComponent  implements OnInit, OnDestroy {
         '', '', 0, '', '', '', '', '', '', '')) ;
     }
     this.childExpand = false ;    // Don't expand multiple new rows, only on one add
-    [this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
+    [this.savedAmt, this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
   }
 
   /** ********************************************************************
    * Go through child transactions and set the amount currently allocated
+   * hereiam ... look for new button for save all children and then parent
    * @param tranRecs
    * @param useList
    * @returns
   ********************************************************************* */
-  calcSplitAmount(tranRecs: TranRec[], useList: string[]): [number, number] {
-    let curAmt = 0 ;
+  calcSplitAmount(tranRecs: TranRec[], useList: string[]): [number, number, number] {
+    let curAmt = 0, savedAmt = 0 ;
     for (let i = 0; i < tranRecs.length; i++) {
+      if (useList[i] === this.utilSvc.actionTypes.Add || useList[i] === this.utilSvc.actionTypes.Update)
+        savedAmt += tranRecs[i].Amount ;    // Only if it is processed
       // tranid blank (during db add) or real db tranid or add or update action
       if (!tranRecs[i].TranId || this.utilSvc.isTranDB(tranRecs[i]) ||
         useList[i] === this.utilSvc.actionTypes.Add || useList[i] === this.utilSvc.actionTypes.Update) {
@@ -171,7 +173,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       }
     }
     this.utilSvc.cLog(this.CLASSNAME, 'CalcSplitAmt amt %d tranAmt %d', curAmt, this.tranRec.Amount)
-    return [this.utilSvc.fixAmt(curAmt), this.utilSvc.fixAmt(this.tranRec.Amount - curAmt)] ;
+    return [this.utilSvc.fixAmt(savedAmt), this.utilSvc.fixAmt(curAmt),
+      this.utilSvc.fixAmt(this.tranRec.Amount - curAmt)] ;
   }
 
   chgData() {
@@ -193,7 +196,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
    * in DB until parent is processed
    * hereiam ... need to consider taking existing DB tran and splitting it
    ***************************************************************************** */
-  onAddSplitChild(tranRec?: TranRec) {   // May want new category
+  onAddSplitChild(tranRec?: TranRec, action = '') {   // May want new category
     console.log('oasc tranRec: %O', tranRec) ;
     if (!tranRec) {
       tranRec = new TranRec(this.tranRec.Cid, this.tranRec.TranDate, this.tranRec.Account,
@@ -201,7 +204,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     }
     this.childInDb = false ;
     this.splitChildren.push(tranRec)
-    this.useSplitChild.push('') ;
+    this.useSplitChild.push(action) ;
     this.childExpand = true ;
     this.utilSvc.cDebug(this.CLASSNAME, 'added child %O to parent: %O Child array len %d',
       tranRec, this.tranRec, this.splitChildren.length) ;
@@ -387,9 +390,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   *********************************************************************************** */
   onAddRule() {
     if (this.tranRec.TranType === this.nmDict.tParent)  this.tranRec.TranType = '' ;
-    this.ruleAdd = new RuleData(this.tranRec.TranExtra, this.tranRec.TranExtra, [this.tranRec.Account],
-      0, this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat, this.tranRec.House,
-      this.tranRec.Annotation) ;
+    this.ruleAdd = new RuleData(this.tranRec.Cid, this.tranRec.TranExtra, this.tranRec.TranExtra,
+      [this.tranRec.Account], 0, this.tranRec.Category, this.tranRec.TranType, '', this.tranRec.TaxCat,
+      this.tranRec.House, this.tranRec.Annotation) ;
     this.newRule = true ;
   }
 
@@ -400,15 +403,9 @@ export class CretranallComponent  implements OnInit, OnDestroy {
    *****************************************************************************/
   onRuleMod(action: string, parmType: string, newVal: any, oldVal: any): void {
     let actionCnt: number ;  let statusMsg = '' ;  
-    const fbGlobals = this.fireSvc.retrieveGlobals() ;
-    const accountTypes = this.fireSvc.getAcctTypes() ;
-    const categoryFolders = this.fireSvc.getCategoryFolders() ;
-    const ruleAdmin = this.fireSvc.getRuleAdmin() ;
-    const fullHouse = this.fireSvc.getFullHouses() ;
+    const tranRules = this.fireSvc.getTranRules() ;
 
-    [actionCnt, this.newRule, statusMsg] = this.globSvc.onParmMod(action, parmType, newVal,
-      oldVal, fbGlobals, fullHouse, accountTypes, this.tranTypes, this.accounts,
-      categoryFolders, this.categoryTaxcat, ruleAdmin, this.taxCats, this.tranRec.Cid)
+    [actionCnt, statusMsg] = this.globSvc.onRuleMod(action, newVal, oldVal, this.tranRec.Cid, tranRules)
 
     this.utilSvc.addRule(newVal)
   }
@@ -438,7 +435,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       case this.utilSvc.actionTypes.Cancel:
         this.utilSvc.cDebug(this.CLASSNAME, 'cancel on idx %d', idx)
     }
-    [this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
+    [this.savedAmt, this.allocdAmt, this.deltaAmt] = this.calcSplitAmount(this.splitChildren, this.useSplitChild) ;
   }
 
   /** ****************************************************************************

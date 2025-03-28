@@ -43,6 +43,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
   reportList: RptInfo[] = [
     { name: 'Profit and Loss', url: 'profitnloss', dateList: this.dateOptsReport,
       acctList: false, moreData: true},
+    { name: 'Personal Profit and Loss', url: 'perspnl', dateList: this.dateOptsReport,
+      acctList: false, moreData: true},
     { name: 'Rent Status', url: 'rentstat', dateList: this.dateOptsReport,
       acctList: true, moreData: true},
     { name: 'Expense By Project', url: 'expbyproj', dateList: this.dateOptsReport,
@@ -62,9 +64,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
   reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
   completedActions = 0 ;    // List of global types
   reportArr: string[] = new Array<string>() ;
-        // House I&E
-  // rentIncome: TranRec[] = [] ; houseExp: TranRec[] = [] ; projExp: TranRec[] = [] ;
-  // riLast = 0 ; riTot = 0 ; heLast = 0 ; heTot = 0 ; peLast = 0 ; peTot = 0 ;
+  expCats = ['BE', 'CE'] ;  // Expense categories
+  incCats = ['BI'] ;  // Income categories
+  title = 'Profit & Loss' ;
         // And the rest
   projects: Project[] = new Array<Project>() ;  project$: Subscription = new Subscription() ;
   projStrtDt = '' ;  projEndDt = '' ;   // Dates when projects last retrieved
@@ -78,7 +80,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
   accountArr = [''] ;  maxAmount = 0.0 ;
   reconQ: Reconciliations = new Reconciliations('', '', '', '', 0, 0, 0, 0, 0, '') ;
   forceGlobals = false ;
-  fullHouses: House[] = new Array<House>() ;
+  houses: House[] = new Array<House>() ;
   accounts: KeyVal[] = new Array<KeyVal>() ;
   accountTypes: string[] = new Array<string>() ;
   tranTypes: string[] = new Array<string>() ;
@@ -137,6 +139,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.reportReady = false ;   this.screenDisplay = false ;
     switch (report2Run) {
       case 'Profit and Loss': this.profitNLoss() ; break ;
+      case 'Personal Profit and Loss': this.expCats = ['PE'] ;  this.incCats = ['PI'] ;
+        this.title = report2Run ; this.profitNLoss() ; break ;
       case 'Rent Status': this.rentStatus() ; break ;
       case 'Expense By Project': this.expByProject() ; break ;
       case 'Dump of Globals': this.dumpGlobal() ; break ;
@@ -207,7 +211,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     // todo: Need to handle no house selection. May be OK as you wouldn't come here ...
     if (this.selectedHouseArr.includes('selectAll')) {
       this.selectedHouseArr = [] ;
-      for (const curHouse of this.fullHouses) { this.selectedHouseArr.push(curHouse.name ) }
+      for (const curHouse of this.houses) { this.selectedHouseArr.push(curHouse.name ) }
     }   // If we need date and have it AND we have accounts AND we don't need more, run report
     if ((this.reportInfo.dateList.length < 1 || (this.startDt && this.endDt) &&
       this.selectedHouseArr.length > 0 && !this.reportInfo.moreData)) {
@@ -426,17 +430,32 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * Retrieve globals from the data base via fireService
    ************************************************************************ */
   getGlobals() {
-    const globalSubj = this.fireSvc.getGlobals(this.forceGlobals) ;
-    globalSubj.subscribe({
-      next: () => {
-        this.utilSvc.cDebug(this.CLASSNAME, 'Subscription came back in nginit.getGlobals')
-        this.globalLoad() ;
-        globalSubj.unsubscribe() ;
-      }, error: (error) => {
-        this.utilSvc.cWarn(this.CLASSNAME,'Error getting globals: %s', error) ;
-        globalSubj.unsubscribe() ;
-      }
-    })
+    const globRtn = this.fireSvc.getGlobals(this.forceGlobals) ;
+    if (Array.isArray(globRtn)) {
+      this.globalLoad() ;
+    } else {
+      globRtn.subscribe({
+        next: (globals) => {
+          const fbGlobals = globals as Globals[] ;
+          this.fireSvc.setGlobals(fbGlobals) ;
+          this.globalLoad() ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME,'Error getting globals: %s', error) ;
+        }
+      })
+    }
+    const houseRtn = this.fireSvc.getHouseDB() ;
+    if (Array.isArray(houseRtn)) {
+      this.houses = houseRtn as House[] ;
+    } else {
+      houseRtn.subscribe({
+        next: (houses) => {
+          this.houses = houses ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses: %s', error) ;
+        }
+      })
+    }
   }
 
   /** ************************************************************************
@@ -445,7 +464,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
   globalLoad() {
     this.globals = this.fireSvc.retrieveGlobals() ;
     this.tranTypes = this.fireSvc.getTranTypes() ;
-    this.fullHouses = this.fireSvc.getFullHouses() ;
     this.accountTypes = this.fireSvc.getAcctTypes() ;
     this.accounts = this.fireSvc.getAccounts() ;
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
