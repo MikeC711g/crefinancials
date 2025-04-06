@@ -109,6 +109,22 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
       })
       setTimeout(() => { house$.unsubscribe() ; }, 30000);
     }
+    const mortgageRtn = this.fireSvc.getMortgageDB() ;
+    if (Array.isArray(mortgageRtn)) {
+      this.mortgages = mortgageRtn as Mortgage[] ;
+      console.log('admin mortgages thru array: ', this.mortgages)
+    } else {
+      const mortgage$ = mortgageRtn.subscribe({
+        next: (mortgages) => {
+          this.mortgages = mortgages as Mortgage[] ;
+          this.fireSvc.setMortgages(this.mortgages) ;
+          console.log('admin mortgages thru subscribe: ', this.mortgages)
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving mortgages: ', error) ;
+        }
+      })
+      setTimeout(() => { mortgage$.unsubscribe() ; }, 30000);
+    }
   }
 
   globalLoad() {

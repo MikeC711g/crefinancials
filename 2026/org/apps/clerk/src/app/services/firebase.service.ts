@@ -49,7 +49,7 @@ export class FirebaseService {
   cid = 'test1' ;   dbPrefix = '' ;  role = 'Admin' ;    // DB ref info
   isAuthenticated = false ; newCustNm = ''
   globalsNm = '' ;  tranNm = '' ;  projNm = '' ;  reconNm = '' ;  // Used for full table nm
-  tranRuleNm = 'TranRules' ; houseNm = 'Houses' ;
+  tranRuleNm = 'TranRules' ; houseNm = 'Houses' ;  mortgageNm = 'Mortgages' ;
   tran$ = new BehaviorSubject<TranRec []>(this.tranRecs) ;
   project$ = new BehaviorSubject<Project []>(this.projects) ;
   projLoc$ = new Subscription() ;   global$ = new Observable<Globals[]> ;
@@ -753,6 +753,44 @@ export class FirebaseService {
     this.updtTimeStmp() ;
     const houseDoc = doc(this.firestore, this.houseNm, delHouse.HouseId!)
     return deleteDoc(houseDoc) ;
+  }
+
+  /**
+   * function addRule adds a document to the GlobalVars collection
+   * It is complex as there are numerous different record types for different global info
+   * @param {House} House to add to table
+   * @returns {Promise} based on add action to FB collection
+   */
+  addMortgage(inMortgage: Mortgage): Promise<any> {
+    this.updtTimeStmp() ;
+    delete inMortgage.mortgageId ;
+    inMortgage.Cid = this.cid ;
+    return addDoc(collection(this.firestore, this.mortgageNm),
+      { ...inMortgage }) ;
+  }
+
+  /**
+   * function updateGlobal updates an existing document in the GlobalVars collection
+   * @param {RuleData} oldHouse is original image of rule (pre-update)
+   * @param {RuleData} newHouse is updated image of rule
+   * @returns {Promise} or {string}. string if error before call, promise if call is made
+   */
+  updateMortgage(oldMortgage: Mortgage, newMortgage: Mortgage ): Promise<any> | string {
+    this.updtTimeStmp() ;
+    const mortgageDoc = doc(this.firestore, this.mortgageNm, oldMortgage.mortgageId!)
+    newMortgage.Cid = this.cid ;
+    return updateDoc(mortgageDoc, { ...newMortgage }) ;
+  }
+
+  /**
+   * function deleteGlobal to remove a document from GlobalVars collection
+   * @param {House} house to be deleted
+   * @returns {string} or {Promise}. String if early error, Promise if FB call made
+   */
+  deleteMortgage(delMortgage: Mortgage): Promise<any> | string {
+    this.updtTimeStmp() ;
+    const mortgageDoc = doc(this.firestore, this.mortgageNm, delMortgage.mortgageId!)
+    return deleteDoc(mortgageDoc) ;
   }
 
   /**

@@ -20,6 +20,10 @@
      <img class="img-responsive" src="assets/images/chevron-down-icon.png"
       style="width: 16px; height: 16px;" *ngIf="expandedView">
   </button>
+  <button class="btn btn-primary col-md-1" type="button" data-cy="cta-exb"
+    *ngIf="tranRec.Category && tranRec.TranType && tranRec.TaxCat && !isInDB"
+    (click)="onAddRecord()">QA
+  </button>
 </div>
 <div class="row col-md-12" *ngIf="expandedView || (newRow && !isChild) || (isChild && newExpand && newRow)">
   <form (ngSubmit)="onAddRecord()" #recordForm="ngForm">
@@ -39,7 +43,7 @@
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label for="date">Date</label>
+          <label for="date" title="Date transaction recorded">Date</label>
           <input type="date" class="form-control" [(ngModel)]="tranRec.TranDate" #tranDate="ngModel"
             name="date" id="date" ngModel placeholder="Date" data-cy="cta-tranDate" (change)="chgData()">
         </div>
@@ -50,7 +54,7 @@
     <div class="row">
       <div class="col-md-6 border-right">
         <div class="form-group">
-          <label for="category">Category</label>
+          <label for="category" title="Classification of type of work">Category</label>
           <select class="form-control" id="category" name="category" data-cy="cta-category"
             [(ngModel)]="tranRec.Category" (change)="chgData() ; onPreSetTaxcat()" required
             #category="ngModel">
@@ -65,7 +69,7 @@
       </div>
       <div class="col-md-6" *ngIf="!isParent">
         <div class="form-group">
-          <label for="tranType">Type</label>
+          <label for="tranType" title="Financial Type of Transaction">Type</label>
           <select class="form-control" id="tranType" name="tranType" (change)="chgData() ; onCheckValAbs()"
               [(ngModel)]="tranRec.TranType" required data-cy="cta-tranType" #tranType="ngModel">
               <option [value]="''" [selected]="!tranRec.TranType">-- select an option --</option>
@@ -100,7 +104,7 @@
     <div class="row">
       <div class="col-md-6 border-right">
         <div class="form-group">
-          <label for="house">House</label>
+          <label for="house" title="House associated with transaction if applicable">House</label>
           <select class="form-control" id="house" name="house" data-cy="cta-house"
             [(ngModel)]="tranRec.House" (change)="chgData()">
             <option [value]="''" [selected]="!tranRec.House">-- select an option --</option>
@@ -112,7 +116,7 @@
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label for="project">Project</label>
+          <label for="project" title="Project associated with the transaction">Project</label>
           <select class="form-control" id="project" name="project" data-cy="cta-project"
             [(ngModel)]="tranRec.Project" (focus)="onFilterProjects()" (change)="chgData()">
             <option [value]="''" [selected]="!tranRec.Project">-- select an option --</option>

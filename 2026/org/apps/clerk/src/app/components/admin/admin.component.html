@@ -16,24 +16,6 @@
       </li>
     </ul>
   </div>
-  <div class="row col-md-12" *ngIf="selectedType === 'accountType' && globalsLoaded">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-      Add Account Type</button>
-    <div *ngIf="newRow">
-      <h2>Add a new Account Type</h2>
-      <app-adm1parm [parmType]="selectedType"
-      (parmMod)="onParmMod($event.action, $event.parmType,
-        $event.newVal, $event.oldVal)" [parmLabel]="'Account Type:'"></app-adm1parm>
-    </div>
-    <h2>Manage Account Types</h2>
-    <ul>
-      <li *ngFor="let accountType of accountTypes">
-        <app-adm1parm [parmVal]="accountType" [parmType]="selectedType"
-        (parmMod)="onParmMod($event.action, $event.parmType,
-          $event.newVal, $event.oldVal)"
-        [parmLabel]="'Account Type:'"></app-adm1parm></li>
-    </ul>
-  </div>
   <div class="col-md-12" *ngIf="selectedType === 'accounts' && globalsLoaded">
     <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
       New {{ selectedType }}</button>
@@ -50,25 +32,6 @@
         <app-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
         [valLabel]="'Account Type:'" (parmMod)="onParmMod($event.action, $event.parmType,
           $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></app-admkv></li>
-    </ul>
-  </div>
-  <div class="col-md-12" *ngIf="selectedType === 'tranType' && globalsLoaded">
-    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-      Add Tran Type</button>
-    <div *ngIf="newRow">
-      <h2>Add a new Transaction Type</h2>
-      <app-adm1parm [parmType]="selectedType"
-      (parmMod)="onParmMod($event.action, $event.parmType,
-        $event.newVal, $event.oldVal)"
-      [parmLabel]="'TranType:'"></app-adm1parm>
-    </div>
-    <h2>Manage Transaction Types</h2>
-    <ul>
-      <li *ngFor="let tranType of tranTypes">
-        <app-adm1parm [parmVal]="tranType" [parmType]="selectedType"
-        (parmMod)="onParmMod($event.action, $event.parmType,
-          $event.newVal, $event.oldVal)"
-        [parmLabel]="'TranType:'"></app-adm1parm></li>
     </ul>
   </div>
   <div class="col-md-12" *ngIf="selectedType === 'taxCats' && globalsLoaded">
@@ -112,6 +75,23 @@
           (parmMod)="onParmMod($event.action, $event.parmType,
             $event.newVal, $event.oldVal)"
           [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+      </li>
+    </ul>
+  </div>
+  <div class="col-md-12" *ngIf="selectedType === 'mortgages' && globalsLoaded">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+      Add Mortgage</button>
+    <div *ngIf="newRow">
+      <h2>Add a New Mortgage</h2>
+      <app-admmortgage (parmMod)="onParmMod($event.action,
+      $event.parmType, $event.newVal, $event.oldVal)" [houses]="houses"></app-admmortgage>
+    </div>
+    <h2>Manage Mortgages</h2>
+    <ul>
+      <li *ngFor="let mortgage of mortgages">
+        <app-admmortgage [mortgage]="mortgage" [houses]="houses"
+          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"
+          [mortgage]="mortgage" [houses]="houses"></app-admmortgage>
       </li>
     </ul>
   </div>

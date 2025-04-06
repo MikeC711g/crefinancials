@@ -33,6 +33,7 @@ import { TransrchComponent } from './components/transrch/transrch.component';
 import { PnlReportComponent } from './components/reports/pnl-report/pnl-report.component';
 import { Exp2projreportComponent } from './components/reports/exp2projreport/exp2projreport.component';
 import { RentstatreportComponent } from './components/reports/rentstatreport/rentstatreport.component';
+import { AdmmortgageComponent } from './components/admin/admmortgage/admmortgage.component';
 
 @NgModule({
   declarations: [
@@ -57,7 +58,8 @@ import { RentstatreportComponent } from './components/reports/rentstatreport/ren
     TransrchComponent,
     PnlReportComponent,
     Exp2projreportComponent,
-    RentstatreportComponent
+    RentstatreportComponent,
+    AdmmortgageComponent
   ],
   imports: [
     BrowserModule,

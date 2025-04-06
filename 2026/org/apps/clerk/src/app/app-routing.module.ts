@@ -38,6 +38,7 @@ const routes: Routes = [
       { path: 'taxCats', component: AdminComponent },
       { path: 'categoryTaxcat', component: AdminComponent },
       { path: 'ruleData', component: AdminComponent },
+      { path: 'mortgages', component: AdminComponent },
       { path: 'logging', component: AdminComponent }
     ] },
     { path: 'profile', component: AuthComponent, canActivate: [canActivate],

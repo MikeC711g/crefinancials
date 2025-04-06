@@ -263,7 +263,69 @@ export class GlobalModsService {
 
   onMortgageMod(action: string, newMortgage: Mortgage, oldMortgage: Mortgage, cid: string,
     mortgages: Mortgage []):  [number, string] {
-      return [0, ''] ;
+    let actionCnt = 0 ;  let statusMsg = ''
+    let isErr = false ;
+    let updResp: string | Promise<any> ;    let delResp: string | Promise<any> ;
+    actionCnt++ ;   // Unless cancel, this is an added action
+    switch (action) {
+      case this.utilSvc.actionTypes.Add:
+        this.fireSvc.addMortgage(newMortgage).then(docRef => {
+          newMortgage.mortgageId = docRef?.id ;
+          statusMsg = 'Successfully added mortgage' ;
+          const idx = mortgages.findIndex(mortgage => mortgage.house > newMortgage.house) ;
+          mortgages.splice(idx, 0, newMortgage) ;   // Should sort here or isrt into sorted array
+        }).catch(error => {
+          statusMsg = 'Failed to add mortgage' ;
+          this.utilSvc.cWarn(this.CLASSNAME, 'Failed to add mortgage  Val: %O  err: %s', newMortgage, error) ;
+          isErr = true ;
+        })
+        break ;
+      case this.utilSvc.actionTypes.Update:
+        updResp = this.fireSvc.updateMortgage(oldMortgage, newMortgage) ;
+        if (typeof updResp === 'string') {
+          statusMsg = 'Failed to update mortgage ' ;
+          this.utilSvc.cWarn(this.CLASSNAME,'Failed to update mortgage Val: %O  Error: ', newMortgage, updResp) ;
+          isErr = true ;
+        } else {
+          updResp.then(() => {
+            statusMsg = 'Successfully updated mortgage ' // updated message
+            if (newMortgage.house !== oldMortgage.house) {
+              const idx = mortgages.findIndex(mortgage => mortgage.house === oldMortgage.house) ;
+              mortgages.splice(idx, 1) ;
+              const nidx = mortgages.findIndex(mortgage => mortgage.house > newMortgage.house) ;
+              mortgages.splice(nidx, 0, newMortgage) ;
+            }
+          }).catch(error => {
+            statusMsg = 'Failed to update mortgage ' ;
+            this.utilSvc.cWarn(this.CLASSNAME,'Failed to update mortgage Old: %O New: %O  Err: %s', oldMortgage, newMortgage, error) ; // corrected from oldHouse, newHouse
+            isErr = true ;
+          })
+        }
+        break ;
+      case this.utilSvc.actionTypes.Delete:
+        delResp = this.fireSvc.deleteMortgage(newMortgage) ;
+        if (typeof delResp === 'string') {
+          statusMsg = 'Failed to delete mortgage '
+          this.utilSvc.cWarn(this.CLASSNAME, 'Failed to delete mortgage  Val: %O  error: %s', newMortgage, delResp) ; // corrected from newHouse
+          isErr = true ;
+        } else {
+          delResp.then(() => {
+            statusMsg = 'Successfully deleted mortgage '
+            const idx = mortgages.findIndex(mortgage => mortgage.mortgageId === newMortgage.mortgageId) ; // corrected from houses and newHouse
+            mortgages.splice(idx, 1) ;
+          }).catch(error => {
+            statusMsg = 'Failed to delete mortgage ' 
+            this.utilSvc.cWarn(this.CLASSNAME,'Failed to delete mortgage Val: %O  Err: %s', newMortgage, error) ; // corrected from newHouse
+            isErr = true ;
+          })
+        }
+        break ;
+      case this.utilSvc.actionTypes.Cancel:
+        actionCnt-- ; break ;
+      default:
+        this.utilSvc.cWarn(this.CLASSNAME,'Invalid action: %s', action)
+    }
+    return [actionCnt, statusMsg]
   }
   
   /**
