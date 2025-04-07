@@ -17,7 +17,7 @@ export class GenutilsService {
   trans: TranRec[] = new Array<TranRec>() ;  dirtyTrans: string[] = new Array<string>() ;
   globalTypes = { TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
     TranTypes: 'tranType', Accounts: 'accounts', AccountTypes: 'accountType',
-    CategoryFolders: 'categoryFolders', Logging: 'logging', RuleData: 'ruleData', Houses: 'houses',
+    CategoryFolders: 'categoryFolders', Logging: 'logging', RuleData: 'tranRule', Houses: 'houses',
     Mortgages: 'mortgages' } 
   noAdminGlobalTypes = [this.globalTypes.TranTypes, this.globalTypes.AccountTypes,
     this.globalTypes.CategoryFolders] ;

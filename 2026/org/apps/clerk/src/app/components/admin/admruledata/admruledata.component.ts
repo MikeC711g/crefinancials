@@ -31,6 +31,7 @@ export class AdmruledataComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('Into tranRule w/rule: %O', this.tranRule) ;
+    this.gType = this.utilSvc.globalTypes.RuleData
     if (this.newRow || (this.tranRule.srchStr === '' && this.tranRule.srchAmt === 0)) {
       this.newRow = true ;  this.editMode = true ;
     } else {
