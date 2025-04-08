@@ -132,8 +132,12 @@ export class GlobalModsService {
         this.fireSvc.addTranRule(newRule).then(docRef => {
           newRule.RuleId = docRef?.id ;
           statusMsg = 'Successfully added rule' ;
-          const idx = tranRules.findIndex(rule => rule.ruleName.localeCompare(newRule.ruleName) > 0) ;
-          tranRules.splice(idx, 0, newRule) ;   // Should sort here or isrt into sorted array
+          if (tranRules.length === 0 || newRule.ruleName > tranRules[tranRules.length - 1].ruleName) {
+            tranRules.push(newRule) ;   // First or highest key so just add to end
+          } else {
+            const idx = tranRules.findIndex(rule => rule.ruleName.localeCompare(newRule.ruleName) > 0) ;
+            tranRules.splice(idx, 0, newRule) ;   // Should sort here or isrt into sorted array
+          }
         }).catch(error => {
           statusMsg = 'Failed to add rule'
           this.utilSvc.cWarn(this.CLASSNAME, 'Failed to add rule  Val: %O  err: %s', newRule, error) ;
@@ -149,11 +153,16 @@ export class GlobalModsService {
         } else {
           updResp.then(() => {
             statusMsg = 'Successfully updated rule '
-            if (oldRule.ruleName !== newRule.ruleName) {  // Key flds modified
-              const idx = tranRules.findIndex(rule => rule.ruleName.localeCompare(oldRule.ruleName) === 0) ;
+            if (oldRule.ruleName !== newRule.ruleName) {  // Key flds modified, move row in array
+                // Array key modified, but needs to be moved to proper spot in array. So find, rmv, insert
+              const idx = tranRules.findIndex(rule => rule.ruleName.localeCompare(newRule.ruleName) === 0) ;
               tranRules.splice(idx, 1) ;
-              const nidx = tranRules.findIndex(rule => rule.ruleName.localeCompare(newRule.ruleName) > 0) ;
-              tranRules.splice(nidx, 0, newRule) ;
+              if (newRule.ruleName > tranRules[tranRules.length - 1].ruleName) {
+                tranRules.push(newRule) ;   // new highest key so just add to end
+              } else {
+                const nidx = tranRules.findIndex(rule => rule.ruleName.localeCompare(newRule.ruleName) > 0) ;
+                tranRules.splice(nidx, 0, newRule) ;
+              }
             }
           }).catch(error => {
             statusMsg = 'Failed to udpate rule ' ;
@@ -188,7 +197,6 @@ export class GlobalModsService {
     return [actionCnt, statusMsg]
   }
 
-
   /*****************************************************************************
      Event occurred to a row in child component
       See if we can modify the arrays to avoid refreshing from DBs so that while
@@ -205,8 +213,12 @@ export class GlobalModsService {
         this.fireSvc.addHouse(newHouse).then(docRef => {
           newHouse.HouseId = docRef?.id ;
           statusMsg = 'Successfully added house' ;
-          const idx = houses.findIndex(house => house.name > newHouse.name) ;
-          houses.splice(idx, 0, newHouse) ;   // Should sort here or isrt into sorted array
+          if (houses.length === 0 || newHouse.name > houses[houses.length - 1].name) {
+            houses.push(newHouse) ;   // First or highest key so just add to end
+          } else {
+            const idx = houses.findIndex(house => house.name > newHouse.name) ;
+            houses.splice(idx, 0, newHouse) ;   // Should sort here or isrt into sorted array
+          }
         }).catch(error => {
           statusMsg = 'Failed to add house'
           this.utilSvc.cWarn(this.CLASSNAME, 'Failed to add house  Val: %O  err: %s', newHouse, error) ;
@@ -223,10 +235,14 @@ export class GlobalModsService {
           updResp.then(() => {
             statusMsg = 'Successfully updated house ' // updated message
             if (newHouse.name !== oldHouse.name) {
-              const idx = houses.findIndex(house => house.name === oldHouse.name) ;
+              const idx = houses.findIndex(house => house.name === newHouse.name) ;
               houses.splice(idx, 1) ;
-              const nidx = houses.findIndex(house => house.name > newHouse.name) ;
-              houses.splice(nidx, 0, newHouse) ;
+              if (newHouse.name > houses[houses.length - 1].name) {
+                houses.push(newHouse) ;   // new highest key so just add to end
+              } else {
+                const nidx = houses.findIndex(house => house.name > newHouse.name) ;
+                houses.splice(nidx, 0, newHouse) ;
+              }
             }
           }).catch(error => {
             statusMsg = 'Failed to udpate house ' ;
@@ -272,8 +288,12 @@ export class GlobalModsService {
         this.fireSvc.addMortgage(newMortgage).then(docRef => {
           newMortgage.mortgageId = docRef?.id ;
           statusMsg = 'Successfully added mortgage' ;
-          const idx = mortgages.findIndex(mortgage => mortgage.house > newMortgage.house) ;
-          mortgages.splice(idx, 0, newMortgage) ;   // Should sort here or isrt into sorted array
+          if (mortgages.length === 0 || newMortgage.house > mortgages[mortgages.length - 1].house) {
+            mortgages.push(newMortgage) ;   // First or highest key so just add to end
+          } else {
+            const idx = mortgages.findIndex(mortgage => mortgage.house > newMortgage.house) ;
+            mortgages.splice(idx, 0, newMortgage) ;   // Should sort here or isrt into sorted array
+          }
         }).catch(error => {
           statusMsg = 'Failed to add mortgage' ;
           this.utilSvc.cWarn(this.CLASSNAME, 'Failed to add mortgage  Val: %O  err: %s', newMortgage, error) ;
@@ -290,10 +310,14 @@ export class GlobalModsService {
           updResp.then(() => {
             statusMsg = 'Successfully updated mortgage ' // updated message
             if (newMortgage.house !== oldMortgage.house) {
-              const idx = mortgages.findIndex(mortgage => mortgage.house === oldMortgage.house) ;
-              mortgages.splice(idx, 1) ;
-              const nidx = mortgages.findIndex(mortgage => mortgage.house > newMortgage.house) ;
-              mortgages.splice(nidx, 0, newMortgage) ;
+              const idx = mortgages.findIndex(mortgage => mortgage.house === newMortgage.house) ;
+              mortgages.splice(idx, 1) ;    // remove row from wrong location
+              if (newMortgage.house > mortgages[mortgages.length - 1].house) {
+                mortgages.push(newMortgage) ;   // new highest key so just add to end
+              } else {
+                const nidx = mortgages.findIndex(mortgage => mortgage.house > newMortgage.house) ;
+                mortgages.splice(nidx, 0, newMortgage) ;
+              }
             }
           }).catch(error => {
             statusMsg = 'Failed to update mortgage ' ;
@@ -363,31 +387,6 @@ export class GlobalModsService {
       default:
         this.utilSvc.cWarn(this.CLASSNAME, 'Invalid action in modGlobalArr: %s', action)
     }
-  }
-
-  modSingles(action: string, parmType: string, gId: string, newVal: string, oldVal: string,
-    accountTypes: string[], tranTypes: string[]) {
-    let stringArr: string[] = (parmType === this.utilSvc.globalTypes.AccountTypes) ?
-      accountTypes : tranTypes ;
-    let uidx: number ;  let idx: number ;
-    switch (action) {
-      case this.utilSvc.actionTypes.Update:   // Single, no array, so must reflect updt in globals
-        uidx = stringArr.findIndex(rKey => rKey === oldVal) ;
-        stringArr[uidx] = newVal ;
-        stringArr = stringArr.sort((a, b) => a.localeCompare(b)) ;
-        break ;
-      case this.utilSvc.actionTypes.Delete:
-        idx = stringArr.findIndex(rKey => rKey === oldVal) ;
-        if (idx > -1) {
-          stringArr.splice(idx, 1) ;
-        } else {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Failed to remove %s: val %s', parmType, oldVal) ;
-        }
-          break ;
-      case this.utilSvc.actionTypes.Add:
-        stringArr.push(newVal) ;
-        stringArr = stringArr.sort((a, b) => a.localeCompare(b)) ;
-      }
   }
 
   modKv(action: string, parmType: string, gId: string, newVal: KeyVal, oldVal: KeyVal,
