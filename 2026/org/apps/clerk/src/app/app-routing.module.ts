@@ -30,6 +30,9 @@ const routes: Routes = [
     { path: 'dumpprojects', component: ReportsComponent },
     { path: 'dumprecons', component: ReportsComponent },
     { path: 'dumptrans', component: ReportsComponent },
+    { path: 'dumphouses', component: ReportsComponent },
+    { path: 'dumprules', component: ReportsComponent },
+    { path: 'dumpmortgages', component: ReportsComponent },
   ] },
   { path: 'admin', component: AdminComponent, canActivate: [canActivate],
     canDeactivate: [canDeactivate], children: [

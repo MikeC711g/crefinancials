@@ -10,6 +10,8 @@ import { TranQ } from './../../models/TranQ.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
+import { RuleData } from '../../models/ruledata.model';
+import { Mortgage } from '../../models/mortgages.model';
 
 interface RptInfo {   // Data for the running of each report
   name: string,
@@ -55,8 +57,14 @@ export class ReportsComponent implements OnInit, OnDestroy {
       acctList: false, moreData: true},
     { name: 'Dump of Reconciliations', url: 'dumprecons', dateList: this.dateOptsData,
       acctList: true, moreData: false},
-    { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsData,
-      acctList: true, moreData: true} ]
+    { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsReport,
+      acctList: true, moreData: true},
+    { name: 'Dump of Houses', url: 'dumphouses', dateList: this.noDateOpts,
+      acctList: false, moreData: false},
+    { name: 'Dump of Rules', url: 'dumprules', dateList: this.noDateOpts,
+      acctList: false, moreData: false},
+    { name: 'Dump of Mortgages', url: 'dumpmortgages', dateList: this.noDateOpts,
+      acctList: false, moreData: false}  ]
          // Generic report parms and info
   startDt = '' ;  endDt = '' ;  reportReady = false ;  screenDisplay = false ;
   selectedReport = '' ;  selectedType = '' ;  selectedHouse = '' ;
@@ -82,6 +90,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
   forceGlobals = false ;
   houses: House[] = new Array<House>() ;
   accounts: KeyVal[] = new Array<KeyVal>() ;
+  tranRules: RuleData[] = new Array<RuleData>() ;
+  mortgages: Mortgage[] = new Array<Mortgage>() ;
   accountTypes: string[] = new Array<string>() ;
   tranTypes: string[] = new Array<string>() ;
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
@@ -146,7 +156,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
       case 'Dump of Globals': this.dumpGlobal() ; break ;
       case 'Dump of Projects': this.dumpProject() ; break ;
       case 'Dump of Reconciliations': this.dumpRecon() ; break ;
-      case 'Dump of Transactions':  this.dumpTran() ;
+      case 'Dump of Transactions':  this.dumpTran() ; break ;
+      case 'Dump of Houses':  this.dumpHouse() ; break ;
+      case 'Dump of Rules':  this.dumpRule() ; break ;
+      case 'Dump of Mortgages':  this.dumpMortgage() ; break ;
     }
   }
 
@@ -335,6 +348,73 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   /** ************************************************************************
+   * Dump transactions for CSV or JSON
+   * @param tranQ 
+   ************************************************************************ */
+  dumpHouse() {
+    const houseRtn = this.fireSvc.getHouseDB() ;
+    if (Array.isArray(houseRtn)) {
+      this.houses = houseRtn as House[] ;
+      this.reportReady = true ;
+    } else {
+      houseRtn.subscribe({
+        next: (houseRecs) => {
+          this.houses = houseRecs ;
+          this.fireSvc.setHouses(this.houses) ;
+          this.reportReady = true ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses for HouseDump err: %s: ', error)
+        }
+      })
+    }
+    this.utilSvc.cDebug(this.CLASSNAME,'houseCnt: %d', this.houses.length)
+  }
+
+  /** ************************************************************************
+   * Dump transactions for CSV or JSON
+   * @param tranQ 
+   ************************************************************************ */
+  dumpRule() {
+    const ruleRtn = this.fireSvc.getTranRuleDB() ;
+    if (Array.isArray(ruleRtn)) {
+      this.tranRules = ruleRtn as RuleData[] ;
+      this.reportReady = true ;
+    } else {
+      ruleRtn.subscribe({
+        next: (ruleRecs) => {
+          this.tranRules = ruleRecs ;
+          this.reportReady = true ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME,'Error getting rules for RuleDump  err: %s: ', error)
+        }
+      })
+    }
+    this.utilSvc.cDebug(this.CLASSNAME,'ruleCnt: %d', this.tranRules.length)
+  }
+
+  /** ************************************************************************
+   * Dump transactions for CSV or JSON
+   * @param tranQ 
+   ************************************************************************ */
+  dumpMortgage() {
+    const mortRtn = this.fireSvc.getMortgageDB() ;
+    if (Array.isArray(mortRtn)) {
+      this.mortgages = mortRtn as Mortgage[] ;
+      this.reportReady = true ;
+    } else {
+      mortRtn.subscribe({
+        next: (mortRecs) => {
+          this.mortgages = mortRecs ;
+          this.reportReady = true ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME,'Error getting mortgages for MortDump  err: %s: ', error)
+        }
+      })
+    }
+    this.utilSvc.cDebug(this.CLASSNAME,'mortgageCnt: %d', this.mortgages.length)
+  }
+
+  /** ************************************************************************
    * Func callable from html and ts to identify report ready
    * @param tranRecs 
    ************************************************************************ */
@@ -351,7 +431,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
       case 'Dump of Globals': this.writeGenericCsv(this.filtGlob, 'globals.csv') ; break ;
       case 'Dump of Projects': this.writeGenericCsv(this.filtProj, 'projects.csv') ; break ;
       case 'Dump of Reconciliations': this.writeGenericCsv(this.filtRecon, 'recons.csv') ; break ;
-      case 'Dump of Transactions':  this.writeGenericCsv(this.transactions, 'transactions.csv') ;
+      case 'Dump of Transactions':  this.writeGenericCsv(this.transactions, 'transactions.csv') ; break ;
+      case 'Dump of Houses': this.writeGenericCsv(this.houses, 'houses.csv') ; break ;
+      case 'Dump of Rules': this.writeGenericCsv(this.tranRules, 'rules.csv') ; break ;
+      case 'Dump of Mortgages': this.writeGenericCsv(this.mortgages, 'mortgages.csv') ; break ;
+      default: this.utilSvc.cWarn(this.CLASSNAME, 'writeCsv unknown report: %s', reportNm) ;
     }
   }
 
@@ -364,7 +448,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
       case 'Dump of Globals': this.writeGenericJson(this.filtGlob, 'globals.json') ; break ;
       case 'Dump of Projects': this.writeGenericJson(this.filtProj, 'projects.json') ; break ;
       case 'Dump of Reconciliations': this.writeGenericJson(this.filtRecon, 'recons.json') ; break ;
-      case 'Dump of Transactions':  this.writeGenericJson(this.transactions, 'transactions.json') ;
+      case 'Dump of Transactions':  this.writeGenericJson(this.transactions, 'transactions.json') ; break ;
+      case 'Dump of Houses': this.writeGenericJson(this.houses, 'houses.json') ; break ;
+      case 'Dump of Rules': this.writeGenericJson(this.tranRules, 'rules.json') ; break ;
+      case 'Dump of Mortgages': this.writeGenericJson(this.mortgages, 'mortgages.json') ; break ;
+      default: this.utilSvc.cWarn(this.CLASSNAME, 'writeJson unknown report: %s', reportNm) ;
     }
   }
 
@@ -451,6 +539,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
       houseRtn.subscribe({
         next: (houses) => {
           this.houses = houses ;
+          this.fireSvc.setHouses(this.houses) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses: %s', error) ;
         }

@@ -122,6 +122,92 @@
       </table>
     </div>
   </div>
+  <!-- **************************************************************************** -->
+  <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Houses'">
+    <form #houseDumpForm="ngForm">
+      <div class="row" *ngIf="reportReady">
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
+          (click)="writeCsv(selectedReport)">Write CSV</button>
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
+          (click)="writeJson(selectedReport)">Write Json</button>
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
+          (click)="screenDisplay = true">Display on Screen</button>
+        <div class="col-md-4">{{ houses.length }}  Rows to display</div>
+      </div>
+    </form>
+    <div class="row col-md-12" *ngIf="screenDisplay">
+      <table>
+        <tr>
+          <th>Name</th> <th>Address</th> <th>City</th> <th>State</th>
+          <th>ZipCode</th> <th>ActiveDt</th> <th>InActiveDt</th> <th>ID</th>
+        </tr>
+        <tr *ngFor="let house of houses">
+          <td>{{ house.name }}</td> <td>{{ house.Addr }}</td>
+          <td>{{ house.City }}</td> <td>{{ house.State }}</td>
+          <td>{{ house.zipCode }}</td> <td>{{ house.activeDt }}</td>
+          <td>{{ house.inactiveDt }}</td> <td>{{ house.HouseId }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <!-- **************************************************************************** -->
+  <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Rules'">
+    <form #ruleDumpForm="ngForm">
+      <div class="row" *ngIf="reportReady">
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
+          (click)="writeCsv(selectedReport)">Write CSV</button>
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
+          (click)="writeJson(selectedReport)">Write Json</button>
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
+          (click)="screenDisplay = true">Display on Screen</button>
+        <div class="col-md-4">{{ tranRules.length }}  Rows to display</div>
+      </div>
+    </form>
+    <div class="row col-md-12" *ngIf="screenDisplay">
+      <table>
+        <tr>
+          <th>RuleName</th> <th>SearchStr</th> <th>Accounts</th> <th>SearchAmt</th>
+          <th>Category</th> <th>TranType</th> <th>TranExtra</th> <th>TaxCat</th>
+          <th>House</th><th>Annotation</th><th>ID</th></tr>
+        <tr *ngFor="let rule of tranRules">
+          <td>{{ rule.ruleName }}</td> <td>{{ rule.srchStr }}</td>
+          <td>{{ rule.accounts }}</td> <td>{{ rule.srchAmt }}</td>
+          <td>{{ rule.Category }}</td> <td>{{ rule.TranType }}</td>
+          <td>{{ rule.TranExtra }}</td>  <td>{{ rule.TaxCat }}</td>
+          <td>{{ rule.House }}</td>  <td>{{ rule.Annotation }}</td>
+          <td>{{ rule.RuleId }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <!-- **************************************************************************** -->
+  <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Mortgages'">
+    <form #mortgageDumpForm="ngForm">
+      <div class="row" *ngIf="reportReady">
+        <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
+          (click)="writeCsv(selectedReport)">Write CSV</button>
+        <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
+          (click)="writeJson(selectedReport)">Write Json</button>
+        <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
+          (click)="screenDisplay = true">Display on Screen</button>
+        <div class="col-md-4">{{ mortgages.length }}  Rows to display</div>
+      </div>
+    </form>
+    <div class="row col-md-12" *ngIf="screenDisplay">
+      <table>
+        <tr>
+          <th>House</th> <th>Rate</th> <th>LoanTerm</th> <th>LoanPmt</th>
+          <th>BalYear</th> <th>BalMo</th> <th>CurBal</th> <th>ID</th>
+        </tr>
+        <tr *ngFor="let mortgage of mortgages">
+          <td>{{ mortgage.house }}</td> <td>{{ mortgage.rate }}</td>
+          <td>{{ mortgage.lterm }}</td> <td>{{ mortgage.lpmt }}</td>
+          <td>{{ mortgage.balYr }}</td> <td>{{ mortgage.balMth }}</td>
+          <td>{{ mortgage.cBal }}</td>  <td>{{ mortgage.mortgageId }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
 <!-- **************************************************************************** -->
   <div class="row col-md-12" *ngIf="selectedReport === 'Dump of Globals'">
     <form (ngSubmit)="runReport(selectedReport)" #globalsDumpForm="ngForm">
