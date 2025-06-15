@@ -55,3 +55,6 @@ Thumbs.db
 .runtimeconfig.json
 serviceAccount.json
 package-lock.json
+
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md

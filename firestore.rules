@@ -39,14 +39,6 @@ service cloud.firestore {
       allow delete: if (request.auth.uid != null &&
             getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
     }
-    match /GlobalVars/{docId} {   // May have to vfy no chg to cid on write
-      allow read: if (request.auth.uid != null &&
-            getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
-      allow create, update: if (request.auth.uid != null &&
-            getUInfo(request.auth.uid, request.resource.data.Cid, 'Admin')) ;
-      allow delete: if (request.auth.uid != null &&
-      			getUInfo(request.auth.uid, resource.data.Cid, 'Admin')) ;
-    }
     match /Globals/{docId} {   // May have to vfy no chg to cid on write
       allow read: if (request.auth.uid != null &&
             getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
@@ -79,13 +71,37 @@ service cloud.firestore {
       allow delete: if (request.auth.uid != null &&
       			getUInfo(request.auth.uid, resource.data.Cid, 'Admin')) ;
     }
+    match /BalAdjust/{docId} {   // May have to vfy no chg to cid on write
+      allow read: if (request.auth.uid != null &&
+            getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
+      allow create, update: if (request.auth.uid != null &&
+            getUInfo(request.auth.uid, request.resource.data.Cid, 'Admin')) ;
+      allow delete: if (request.auth.uid != null &&
+      			getUInfo(request.auth.uid, resource.data.Cid, 'Admin')) ;
+    }
+    match /Leases/{docId} {   // May have to vfy no chg to cid on write
+      allow read: if (request.auth.uid != null &&
+            getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
+      allow create, update: if (request.auth.uid != null &&
+            getUInfo(request.auth.uid, request.resource.data.Cid, 'Admin')) ;
+      allow delete: if (request.auth.uid != null &&
+      			getUInfo(request.auth.uid, resource.data.Cid, 'Admin')) ;
+    }
+    match /Residents/{docId} {   // May have to vfy no chg to cid on write
+      allow read: if (request.auth.uid != null &&
+            getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
+      allow create, update: if (request.auth.uid != null &&
+            getUInfo(request.auth.uid, request.resource.data.Cid, 'Admin')) ;
+      allow delete: if (request.auth.uid != null &&
+      			getUInfo(request.auth.uid, resource.data.Cid, 'Admin')) ;
+    }
     match /Users/{userId} {
       allow write: if (request.auth.uid != null &&
       			getUInfo(request.auth.uid, request.resource.data.Cid, 'globalAdmin')) ;
       allow read:  if (request.auth.uid != null && (request.auth.uid == userId
       			|| getUInfo(request.auth.uid, request.data.Cid, 'globalAdmin'))) ;
     }
-    match /newCustomer/{docId} {   // May have to vfy no chg to cid on write
+    match /NewCustomer/{docId} {   // May have to vfy no chg to cid on write
       allow read, update, delete: if (request.auth.uid != null &&
             getUInfo(request.auth.uid, resource.data.Cid, 'globalAdmin')) ;
       allow create: if (request.auth.uid != null &&   // New user doing create, so signed and
