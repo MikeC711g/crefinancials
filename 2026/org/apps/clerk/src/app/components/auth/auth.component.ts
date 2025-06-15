@@ -1,8 +1,7 @@
 import { NgForm } from '@angular/forms';
 import { AuthService } from './../../services/auth.service';
 import { AfterViewInit, Component, ElementRef } from '@angular/core';
-import { UserRec } from './../../models/UserRec.model';
-import { cUser } from './../../models/cUser.model';
+import { cUser, UserRec } from './../../models/cUser.model';
 import { NavigationEnd, Router } from '@angular/router';
 import { GenutilsService } from './../../services/genutils.service';
 import { FirebaseService } from './../../services/firebase.service';

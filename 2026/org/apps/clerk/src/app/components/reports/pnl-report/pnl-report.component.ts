@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { TranRec } from './../../../models/TranRec.model';
 // import { FirebaseService } from '../../../services/firebase.service';
 import { GenutilsService } from './../../../services/genutils.service';
-import { KeyVal } from './../../../models/keyval.model';
+import { KeyVal } from './../../../models/globals.model';
 
 import { jsPDF } from "jspdf";
 

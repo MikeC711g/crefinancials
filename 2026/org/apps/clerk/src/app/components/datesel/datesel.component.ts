@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { GenutilsService } from './../../services/genutils.service';
-import { KeyVal } from './../../models/keyval.model';
+import { KeyVal } from './../../models/globals.model';
 
 @Component({
   selector: 'app-datesel',

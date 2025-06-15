@@ -1,23 +1,22 @@
-import { TranRec } from './../models/TranRec.model';
+import { TranRec, TranQ } from './../models/TranRec.model';
 import { Reconciliations } from './../models/reconciliations.model';
 import { Project } from './../models/project.model';
-import { TranQ } from './../models/TranQ.model';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { first, map } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Firestore, collectionData, collection, query, where, CollectionReference,
   QueryConstraint, limit, orderBy, addDoc, doc, updateDoc, deleteDoc, runTransaction,
   DocumentReference} from '@angular/fire/firestore';
-import { Globals } from '../models/globals.model'
+import { Globals, objwCid, KeyVal } from '../models/globals.model'
 import { RuleData } from '../models/ruledata.model';
-import { House } from '../models/house.model';
+import { House, Lease, Mortgage, Resident } from '../models/house.model';
 import { GenutilsService } from './genutils.service';
-import { KeyVal } from '../models/keyval.model';
-import { Mortgage } from '../models/mortgages.model';
 
 @Injectable({
   providedIn: 'root'
 })
+
+// type objwCid = { Cid: string } ;
 /**
  * Interface to all Firebase data
  */
@@ -37,6 +36,8 @@ export class FirebaseService {
   houses: House[] = new Array<House>() ;  houseLoadTime: number ;
   tranRules: RuleData[] = new Array<RuleData>() ;  ruleLoadTime: number ;
   mortgages: Mortgage[] = new Array<Mortgage>() ;  mortgageLoadTime: number ;
+  leases: Lease[] = new Array<Lease>() ;  leaseLoadTime: number ;
+  residents: Resident[] = new Array<Resident>() ; residentLoadTime: number ;
   accounts: KeyVal[] = new Array<KeyVal>() ;
   authMillis = 0 ;
   accountTypes: string[] = new Array<string>() ;
@@ -50,6 +51,7 @@ export class FirebaseService {
   isAuthenticated = false ; newCustNm = ''
   globalsNm = '' ;  tranNm = '' ;  projNm = '' ;  reconNm = '' ;  // Used for full table nm
   tranRuleNm = 'TranRules' ; houseNm = 'Houses' ;  mortgageNm = 'Mortgages' ;
+  leaseNm = 'Leases' ; residentNm = 'Residents' ;
   tran$ = new BehaviorSubject<TranRec []>(this.tranRecs) ;
   project$ = new BehaviorSubject<Project []>(this.projects) ;
   projLoc$ = new Subscription() ;   global$ = new Observable<Globals[]> ;
@@ -57,14 +59,15 @@ export class FirebaseService {
 
   /**
    * Constructor for this service class
-   * @param {AngularFirestore} firestore Reference to Angular
+   * @param {Firestore} firestore Reference to Firestore database
    * @param utilSvc Reference to service for generic utility type functions
    */
   // constructor(private firestore: AngularFirestore, private utilSvc: GenutilsService) { }
   constructor(private firestore: Firestore, private utilSvc: GenutilsService) {
-    this.houseLoadTime = new Date().getTime() - 86400000;  // Set to 1 day ago (timed out)
-    this.ruleLoadTime = new Date().getTime() - 86400000; 
-    this.mortgageLoadTime = new Date().getTime() - 86400000;
+    const expiredTStamp = new Date().getTime() - 86400000; // Set to 1 day ago (timed out)
+    this.houseLoadTime = expiredTStamp ;    this.ruleLoadTime = expiredTStamp
+    this.mortgageLoadTime = expiredTStamp ;  this.leaseLoadTime = expiredTStamp ;
+    this.residentLoadTime = expiredTStamp ;
     this.projLoc$ = this.project$.subscribe(proj => {
       const preLen = this.projects.length ;
       this.projects = proj ;
@@ -172,8 +175,38 @@ export class FirebaseService {
     return house$
   }
 
+  getLeaseDB(house?: string): Observable<Lease[]> | Lease[] {
+    if (this.leaseLoadTime + 600000 > new Date().getTime()) return this.leases ;
+    this.updtTimeStmp();
+    const lease$ = collectionData<Lease>(query(
+      collection(this.firestore, 'Leases') as CollectionReference<Lease>,
+      where('Cid', '==', this.cid),
+      ...(house ? [where('HouseId', '==', house)] : [])
+    ), {idField: 'LeaseId'}).pipe(first()) ;
+    this.leaseLoadTime = new Date().getTime() ;
+    return lease$;
+  }
+
+  getResidentDB(): Observable<Resident[]> | Resident[] {
+    if (this.residentLoadTime + 600000 > new Date().getTime()) return this.residents ;
+    this.updtTimeStmp();
+    const resident$ = collectionData<Resident>(query(
+      collection(this.firestore, 'Residents') as CollectionReference<Resident>,
+      where('Cid', '==', this.cid)), {idField: 'ResidentId'}).pipe(first()) ;
+    this.residentLoadTime = new Date().getTime() ;
+    return resident$;
+  }
+
   setHouses(houses: House[]) {
     this.houses = houses.sort((a, b) => a.name.localeCompare(b.name)) ;
+  }
+
+  setLeases(leases: Lease[]) {
+    this.leases = leases.sort((a, b) => a.House.localeCompare(b.House)) ;
+  }
+
+  setResidents(residents: Resident[]) {
+    this.residents = residents.sort((a, b) => a.LName.localeCompare(b.LName)) ;
   }
 
   getTranRuleDB(): Observable<RuleData[]> | RuleData[] {
@@ -192,7 +225,7 @@ export class FirebaseService {
     this.updtTimeStmp();
     const mortgage$ = collectionData<Mortgage>(query(
       collection(this.firestore, 'Mortgages') as CollectionReference<Mortgage>,
-      where('Cid', '==', this.cid)), {idField: 'mortgageId'}).pipe(first()) ;
+      where('Cid', '==', this.cid)), {idField: 'MortgageId'}).pipe(first()) ;
     this.mortgageLoadTime = new Date().getTime() ;
     return mortgage$
   }
@@ -673,124 +706,30 @@ export class FirebaseService {
     return deleteDoc( dbGlob ) ;
   }
 
-  /**
-   * function addRule adds a document to the GlobalVars collection
-   * It is complex as there are numerous different record types for different global info
-   * @param {RuleData} Rule to add to table
-   * @returns {Promise} based on add action to FB collection
-   */
-  addTranRule(inRule: RuleData): Promise<any> {
-    this.updtTimeStmp() ;
-    delete inRule.RuleId ;
-    if (!inRule.Annotation)  delete inRule.Annotation ;
-    if (!inRule.Category)  delete inRule.Category ;
-    if (!inRule.TaxCat)  delete inRule.TaxCat ;
-    if (!inRule.House)  delete inRule.House ;
-    if (!inRule.TranExtra)  delete inRule.TranExtra ;
-    if (!inRule.TranType)  delete inRule.TranType ;
-    inRule.Cid = this.cid ;
-    return addDoc(collection(this.firestore, this.tranRuleNm),
-      { ...inRule }) ;
+  // Generic functions to add/update/delete global documents in collections
+  addGenGlob<T extends objwCid>(inGlob: T, collectNm: string, idVar: keyof T, 
+    delFlds: (keyof T)[] = []): Promise<any> {
+    this.updtTimeStmp() ; 
+    delete inGlob[idVar] ;   // Remove the id field
+    for (const fld of delFlds) {   // Remove any other fields that are not needed
+      if (!inGlob[fld]) delete inGlob[fld] ;
+    }
+    inGlob.Cid = this.cid ;
+    return addDoc(collection(this.firestore, collectNm), { ...inGlob }) ;
   }
 
-  /**
-   * function updateGlobal updates an existing document in the GlobalVars collection
-   * @param {RuleData} oldRule is original image of rule (pre-update)
-   * @param {RuleData} newRule is updated image of rule
-   * @returns {Promise} or {string}. string if error before call, promise if call is made
-   */
-  updateTranRule(oldRule: RuleData, newRule: RuleData ): Promise<any> | string {
+  updtGenGlob<T extends objwCid>(oldGlob: T, newGlob: T, collectNm: string, idVal: string) :
+    Promise<any> {
     this.updtTimeStmp() ;
-    const ruleTranDoc = doc(this.firestore, this.tranRuleNm, oldRule.RuleId!)
-    newRule.Cid = this.cid ;
-    return updateDoc(ruleTranDoc, { ...newRule }) ;
+    const globDoc = doc(this.firestore, collectNm, idVal)
+    newGlob.Cid = this.cid ;
+    return updateDoc(globDoc, { ...newGlob }) ;
   }
 
-  /**
-   * function deleteGlobal to remove a document from GlobalVars collection
-   * @param {RuleData} tranRule to be deleted
-   * @returns {string} or {Promise}. String if early error, Promise if FB call made
-   */
-  deleteTranRule(delRule: RuleData): Promise<any> | string {
+  deleteGenGlob<T extends objwCid>(oldGlob: T, collectNm: string, idVal: string): Promise<any> | string {
     this.updtTimeStmp() ;
-    const ruleTranDoc = doc(this.firestore, this.tranRuleNm, delRule.RuleId!)
-    return deleteDoc( ruleTranDoc ) ;
-  }
-
-  /**
-   * function addRule adds a document to the GlobalVars collection
-   * It is complex as there are numerous different record types for different global info
-   * @param {House} House to add to table
-   * @returns {Promise} based on add action to FB collection
-   */
-  addHouse(inHouse: House): Promise<any> {
-    this.updtTimeStmp() ;
-    delete inHouse.HouseId ;
-    inHouse.Cid = this.cid ;
-    return addDoc(collection(this.firestore, this.houseNm),
-      { ...inHouse }) ;
-  }
-
-  /**
-   * function updateGlobal updates an existing document in the GlobalVars collection
-   * @param {RuleData} oldHouse is original image of rule (pre-update)
-   * @param {RuleData} newHouse is updated image of rule
-   * @returns {Promise} or {string}. string if error before call, promise if call is made
-   */
-  updateHouse(oldHouse: House, newHouse: House ): Promise<any> | string {
-    this.updtTimeStmp() ;
-    const houseDoc = doc(this.firestore, this.houseNm, oldHouse.HouseId!)
-    newHouse.Cid = this.cid ;
-    return updateDoc(houseDoc, { ...newHouse }) ;
-  }
-
-  /**
-   * function deleteGlobal to remove a document from GlobalVars collection
-   * @param {House} house to be deleted
-   * @returns {string} or {Promise}. String if early error, Promise if FB call made
-   */
-  deleteHouse(delHouse: House): Promise<any> | string {
-    this.updtTimeStmp() ;
-    const houseDoc = doc(this.firestore, this.houseNm, delHouse.HouseId!)
-    return deleteDoc(houseDoc) ;
-  }
-
-  /**
-   * function addRule adds a document to the GlobalVars collection
-   * It is complex as there are numerous different record types for different global info
-   * @param {House} House to add to table
-   * @returns {Promise} based on add action to FB collection
-   */
-  addMortgage(inMortgage: Mortgage): Promise<any> {
-    this.updtTimeStmp() ;
-    delete inMortgage.mortgageId ;
-    inMortgage.Cid = this.cid ;
-    return addDoc(collection(this.firestore, this.mortgageNm),
-      { ...inMortgage }) ;
-  }
-
-  /**
-   * function updateGlobal updates an existing document in the GlobalVars collection
-   * @param {RuleData} oldHouse is original image of rule (pre-update)
-   * @param {RuleData} newHouse is updated image of rule
-   * @returns {Promise} or {string}. string if error before call, promise if call is made
-   */
-  updateMortgage(oldMortgage: Mortgage, newMortgage: Mortgage ): Promise<any> | string {
-    this.updtTimeStmp() ;
-    const mortgageDoc = doc(this.firestore, this.mortgageNm, oldMortgage.mortgageId!)
-    newMortgage.Cid = this.cid ;
-    return updateDoc(mortgageDoc, { ...newMortgage }) ;
-  }
-
-  /**
-   * function deleteGlobal to remove a document from GlobalVars collection
-   * @param {House} house to be deleted
-   * @returns {string} or {Promise}. String if early error, Promise if FB call made
-   */
-  deleteMortgage(delMortgage: Mortgage): Promise<any> | string {
-    this.updtTimeStmp() ;
-    const mortgageDoc = doc(this.firestore, this.mortgageNm, delMortgage.mortgageId!)
-    return deleteDoc(mortgageDoc) ;
+    const globDoc = doc(this.firestore, collectNm, idVal)
+    return deleteDoc(globDoc) ;
   }
 
   /**

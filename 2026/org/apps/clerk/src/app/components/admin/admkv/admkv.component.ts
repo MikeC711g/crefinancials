@@ -1,10 +1,9 @@
 import { GenutilsService } from './../../../services/genutils.service';
 import { FirebaseService } from './../../../services/firebase.service';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { KeyVal } from './../../../models/keyval.model';
+import { KeyVal } from './../../../models/globals.model';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-admkv',
   templateUrl: './admkv.component.html',
   styleUrls: ['./admkv.component.css']

@@ -12,3 +12,11 @@ export class Reconciliations {
     public DeltaAmt: number,
     public ReconKey?: string ) {}
   }
+
+  export class ReconTrans {   // Used to pass transaction IDs to reconciliation
+
+  constructor(
+    public ReconKey: string,
+    public TranIds: string[] ) {}
+  }
+

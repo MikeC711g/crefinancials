@@ -1,23 +1,23 @@
 import { Reconciliations } from './../../models/reconciliations.model';
 import { Project } from './../../models/project.model';
-import { TranRec } from './../../models/TranRec.model';
+import { TranRec, TranQ } from './../../models/TranRec.model';
 import { FirebaseService } from '../../services/firebase.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Globals } from './../../models/globals.model';
-import { KeyVal } from './../../models/keyval.model';
-import { House } from './../../models/house.model';
-import { TranQ } from './../../models/TranQ.model';
+import { Globals, KeyVal } from './../../models/globals.model';
+import { House, Mortgage } from './../../models/house.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
 import { RuleData } from '../../models/ruledata.model';
-import { Mortgage } from '../../models/mortgages.model';
 
 interface RptInfo {   // Data for the running of each report
   name: string,
   url: string,
   dateList: KeyVal[],
-  acctList: boolean,
+  acctOne: boolean,
+  acctMulti: boolean,
+  houseOne: boolean,
+  houseMulti: boolean,
   moreData: boolean
 }
 
@@ -44,32 +44,33 @@ export class ReportsComponent implements OnInit, OnDestroy {
         // List of reports and control info
   reportList: RptInfo[] = [
     { name: 'Profit and Loss', url: 'profitnloss', dateList: this.dateOptsReport,
-      acctList: false, moreData: true},
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: true, moreData: false},
     { name: 'Personal Profit and Loss', url: 'perspnl', dateList: this.dateOptsReport,
-      acctList: false, moreData: true},
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: true, moreData: false},
     { name: 'Rent Status', url: 'rentstat', dateList: this.dateOptsReport,
-      acctList: true, moreData: true},
+      acctOne: false, acctMulti: false, houseOne: true, houseMulti: false, moreData: true},
     { name: 'Expense By Project', url: 'expbyproj', dateList: this.dateOptsReport,
-      acctList: true, moreData: true},
+      acctOne: false, acctMulti: true, houseOne: false, houseMulti: true, moreData: false},
     { name: 'Dump of Globals', url: 'dumpglobals', dateList: this.noDateOpts,
-      acctList: false, moreData: true},
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: true},
     { name: 'Dump of Projects', url: 'dumpprojects', dateList: this.dateOptsData,
-      acctList: false, moreData: true},
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false},
     { name: 'Dump of Reconciliations', url: 'dumprecons', dateList: this.dateOptsData,
-      acctList: true, moreData: false},
+      acctOne: false, acctMulti: true, houseOne: false, houseMulti: false, moreData: false},
     { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsReport,
-      acctList: true, moreData: true},
+      acctOne: false, acctMulti: true, houseOne: false, houseMulti: false, moreData: true},
     { name: 'Dump of Houses', url: 'dumphouses', dateList: this.noDateOpts,
-      acctList: false, moreData: false},
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false},
     { name: 'Dump of Rules', url: 'dumprules', dateList: this.noDateOpts,
-      acctList: false, moreData: false},
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false},
     { name: 'Dump of Mortgages', url: 'dumpmortgages', dateList: this.noDateOpts,
-      acctList: false, moreData: false}  ]
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false}  ]
          // Generic report parms and info
   startDt = '' ;  endDt = '' ;  reportReady = false ;  screenDisplay = false ;
   selectedReport = '' ;  selectedType = '' ;  selectedHouse = '' ;
   selectedHouseArr: string[] = new Array<string>() ;
-  reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctList: false, moreData: false } ;
+  reportInfo: RptInfo = { name: '', url: '', dateList: this.noDateOpts, acctOne: false,
+    acctMulti: false, houseOne: false, houseMulti: false, moreData: false } ;
   completedActions = 0 ;    // List of global types
   reportArr: string[] = new Array<string>() ;
   expCats = ['BE', 'CE'] ;  // Expense categories
@@ -85,7 +86,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
   filtGlob: Globals[] = new Array<Globals>() ;
   transactions: TranRec[] = new Array<TranRec>() ;
   admTypes: string[] = [] ;
-  accountArr = [''] ;  maxAmount = 0.0 ;
+  accountArr = [''] ;  maxAmount = 0.0 ;  selectedAccount = '' ;
   reconQ: Reconciliations = new Reconciliations('', '', '', '', 0, 0, 0, 0, 0, '') ;
   forceGlobals = false ;
   houses: House[] = new Array<House>() ;
@@ -130,7 +131,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
     console.log('selRpt: %s  rptInfo: %O', this.selectedReport, this.reportInfo)
     this.reportReady = false ; this.screenDisplay = false ;
     this.startDt = '' ;  this.endDt = '' ;
-    if (this.reportInfo.dateList.length < 1 && !this.reportInfo.acctList &&
+    if (this.reportInfo.dateList.length < 1 && !this.reportInfo.acctOne &&
+      !this.reportInfo.acctMulti && !this.reportInfo.houseOne && !this.reportInfo.houseMulti &&
       !this.reportInfo.moreData) {
       console.log('selRpt calling runRpt')
       this.runReport(this.reportInfo.name) ;
@@ -178,7 +180,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
         this.projects.length, this.projStrtDt, this.projEndDt) ;
       this.getProjects()
     }
-    if ((!this.reportInfo.acctList || this.accountArr.length > 0) && !this.reportInfo.moreData)
+    if ((!this.reportInfo.acctMulti || this.accountArr.length > 0) && !this.reportInfo.moreData
+      && (!this.reportInfo.acctOne || this.selectedAccount) &&
+      (!this.reportInfo.houseMulti || this.houses.length > 0) &&
+      (!this.reportInfo.houseOne || this.selectedHouse))
      {  this.runReport(this.selectedReport) ;  }
   }
 

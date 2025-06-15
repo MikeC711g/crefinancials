@@ -1,18 +1,15 @@
 import { FirebaseService } from './../../services/firebase.service';
 import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef} from '@angular/core';
 import { Subscription, Subject } from 'rxjs';
-import { TranRec } from './../../models/TranRec.model';
+import { TranRec, TranQ } from './../../models/TranRec.model';
 import { Project } from '../../models/project.model';
-import { TranQ } from './../../models/TranQ.model';
 import { QfxService } from './../../services/qfx.service';
-import { Globals } from './../../models/globals.model';
+import { Globals, KeyVal } from './../../models/globals.model';
 import { GenutilsService } from './../../services/genutils.service';
-import { KeyVal } from './../../models/keyval.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
-import { House } from './../../models/house.model';
+import { House, Mortgage } from './../../models/house.model';
 import { RuleData } from '../../models/ruledata.model';
 import { NavigationEnd, Router } from '@angular/router';
-import { Mortgage } from '../../models/mortgages.model';
 
 @Component({
   selector: 'app-cretran',

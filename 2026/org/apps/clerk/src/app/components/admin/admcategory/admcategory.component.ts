@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { KeyVal } from './../../../models/keyval.model';
+import { KeyVal } from './../../../models/globals.model';
 import { FirebaseService } from './../../../services/firebase.service';
 import { GenutilsService } from './../../../services/genutils.service';
 import { GlobalModsService } from '../../../services/globalMods.service';

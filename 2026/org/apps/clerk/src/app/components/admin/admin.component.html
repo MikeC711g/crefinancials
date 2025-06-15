@@ -95,6 +95,38 @@
       </li>
     </ul>
   </div>
+  <div class="col-md-12" *ngIf="selectedType === 'leases' && globalsLoaded">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+      Add Lease</button>
+    <div *ngIf="newRow">
+      <h2>Add a New Lease</h2>
+      <app-admlease (parmMod)="onParmMod($event.action,
+        $event.parmType, $event.newVal, $event.oldVal)" [houses]="houses" [residents]="residents"></app-admlease>
+    </div>
+    <h2>Manage Leases</h2>
+    <ul>
+      <li *ngFor="let lease of leases">
+        <app-admlease [lease]="lease" [houses]="houses" [residents]="residents"
+          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admlease>
+      </li>
+    </ul>
+  </div>
+  <div class="col-md-12" *ngIf="selectedType === 'residents' && globalsLoaded">
+    <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+      Add Resident</button>
+    <div *ngIf="newRow">
+      <h2>Add a New Resident</h2>
+      <app-admresident (parmMod)="onParmMod($event.action,
+        $event.parmType, $event.newVal, $event.oldVal)"></app-admresident>
+    </div>
+    <h2>Manage Residents</h2>
+    <ul>
+      <li *ngFor="let resident of residents">
+        <app-admresident [resident]="resident"
+          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admresident>
+      </li>
+    </ul>
+  </div>
   <div class="row col-md-12" *ngIf="selectedType === 'logging'">
     <h2>Log and trace management</h2>
     Please only use this section under the guidance of a Clerk support representative<br>

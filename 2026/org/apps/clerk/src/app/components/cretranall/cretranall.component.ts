@@ -4,7 +4,7 @@ import { TranRec } from './../../models/TranRec.model';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GenutilsService } from './../../services/genutils.service';
-import { KeyVal } from './../../models/keyval.model';
+import { KeyVal } from './../../models/globals.model';
 import { House } from './../../models/house.model';
 import { RuleData } from '../../models/ruledata.model';
 import { GlobalModsService } from '../../services/globalMods.service';
@@ -404,8 +404,11 @@ export class CretranallComponent  implements OnInit, OnDestroy {
   onRuleMod(action: string, parmType: string, newVal: any, oldVal: any): void {
     let actionCnt: number ;  let statusMsg = '' ;  
     const tranRules = this.fireSvc.getTranRules() ;
+    const anyRuless: any[] = tranRules ;
 
-    [actionCnt, statusMsg] = this.globSvc.onRuleMod(action, newVal, oldVal, this.tranRec.Cid, tranRules)
+    [actionCnt, statusMsg] = this.globSvc.genGlobMod(action, this.utilSvc.globalTypes.RuleData, newVal,
+      oldVal, anyRuless) ;
+    // [actionCnt, statusMsg] = this.globSvc.onRuleMod(action, newVal, oldVal, this.tranRec.Cid, tranRules)
 
     this.utilSvc.addRule(newVal)
   }

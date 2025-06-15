@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { House } from './../../models/house.model';
-import { KeyVal } from './../../models/keyval.model';
+import { KeyVal } from './../../models/globals.model';
 import { Project } from './../../models/project.model';
 import { GenutilsService } from './../../services/genutils.service';
 

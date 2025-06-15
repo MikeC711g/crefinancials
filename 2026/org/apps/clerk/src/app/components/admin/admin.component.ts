@@ -1,15 +1,13 @@
 import { FirebaseService } from './../../services/firebase.service';
 import { RuleData } from './../../models/ruledata.model';
-import { House } from './../../models/house.model';
+import { House, Lease, Mortgage, Resident } from './../../models/house.model';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { GenutilsService } from './../../services/genutils.service';
-import { KeyVal } from './../../models/keyval.model';
-import { Globals } from './../../models/globals.model';
+import { Globals, objwCid, KeyVal } from './../../models/globals.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { GlobalModsService } from './../../services/globalMods.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Mortgage } from '../../models/mortgages.model';
 
 @Component({
   selector: 'app-admin',
@@ -31,8 +29,10 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   taxCats: KeyVal[] = new Array<KeyVal>() ;   // label: taxcats
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ; // label: categoryTaxcat
   categoryFolders: KeyVal[] = new Array<KeyVal>() ; // label: categoryFolders
-  tranRules: RuleData[] = new Array<RuleData>() ;
+  tranRules: RuleData[] = new Array<RuleData>() ; // label: tranRules
   mortgages: Mortgage[] = new Array<Mortgage>() ;
+  leases: Lease[] = new Array<Lease>() ;
+  residents: Resident[] = new Array<Resident>() ;
   selectedType = '' ;   completeActions = 0 ;  newRow = false ;
   newRule = false ;  newHouse = false ;  newAccounts = false ;
   newTranTypes = false ;  newAccountTypes = false ;  newTaxCats = false ;
@@ -125,6 +125,34 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
       })
       setTimeout(() => { mortgage$.unsubscribe() ; }, 30000);
     }
+    const leaseRtn = this.fireSvc.getLeaseDB() ;
+    if (Array.isArray(leaseRtn)) {
+      this.leases = leaseRtn as Lease[] ;
+    } else {
+      const lease$ = leaseRtn.subscribe({
+        next: (leases) => {
+          this.leases = leases as Lease[] ;
+          this.fireSvc.setLeases(this.leases) ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving leases: ', error) ;
+        }
+      })
+      setTimeout(() => { lease$.unsubscribe() ; }, 30000);
+    }
+    const residentRtn = this.fireSvc.getResidentDB() ;
+    if (Array.isArray(residentRtn)) {
+      this.residents = residentRtn as Resident[] ;
+    } else {
+      const resident$ = residentRtn.subscribe({
+        next: (residents) => {
+          this.residents = residents as Resident[] ;
+          this.fireSvc.setResidents(this.residents) ;
+        }, error: (error) => {
+          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving residents: ', error) ;
+        }
+      })
+      setTimeout(() => { resident$.unsubscribe() ; }, 30000);
+    }
   }
 
   globalLoad() {
@@ -152,13 +180,16 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
    *****************************************************************************/
   onParmMod(action: string, gType: string, newVal: any, oldVal: any): void {
     let actionCnt = 0 ;  
+    let anyArr: any[] ;
     if (action === this.utilSvc.actionTypes.Cancel || action === this.utilSvc.actionTypes.Add) {
       this.newRow = false ;
     }
     let globalNewRow: Globals, globalOldRow: Globals ;  let kval: KeyVal ;  let kStr: string ;
-    let ruleNewRow: RuleData, ruleOldRow: RuleData ;
+/*    let ruleNewRow: RuleData, ruleOldRow: RuleData ;
     let newHouseRow: House, oldHouseRow: House ;
     let newMortgageRow: Mortgage, oldMortgageRow: Mortgage ;
+    let newLeaseRow: Lease, oldLeaseRow: Lease ;
+    let newResidentRow: Resident, oldResidentRow: Resident ; */
     switch (gType) {  // All editable globals are rkey/rval pairs
       case this.utilSvc.globalTypes.Accounts:
       case this.utilSvc.globalTypes.TaxCats:
@@ -172,23 +203,25 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
           this.categoryFolders, this.categoryTaxcat, this.taxCats, this.cid)
         break ;
       case this.utilSvc.globalTypes.RuleData:
-        ruleNewRow = newVal as RuleData ;
-        ruleOldRow = (this.utilSvc.actionTypes.Update) ? oldVal as RuleData : ruleNewRow ;
-        [actionCnt, this.statusMsg] = this.globSvc.onRuleMod(action, ruleNewRow,
-          ruleOldRow, this.cid, this.tranRules)
-        break ;
+        anyArr = this.tranRules ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;  break ;
       case this.utilSvc.globalTypes.Houses:
-        newHouseRow = newVal as House ;
-        oldHouseRow = (action === this.utilSvc.actionTypes.Update) ? oldVal as House : newHouseRow ;
-        [actionCnt, this.statusMsg] = this.globSvc.onHouseMod(action, newHouseRow,
-          oldHouseRow, this.cid, this.houses)
-        break ;
+        anyArr = this.houses ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;  break ;
       case this.utilSvc.globalTypes.Mortgages:
-        newMortgageRow = newVal as Mortgage ;
-        oldMortgageRow = (action === this.utilSvc.actionTypes.Update) ? oldVal as Mortgage : newMortgageRow ;
-        [actionCnt, this.statusMsg] = this.globSvc.onMortgageMod(action, newMortgageRow,
-          oldMortgageRow, this.cid, this.mortgages)
-        break ;
+        anyArr = this.mortgages ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;  break ;
+      case this.utilSvc.globalTypes.Leases:
+        anyArr = this.leases ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;  break ;
+      case this.utilSvc.globalTypes.Residents:
+        anyArr = this.residents ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;  break ;
       default:
         this.utilSvc.cWarn(this.CLASSNAME, 'Invalid parm type: %O', newVal) ;
     }
@@ -207,7 +240,34 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     this.overrideLevel = this.utilSvc.getOverrideLogLevel() ;
   }
 
-  canDeactivate(): boolean {
+  leasePostProcess(action: string, gType: string, newRow: objwCid, oldRow: objwCid,
+    objArr: objwCid[]) : boolean {
+    console.log('Came into postProcess for %s', gType ) ;
+    if ((action === this.utilSvc.actionTypes.Add && newRow['currentFlag'] === 'true') ||
+        (action === this.utilSvc.actionTypes.Update && newRow['currentFlag'] === 'true' &&
+        oldRow['currentFlag'] === 'false')) {   // If new and current or updated to current
+      const oldCurrent = objArr.filter(obj => obj['House'] === newRow['House'] &&
+        obj['currentFlag'] === 'true' && obj['LeaseId'] !== newRow['LeaseId'])
+      if (oldCurrent && oldCurrent.length > 0) {
+        for (const oldLease of oldCurrent) {
+          const origLease = {...oldLease} ;
+          oldLease['currentFlag'] = 'false' ;   // drive update process
+          this.fireSvc.updtGenGlob(origLease, oldLease, 'Leases', 'LeaseId') ;
+        }
+      }
+      console.log('Added %s', newRow.Cid ) ;
+      this.statusMsg = 'Added ' + newRow.Cid ;
+    } else if (action === this.utilSvc.actionTypes.Update) {
+      console.log('Updated %s', newRow.Cid ) ;
+      this.statusMsg = 'Updated ' + newRow.Cid ;
+    } else if (action === this.utilSvc.actionTypes.Delete) {
+      console.log('Deleted %s', newRow.Cid ) ;
+      this.statusMsg = 'Deleted ' + newRow.Cid ;
+    }
+    return true;
+  }
+
+  canDeactivate(): boolean {this
     console.log('Admin called canDeactivate')
     return true ;
   }

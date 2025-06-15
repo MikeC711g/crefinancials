@@ -5,7 +5,7 @@
       <app-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList"
       (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
     </div>
-    <div class="row" *ngIf="reportInfo.acctList">
+    <div class="row" *ngIf="reportInfo.acctMulti">
       <label for="account">Accounts</label>
       <select class="form-control" id="account" name="account" [(ngModel)]="accountArr"
         (change)="accountSelAll()" multiple required data-cy="rpt-account">
@@ -14,22 +14,38 @@
         [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
       </select>
     </div>
+    <div class="row" *ngIf="reportInfo.acctOne">
+      <label for="account1">Account</label>
+      <select class="form-control" id="account1" name="account1" [(ngModel)]="selectedAccount"
+        required data-cy="rpt-account1">
+        <option [value]="''" [selected]="!selectedAccount">-- select an option --</option>
+        <option [value]="'selectAll'">Select All</option>
+        <option *ngFor="let account of accounts" [value]="account.RKey"
+        [selected]="account.RKey === selectedAccount">{{ account.RKey }}</option>
+      </select>
+    </div>
+    <div class="form-group" *ngIf="reportInfo.houseMulti">
+      <label for="house">House</label>
+      <select class="form-control" id="house" name="house"
+        [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houses">
+        <option [value]="'selectAll'">Select All</option>
+        <option *ngFor="let house of houses" [value]="house.name"
+        [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
+      </select>
+    </div>
+    <div class="form-group" *ngIf="reportInfo.houseOne">
+      <label for="house1">House</label>
+      <select class="form-control" id="house1" name="house1" data-cy="rpt-house1"
+        [(ngModel)]="selectedHouse">
+        <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
+        <option *ngFor="let house of houses" [value]="house.name"
+            [selected]="house.name === selectedHouse">{{ house.name }}</option>
+      </select>
+    </div>
+
     <div class="row col-md-12"
       *ngIf="selectedReport === 'Profit and Loss' || selectedReport === 'Personal Profit and Loss'">
       <form (ngSubmit)="runReport(selectedReport)" #PnLForm="ngForm">
-        <div class="row">
-          <div class="col-md-6 border-right">
-            <div class="form-group">
-              <label for="house">House</label>
-              <select class="form-control" id="house" name="house"
-                [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houses">
-                <option [value]="'selectAll'">Select All</option>
-                <option *ngFor="let house of houses" [value]="house.name"
-                [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
-              </select>
-            </div>
-          </div>
-        </div>
         <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub3"
           [disabled]="startDt === ''">{{ selectedReport }}</button>
       </form>
@@ -44,17 +60,6 @@
   <!-- **************************************************************************** -->
   <div class="row col-md-12" *ngIf="selectedReport === 'Expense By Project'">
     <form (ngSubmit)="runReport(selectedReport)" #expByProjectForm="ngForm">
-      <div class="col-md-6 border-right">
-        <div class="form-group">
-          <label for="house">House</label>
-          <select class="form-control" id="house" name="house"
-            [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houseexp">
-            <option [value]="'selectAll'">Select All</option>
-            <option *ngFor="let house of houses" [value]="house.name"
-            [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
-          </select>
-        </div>
-      </div>
       <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subexp"
         >{{ selectedReport }}</button>
       <div class="row" *ngIf="reportReady"> <hr>
@@ -66,17 +71,6 @@
   <!-- **************************************************************************** -->
   <div class="row col-md-12" *ngIf="selectedReport === 'Rent Status'">
     <form (ngSubmit)="runReport(selectedReport)" #rentStatusForm="ngForm">
-      <div class="col-md-6 border-right">
-        <div class="form-group">
-          <label for="house">House</label>
-          <select class="form-control" id="house" name="house" data-cy="rpt-housers"
-            [(ngModel)]="selectedHouse">
-            <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
-            <option *ngFor="let house of houses" [value]="house.name"
-                [selected]="house.name === selectedHouse">{{ house.name }}</option>
-          </select>
-        </div>
-      </div>
       <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrei"
         [disabled]="selectedHouse === ''">{{ selectedReport }}</button>
       <div class="row" *ngIf="reportReady"> <hr>
@@ -203,7 +197,7 @@
           <td>{{ mortgage.house }}</td> <td>{{ mortgage.rate }}</td>
           <td>{{ mortgage.lterm }}</td> <td>{{ mortgage.lpmt }}</td>
           <td>{{ mortgage.balYr }}</td> <td>{{ mortgage.balMth }}</td>
-          <td>{{ mortgage.cBal }}</td>  <td>{{ mortgage.mortgageId }}</td>
+          <td>{{ mortgage.cBal }}</td>  <td>{{ mortgage.MortgageId }}</td>
         </tr>
       </table>
     </div>

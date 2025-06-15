@@ -1,15 +1,12 @@
-import { TranQ } from './../../models/TranQ.model';
 import { FirebaseService } from './../../services/firebase.service';
 import { Reconciliations } from './../../models/reconciliations.model';
-import { Globals } from './../../models/globals.model';
+import { Globals, MsgInfo, KeyVal } from './../../models/globals.model';
 import { Subscription } from 'rxjs';
-import { MsgInfo } from '../../models/MsgInfo.model';
-import { TranRec } from './../../models/TranRec.model';
+import { TranRec, TranQ } from './../../models/TranRec.model';
 import { Project } from '../../models/project.model';
 import { DeactivatableComponent } from '../../interfaces/deactivatableComponent.interface' ;
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GenutilsService } from './../../services/genutils.service';
-import { KeyVal } from './../../models/keyval.model';
 
 /*************************************************************************************
  Reconcile a statement. Trans can only be in one reconciliation, so a new reconciliation

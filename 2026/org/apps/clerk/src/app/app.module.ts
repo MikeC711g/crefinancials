@@ -34,6 +34,8 @@ import { PnlReportComponent } from './components/reports/pnl-report/pnl-report.c
 import { Exp2projreportComponent } from './components/reports/exp2projreport/exp2projreport.component';
 import { RentstatreportComponent } from './components/reports/rentstatreport/rentstatreport.component';
 import { AdmmortgageComponent } from './components/admin/admmortgage/admmortgage.component';
+import { AdmleaseComponent } from './components/admin/admlease/admlease.component';
+import { AdmresidentComponent } from './components/admin/admresident/admresident.component';
 
 @NgModule({
   declarations: [
@@ -59,7 +61,9 @@ import { AdmmortgageComponent } from './components/admin/admmortgage/admmortgage
     PnlReportComponent,
     Exp2projreportComponent,
     RentstatreportComponent,
-    AdmmortgageComponent
+    AdmmortgageComponent,
+    AdmleaseComponent,
+    AdmresidentComponent
   ],
   imports: [
     BrowserModule,

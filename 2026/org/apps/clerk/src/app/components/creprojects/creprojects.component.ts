@@ -1,11 +1,11 @@
 import { FirebaseService } from './../../services/firebase.service';
-import { MsgInfo } from './../../models/MsgInfo.model';
+import { MsgInfo } from './../../models/globals.model'
 import { Project } from './../../models/project.model';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GenutilsService } from './../..//services/genutils.service';
 // import { GenutilsService } from 'src/app/services/genutils.service';
-import { KeyVal } from './../..//models/keyval.model';
+import { KeyVal } from './../..//models/globals.model';
 import { DeactivatableComponent } from './../..//interfaces/deactivatableComponent.interface';
 import { House } from '../../models/house.model';
 // import { House } from 'src/app/models/house.model';

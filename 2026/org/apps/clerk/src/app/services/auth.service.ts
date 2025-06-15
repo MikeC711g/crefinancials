@@ -5,8 +5,7 @@ import { Auth, UserCredential, User, createUserWithEmailAndPassword, deleteUser,
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { BehaviorSubject } from 'rxjs';
 import { GenutilsService } from './genutils.service';
-import { cUser } from '../models/cUser.model';
-import { UserRec } from '../models/UserRec.model';
+import { cUser, UserRec } from '../models/cUser.model';
 import { Router } from '@angular/router';
 
 @Injectable({

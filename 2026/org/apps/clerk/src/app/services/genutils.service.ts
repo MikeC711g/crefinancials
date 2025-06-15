@@ -2,8 +2,8 @@ import { RuleData } from '../models/ruledata.model';
 import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
 import { Project } from '../models/project.model';
-import { KeyVal } from '../models/keyval.model';
-import { Mortgage } from '../models/mortgages.model';
+import { KeyVal } from '../models/globals.model';
+import { Mortgage, Resident } from '../models/house.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,11 +18,13 @@ export class GenutilsService {
   globalTypes = { TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
     TranTypes: 'tranType', Accounts: 'accounts', AccountTypes: 'accountType',
     CategoryFolders: 'categoryFolders', Logging: 'logging', RuleData: 'tranRule', Houses: 'houses',
-    Mortgages: 'mortgages' } 
+    Mortgages: 'mortgages', Leases: 'leases', Residents: 'residents',} 
   noAdminGlobalTypes = [this.globalTypes.TranTypes, this.globalTypes.AccountTypes,
     this.globalTypes.CategoryFolders] ;
   adminGlobalTypes = [this.globalTypes.TaxCats, this.globalTypes.CategoryTaxcats,
-    this.globalTypes.Logging, this.globalTypes.Accounts, this.globalTypes.CategoryFolders] ;
+    this.globalTypes.Logging, this.globalTypes.Accounts, this.globalTypes.CategoryFolders,
+    this.globalTypes.RuleData, this.globalTypes.Houses, this.globalTypes.Mortgages,
+    this.globalTypes.Leases, this.globalTypes.Residents] ;
   addOnlyGlobalTypes = [this.globalTypes.TaxCats] ;
   actionTypes = { Add: 'add', Update: 'update', Hide: 'hide', UnHide: 'unHide',
     Cancel: 'cancel', Delete: 'delete', Split: 'split', UnSplit: 'unSplit',
@@ -156,6 +158,21 @@ export class GenutilsService {
   getDate(inDate: Date, dayDiff: number): string {
     const newDate = new Date(inDate.getTime() + (dayDiff * 24 * 3600 * 1000)) ;
     return newDate.toISOString().slice(0, 10) ;
+  }
+
+  checkDateValid(inDate: string): boolean {
+    const dateParts = inDate.split('-') ;
+    if (dateParts.length !== 3) return false ;
+    const year = parseInt(dateParts[0]) ;
+    const month = parseInt(dateParts[1]) ;
+    const day = parseInt(dateParts[2]) ;
+    if (year < 1900 || year > 2200) return false ;
+    if (month < 1 || month > 12)  return false ;
+    const monthDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] ;
+    if (day < 1 || day > monthDays[month - 1]) return false ;
+    if (month === 2 && day === 29)
+      if ((year % 4 !== 0) || (year % 100 === 0 && year % 400 !== 0)) return false ;
+    return true ;
   }
 
     // Can't subscribe to proj & tran from firesvc w/out creating mutual dependency

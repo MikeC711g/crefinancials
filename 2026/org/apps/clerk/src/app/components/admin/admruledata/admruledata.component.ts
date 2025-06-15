@@ -2,7 +2,7 @@ import { FirebaseService } from './../../../services/firebase.service';
 import { RuleData } from './../../../models/ruledata.model';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { GenutilsService } from './../../../services/genutils.service';
-import { KeyVal } from './../../../models/keyval.model';
+import { KeyVal } from './../../../models/globals.model';
 import { House } from './../../../models/house.model';
 
 @Component({
