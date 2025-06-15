@@ -1,0 +1,36 @@
+<div class="row" *ngIf="!editMode">
+  <div class="col-md-5"> {{ resident.LName }}  {{ resident.FName }}      </div>
+  <button class="btn btn-success btn-toggle col-md-2" type="button"
+    (click)="editMode = true"> Edit</button>
+  <button class="btn btn-danger col-md-2" type="button"
+    (click)="onDeleteRecord()"> Delete</button>
+</div>
+<p style="background-color: aqua;">{{ statusMsg }}</p>
+<div class="row" *ngIf="editMode">
+  <div class="col-md-5">
+    <div class="form-group">
+      <label for="lastName" title="Last Name">Last Name</label>
+      <input type="text" class="form-control" [(ngModel)]="resident.LName" name="lastName" id="lastName"
+        ngModel data-cy="alr-lastName" required>
+      <label for="firstName" title="First Name">First Name</label>
+      <input type="text" class="form-control" [(ngModel)]="resident.FName" name="firstName" id="firstName"
+        ngModel data-cy="alr-firstName" required>
+      <label for="email" title="eMail address">EMail</label>
+      <input type="email" class="form-control" [(ngModel)]="resident.eMail" name="email" id="email"
+        ngModel data-cy="alr-email" required>
+      <label for="phone" title="Telephone number">Phone</label>
+      <input type="tel" class="form-control" [(ngModel)]="resident.phone" name="phone" id="phone"
+        ngModel data-cy="alr-phone" pattern="^(\+?\d{1,3}[- ]?)?\d{10}$">
+      <label for="startDt" title="Start Date of the resident">Start Date</label>
+      <input type="date" class="form-control" [(ngModel)]="resident.startDt" name="startDt" id="startDt"
+        ngModel data-cy="alr-startDt">
+      <label for="endDt" title="End Date of the resident">End Date</label>
+      <input type="date" class="form-control" [(ngModel)]="resident.endDt" name="endDt" id="endDt"
+        ngModel data-cy="alr-endDt">
+      <button class="btn btn-success col-md-3" type="button" data-cy="alr-add" (click)="onAddRecord()">
+        {{ newRow ? 'Add' : 'Update' }}</button>
+      <button class="btn btn-primary col-md-3" type="button" data-cy="alr-cancel"
+        (click)="onCancel()">Cancel</button>
+    </div>
+  </div>
+</div>
