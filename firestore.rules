@@ -56,7 +56,7 @@ service cloud.firestore {
       			getUInfo(request.auth.uid, resource.data.Cid, 'Admin')) ;
     }
     match /Houses/{docId} {   // May have to vfy no chg to cid on write
-      allow read: if (request.auth.uid != null &&
+      allow read:  if (request.auth.uid != null &&
             getUInfo(request.auth.uid, resource.data.Cid, 'User')) ;
       allow create, update: if (request.auth.uid != null &&
             getUInfo(request.auth.uid, request.resource.data.Cid, 'Admin')) ;
