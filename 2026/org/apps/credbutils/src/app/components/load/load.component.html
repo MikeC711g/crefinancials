@@ -1,103 +1,131 @@
 <div class="container">
   <div class="row col-md-12">
     <div class="col-md-6">
-      <div *ngIf="labelStr.length > 0">
-        <div class="row col-md-12" *ngFor="let curLabel of labelStr">
-          {{ curLabel }}
-          <input type="file" (change)="handleJsonData($event, curLabel)" accept=".json" />
+      @if (labelStr.length > 0) {
+        <div>
+          @for (curLabel of labelStr; track curLabel) {
+            <div class="row col-md-12">
+              {{ curLabel }}
+              <input type="file" (change)="handleJsonData($event, curLabel)" accept=".json" />
+            </div>
+          }
         </div>
-      </div>
-      <div class="row" *ngIf="getSourceCid">
-        <h2>Source data base information</h2>
+      }
+      @if (getSourceCid) {
         <div class="row">
-          <label for="dbPrefix">DB Prefix</label>
-          <input type="text" name="dbPrefix" id="dbPrefix" [(ngModel)]="sourceDbPrefix" ngModel>
+          <h2>Source data base information</h2>
+          <div class="row">
+            <label for="dbPrefix">DB Prefix</label>
+            <input type="text" name="dbPrefix" id="dbPrefix" [(ngModel)]="sourceDbPrefix" ngModel>
+          </div>
+          <div class="row">
+            <label for="cid">Customer ID</label>
+            <input type="text" name="cid" id="cid" [(ngModel)]="sourceCid" ngModel (change)="onChgCid()">
+          </div>
         </div>
+      }
+      @if (getDestCid) {
         <div class="row">
-          <label for="cid">Customer ID</label>
-          <input type="text" name="cid" id="cid" [(ngModel)]="sourceCid" ngModel (change)="onChgCid()">
+          <h2>Destination data base information</h2>
+          <div class="row">
+            <label for="dDbPrefix">DB Prefix</label>
+            <input type="text" name="dDbPrefix" id="dDbPrefix" [(ngModel)]="destDbPrefix" ngModel>
+          </div>
+          <div class="row">
+            <label for="dCid">Customer ID</label>
+            <input type="text" name="dCid" id="dCid" [(ngModel)]="destCid" ngModel>
+          </div>
         </div>
-      </div>
-      <div class="row" *ngIf="getDestCid">
-        <h2>Destination data base information</h2>
-        <div class="row">
-          <label for="dDbPrefix">DB Prefix</label>
-          <input type="text" name="dDbPrefix" id="dDbPrefix" [(ngModel)]="destDbPrefix" ngModel>
-        </div>
-        <div class="row">
-          <label for="dCid">Customer ID</label>
-          <input type="text" name="dCid" id="dCid" [(ngModel)]="destCid" ngModel>
-        </div>
-      </div>
+      }
     </div>
-    <div class="row" *ngIf="getDateRange">
-      <h2>Date Range</h2>
+    @if (getDateRange) {
       <div class="row">
-        <label for="startDt">Start Date</label>
-        <input type="date" name="startDt" id="startDt" [(ngModel)]="startDt" ngModel>
+        <h2>Date Range</h2>
+        <div class="row">
+          <label for="startDt">Start Date</label>
+          <input type="date" name="startDt" id="startDt" [(ngModel)]="startDt" ngModel>
+        </div>
+        <div class="row">
+          <label for="endDt">End Date</label>
+          <input type="date" name="endDt" id="endDt" [(ngModel)]="endDt" ngModel>
+        </div>
       </div>
-      <div class="row">
-        <label for="endDt">End Date</label>
-        <input type="date" name="endDt" id="endDt" [(ngModel)]="endDt" ngModel>
-      </div>
-    </div>
+    }
   </div>
-  <div class="row" *ngIf="getGlobalTypes">
-    <h2>Which global types would you like to remove</h2>
+  @if (getGlobalTypes) {
     <div class="row">
-      <label for="globType">Global Type</label>
-      <select class="form-control" id="globType" name="globType"
-        [(ngModel)]="selectedGlobalType">
-        <option [value]="'All'">All Types</option>
-        <option *ngFor="let globType of globalTypeArr" [value]="globType"
-          >{{ globType }}</option>
-      </select>
+      <h2>Which global types would you like to remove</h2>
+      <div class="row">
+        <label for="globType">Global Type</label>
+        <select class="form-control" id="globType" name="globType"
+          [(ngModel)]="selectedGlobalType">
+          <option [value]="'All'">All Types</option>
+          @for (globType of globalTypeArr; track globType) {
+            <option [value]="globType"
+            >{{ globType }}</option>
+          }
+        </select>
+      </div>
     </div>
-  </div>
-  <div class="row" *ngIf="getTranFilters">
-    <h2>Transaction filters you may apply</h2>
-    <div class="form-group">
-      <label for="account">Account</label>
-      <select class="form-control" id="account" name="account" [(ngModel)]="tfAcct">
-        <option [value]="''">-- select an option --</option>
-        <option *ngFor="let account of accounts" [value]="account.RKey">{{ account.RKey }}</option>
-      </select>
+  }
+  @if (getTranFilters) {
+    <div class="row">
+      <h2>Transaction filters you may apply</h2>
+      <div class="form-group">
+        <label for="account">Account</label>
+        <select class="form-control" id="account" name="account" [(ngModel)]="tfAcct">
+          <option [value]="''">-- select an option --</option>
+          @for (account of accounts; track account) {
+            <option [value]="account.RKey">{{ account.RKey }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="descrip">Description/Category</label>
+        <select class="form-control" id="descrip" name="descrip" [(ngModel)]="tfDesc">
+          <option [value]="''">-- select an option --</option>
+          @for (descrip of descripTaxcat; track descrip) {
+            <option [value]="descrip.RKey">{{ descrip.RKey }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="tranType">Type</label>
+        <select class="form-control" id="tranType" name="tranType" [(ngModel)]="tfTranType">
+          <option [value]="''">-- select an option --</option>
+          @for (tranType of tranTypes; track tranType) {
+            <option [value]="tranType">{{ tranType }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="house">House</label>
+        <select class="form-control" id="house" name="house" [(ngModel)]="tfHouse">
+          <option [value]="''">-- select an option --</option>
+          @for (house of houses; track house) {
+            <option [value]="house.name">{{ house.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="taxcat">Tax Category</label>
+        <select class="form-control" id="taxcat" name="taxcat" [(ngModel)]="tfTaxCat">
+          <option [value]="''">-- select an option --</option>
+          @for (taxcat of taxCats; track taxcat) {
+            <option [value]="taxcat.RKey">{{ taxcat.RVal }}</option>
+          }
+        </select>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="descrip">Description/Category</label>
-      <select class="form-control" id="descrip" name="descrip" [(ngModel)]="tfDesc">
-        <option [value]="''">-- select an option --</option>
-        <option *ngFor="let descrip of descripTaxcat" [value]="descrip.RKey">{{ descrip.RKey }}</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="tranType">Type</label>
-      <select class="form-control" id="tranType" name="tranType" [(ngModel)]="tfTranType">
-        <option [value]="''">-- select an option --</option>
-        <option *ngFor="let tranType of tranTypes" [value]="tranType">{{ tranType }}</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="house">House</label>
-      <select class="form-control" id="house" name="house" [(ngModel)]="tfHouse">
-        <option [value]="''">-- select an option --</option>
-        <option *ngFor="let house of houses" [value]="house.name">{{ house.name }}</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="taxcat">Tax Category</label>
-      <select class="form-control" id="taxcat" name="taxcat" [(ngModel)]="tfTaxCat">
-        <option [value]="''">-- select an option --</option>
-        <option *ngFor="let taxcat of taxCats" [value]="taxcat.RKey">{{ taxcat.RVal }}</option>
-      </select>
-    </div>
-  </div>
+  }
   <div class="row">
-    <button class="btn btn-primary col-md-2" type="button"
-    (click)="doAction()" *ngIf="selectedAction !== ''">{{ selectedAction }}</button>
+    @if (selectedAction !== '') {
+      <button class="btn btn-primary col-md-2" type="button"
+      (click)="doAction()">{{ selectedAction }}</button>
+    }
     <div class="col-md-2"></div>
     <button class="btn btn-secondary col-md-2" type="button"
-      (click)="selectedAction = ''">Cancel</button>
+    (click)="selectedAction = ''">Cancel</button>
   </div>
   <div> {{ statusMsg }} </div>
 </div>

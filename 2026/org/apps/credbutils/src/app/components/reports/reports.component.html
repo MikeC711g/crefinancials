@@ -5,7 +5,9 @@
         <label for="tableNm">Table Name</label>
         <select class="form-control" id="tableNm" name="tableNm"
           [(ngModel)]="selectedTable" (change)="deRefCols()">
-          <option *ngFor="let table of tables" [value]="table">{{ table }}</option>
+          @for (table of tables; track table) {
+            <option [value]="table">{{ table }}</option>
+          }
         </select>
       </div>
       <div class="row">
@@ -21,7 +23,7 @@
       </div>
       <div class="row">
         <button class="btn btn-primary col-md-2" type="button"
-          (click)="getGlobals()">Retrieve Globals</button>
+        (click)="getGlobals()">Retrieve Globals</button>
       </div>
       <div class="row">
         <h2>Date Range</h2>
@@ -37,127 +39,161 @@
     </div>
     <div class="row">
       <button class="btn btn-primary col-md-2" type="button"
-        (click)="retrieveMain()">Retrieve DB Info</button>
+      (click)="retrieveMain()">Retrieve DB Info</button>
     </div>
-    <div class="row" *ngIf="selectedTable===tableNames.GlobalVars">
-      <label for="rkey">Global Type (RKey)</label>
-      <select class="form-control" id="rkey" name="rkey"
-        [(ngModel)]="globalQ.RKey" (change)="deRefGlobals()">
-        <option *ngFor="let gType of gtArray" [value]="gType">{{ gType }}</option>
-      </select>
-      <label for="gid">ID</label>
-      <input type="text" name="gid" id="gid" [(ngModel)]="globalQ.GlobalId" ngModel>
+    @if (selectedTable===tableNames.GlobalVars) {
       <div class="row">
-        <button class="btn btn-primary col-md-2" type="button"
-        (click)="queryGlobals()">Query globals info</button>
+        <label for="rkey">Global Type (RKey)</label>
+        <select class="form-control" id="rkey" name="rkey"
+          [(ngModel)]="globalQ.RKey" (change)="deRefGlobals()">
+          @for (gType of gtArray; track gType) {
+            <option [value]="gType">{{ gType }}</option>
+          }
+        </select>
+        <label for="gid">ID</label>
+        <input type="text" name="gid" id="gid" [(ngModel)]="globalQ.GlobalId" ngModel>
+        <div class="row">
+          <button class="btn btn-primary col-md-2" type="button"
+          (click)="queryGlobals()">Query globals info</button>
+        </div>
+        Global Rows: {{ filtGlob.length }}
+        @for (lGlob of filtGlob; track lGlob) {
+          <div class="row col-md-12">
+            ID: {{ lGlob.GlobalId }}  RKey: {{ lGlob.RKey }}  {{ getDerefVal(lGlob.RVal, fldList) }}
+          </div>
+        }
       </div>
-      Global Rows: {{ filtGlob.length }}
-      <div class="row col-md-12" *ngFor="let lGlob of filtGlob">
-        ID: {{ lGlob.GlobalId }}  RKey: {{ lGlob.RKey }}  {{ getDerefVal(lGlob.RVal, fldList) }}
-      </div>
-    </div>
-    <div class="row" *ngIf="selectedTable===tableNames.Transactions">
-      <label for="tmindate">MinDate</label>
-      <input type="date" name="tmindate" id="tmindate" [(ngModel)]="tranQ.TranDate" ngModel>
-      <label for="tmaxdate">MaxDate</label>
-      <input type="date" name="tmaxdate" id="tmaxdate" [(ngModel)]="maxDate" ngModel>
-      <label for="tacctList">Account</label>
-      <select class="form-control" id="tacctList" name="tacctList" [(ngModel)]="accountArr"
-        (change)="filterReconsForTran()" multiple>
-        <option *ngFor="let account of accounts" [value]="account.RKey">{{ account.RKey }}</option>
-      </select>
-      <label for="descr">Description</label>
-      <input type="text" name="descr" id="descr" [(ngModel)]="tranQ.Account" ngModel>
-      <label for="tTranTp">Transaction Types</label>
-      <select class="form-control" id="tTranTp" name="tTranTp" [(ngModel)]="tTypeArr" multiple>
-        <option *ngFor="let tType of tranTypes" [value]="tType">{{ tType }}</option>
-      </select>
-      <label for="amount">Min Amount</label>
-      <input type="number" name="amount" id="amount" [(ngModel)]="tranQ.Amount" ngModel>
-      <label for="maxAmt">Max Amount</label>
-      <input type="number" name="maxAmt" id="maxAmt" [(ngModel)]="maxAmount" ngModel>
-      <label for="tranex">Tran Extra</label>
-      <input type="text" name="tranex" id="tranex" [(ngModel)]="tranQ.TranExtra" ngModel>
-      <label for="tTaxCat">Tax Category</label>
-      <select class="form-control" id="tTaxCat" name="tTaxCat" [(ngModel)]="tranQ.TaxCat">
-        <option *ngFor="let taxCat of taxCats" [value]="taxCat.RKey">{{ taxCat.RVal }}</option>
-      </select>
-      <label for="tHouse">House</label>
-      <select class="form-control" id="tHouse" name="tHouse" [(ngModel)]="houseArr"
-        (change)="filterProjectsForHouse()" multiple>
-        <option *ngFor="let house of houses" [value]="house">{{ house }}</option>
-      </select>
-      <label for="tProj">Project</label>
-      <select class="form-control" id="tProj" name="tProj" [(ngModel)]="tranQ.Project">
-        <option *ngFor="let proj of filtProj" [value]="proj.ProjectId">{{ proj.Description }}</option>
-      </select>
-      <label for="tAnnot">Tran Extra</label>
-      <input type="text" name="tAnnot" id="tAnnot" [(ngModel)]="tranQ.Annotation" ngModel>
-      <label for="tRecon">Reconciliation</label>
-      <select class="form-control" id="tRecon" name="tRecon" [(ngModel)]="tranQ.ReconKey">
-        <option *ngFor="let recon of filtRecon" [value]="recon.ReconKey">
-          {{ recon.Account }}  {{ recon.StartDt }} </option>
-      </select>
-      <label for="tranid">Tran ID</label>
-      <input type="text" name="tranid" id="tranid" [(ngModel)]="tranQ.TranId" ngModel>
+    }
+    @if (selectedTable===tableNames.Transactions) {
       <div class="row">
-        <button class="btn btn-primary col-md-2" type="button"
-        (click)="filterTrans(false)">Query Transactions</button>
+        <label for="tmindate">MinDate</label>
+        <input type="date" name="tmindate" id="tmindate" [(ngModel)]="tranQ.TranDate" ngModel>
+        <label for="tmaxdate">MaxDate</label>
+        <input type="date" name="tmaxdate" id="tmaxdate" [(ngModel)]="maxDate" ngModel>
+        <label for="tacctList">Account</label>
+        <select class="form-control" id="tacctList" name="tacctList" [(ngModel)]="accountArr"
+          (change)="filterReconsForTran()" multiple>
+          @for (account of accounts; track account) {
+            <option [value]="account.RKey">{{ account.RKey }}</option>
+          }
+        </select>
+        <label for="descr">Description</label>
+        <input type="text" name="descr" id="descr" [(ngModel)]="tranQ.Account" ngModel>
+        <label for="tTranTp">Transaction Types</label>
+        <select class="form-control" id="tTranTp" name="tTranTp" [(ngModel)]="tTypeArr" multiple>
+          @for (tType of tranTypes; track tType) {
+            <option [value]="tType">{{ tType }}</option>
+          }
+        </select>
+        <label for="amount">Min Amount</label>
+        <input type="number" name="amount" id="amount" [(ngModel)]="tranQ.Amount" ngModel>
+        <label for="maxAmt">Max Amount</label>
+        <input type="number" name="maxAmt" id="maxAmt" [(ngModel)]="maxAmount" ngModel>
+        <label for="tranex">Tran Extra</label>
+        <input type="text" name="tranex" id="tranex" [(ngModel)]="tranQ.TranExtra" ngModel>
+        <label for="tTaxCat">Tax Category</label>
+        <select class="form-control" id="tTaxCat" name="tTaxCat" [(ngModel)]="tranQ.TaxCat">
+          @for (taxCat of taxCats; track taxCat) {
+            <option [value]="taxCat.RKey">{{ taxCat.RVal }}</option>
+          }
+        </select>
+        <label for="tHouse">House</label>
+        <select class="form-control" id="tHouse" name="tHouse" [(ngModel)]="houseArr"
+          (change)="filterProjectsForHouse()" multiple>
+          @for (house of houses; track house) {
+            <option [value]="house">{{ house }}</option>
+          }
+        </select>
+        <label for="tProj">Project</label>
+        <select class="form-control" id="tProj" name="tProj" [(ngModel)]="tranQ.Project">
+          @for (proj of filtProj; track proj) {
+            <option [value]="proj.ProjectId">{{ proj.Description }}</option>
+          }
+        </select>
+        <label for="tAnnot">Tran Extra</label>
+        <input type="text" name="tAnnot" id="tAnnot" [(ngModel)]="tranQ.Annotation" ngModel>
+        <label for="tRecon">Reconciliation</label>
+        <select class="form-control" id="tRecon" name="tRecon" [(ngModel)]="tranQ.ReconKey">
+          @for (recon of filtRecon; track recon) {
+            <option [value]="recon.ReconKey">
+            {{ recon.Account }}  {{ recon.StartDt }} </option>
+          }
+        </select>
+        <label for="tranid">Tran ID</label>
+        <input type="text" name="tranid" id="tranid" [(ngModel)]="tranQ.TranId" ngModel>
+        <div class="row">
+          <button class="btn btn-primary col-md-2" type="button"
+          (click)="filterTrans(false)">Query Transactions</button>
+        </div>
+        Tran Rows: {{ filtTrans.length }}
+        @for (tran of filtTrans; track tran) {
+          <div class="row col-md-12">
+            {{ tran.TranDate }}  {{ tran.Account }} {{ tran.Category }} {{ tran.Amount }}
+            House: {{ tran.House }}  Proj: {{ tran.Project }}  Recon: {{ tran.ReconKey }}
+            TaxCat: {{ tran.TaxCat }}  Extra: {{ tran.TranExtra }}  ID: {{ tran.TranId }}
+            Type: {{ tran.TranType }}
+          </div>
+        }
       </div>
-      Tran Rows: {{ filtTrans.length }}
-      <div class="row col-md-12" *ngFor="let tran of filtTrans">
-        {{ tran.TranDate }}  {{ tran.Account }} {{ tran.Category }} {{ tran.Amount }}
-          House: {{ tran.House }}  Proj: {{ tran.Project }}  Recon: {{ tran.ReconKey }}
-          TaxCat: {{ tran.TaxCat }}  Extra: {{ tran.TranExtra }}  ID: {{ tran.TranId }}
-          Type: {{ tran.TranType }}
-      </div>
-    </div>
-    <div class="row" *ngIf="selectedTable===tableNames.Projects">
-      <label for="pmindate">MinDate</label>
-      <input type="date" name="pmindate" id="pmindate" [(ngModel)]="projectQ.StartDt" ngModel>
-      <label for="pmaxdate">MaxDate</label>
-      <input type="date" name="pmaxdate" id="pmaxdate" [(ngModel)]="maxDate" ngModel>
-      <label for="pDesc">Description</label>
-      <input type="text" name="pDesc" id="pDesc" [(ngModel)]="projectQ.Description" ngModel>
-      <label for="projid">Project ID</label>
-      <input type="text" name="projid" id="projid" [(ngModel)]="projectQ.ProjectId" ngModel>
-      <label for="pHouse">House</label>
-      <select class="form-control" id="pHouse" name="pHouse" [(ngModel)]="houseArr" multiple>
-        <option *ngFor="let house of houses" [value]="house">{{ house }}</option>
-      </select>
+    }
+    @if (selectedTable===tableNames.Projects) {
       <div class="row">
-        <button class="btn btn-primary col-md-2" type="button"
-        (click)="filterProjects(false)">Query Projects</button>
+        <label for="pmindate">MinDate</label>
+        <input type="date" name="pmindate" id="pmindate" [(ngModel)]="projectQ.StartDt" ngModel>
+        <label for="pmaxdate">MaxDate</label>
+        <input type="date" name="pmaxdate" id="pmaxdate" [(ngModel)]="maxDate" ngModel>
+        <label for="pDesc">Description</label>
+        <input type="text" name="pDesc" id="pDesc" [(ngModel)]="projectQ.Description" ngModel>
+        <label for="projid">Project ID</label>
+        <input type="text" name="projid" id="projid" [(ngModel)]="projectQ.ProjectId" ngModel>
+        <label for="pHouse">House</label>
+        <select class="form-control" id="pHouse" name="pHouse" [(ngModel)]="houseArr" multiple>
+          @for (house of houses; track house) {
+            <option [value]="house">{{ house }}</option>
+          }
+        </select>
+        <div class="row">
+          <button class="btn btn-primary col-md-2" type="button"
+          (click)="filterProjects(false)">Query Projects</button>
+        </div>
+        Project Rows: {{ filtProj.length }}
+        @for (proj of filtProj; track proj) {
+          <div class="row col-md-12">
+            {{ proj.StartDt }} to {{ proj.EndDt }} {{ proj.Description }} {{ proj.House }}
+            ID: {{ proj.ProjectId }}
+          </div>
+        }
       </div>
-      Project Rows: {{ filtProj.length }}
-      <div class="row col-md-12" *ngFor="let proj of filtProj">
-        {{ proj.StartDt }} to {{ proj.EndDt }} {{ proj.Description }} {{ proj.House }}
-          ID: {{ proj.ProjectId }}
-      </div>
-    </div>
-    <div class="row" *ngIf="selectedTable===tableNames.Reconciliations">
-      <label for="rmindate">MinDate</label>
-      <input type="date" name="rmindate" id="rmindate" [(ngModel)]="reconQ.StartDt" ngModel>
-      <label for="rmaxdate">MaxDate</label>
-      <input type="date" name="rmaxdate" id="rmaxdate" [(ngModel)]="maxDate" ngModel>
-      <label for="racctList">Account</label>
-      <select class="form-control" id="racctList" name="racctList" [(ngModel)]="accountArr"
-        multiple>
-        <option *ngFor="let account of accounts" [value]="account.RKey">{{ account.RKey }}</option>
-      </select>
-      <label for="reconID">Recon ID</label>
-      <input type="text" name="reconID" id="reconID" [(ngModel)]="reconQ.ReconKey" ngModel>
+    }
+    @if (selectedTable===tableNames.Reconciliations) {
       <div class="row">
-        <button class="btn btn-primary col-md-2" type="button"
-        (click)="filterReconciliations(false)">Query Reconciliations</button>
+        <label for="rmindate">MinDate</label>
+        <input type="date" name="rmindate" id="rmindate" [(ngModel)]="reconQ.StartDt" ngModel>
+        <label for="rmaxdate">MaxDate</label>
+        <input type="date" name="rmaxdate" id="rmaxdate" [(ngModel)]="maxDate" ngModel>
+        <label for="racctList">Account</label>
+        <select class="form-control" id="racctList" name="racctList" [(ngModel)]="accountArr"
+          multiple>
+          @for (account of accounts; track account) {
+            <option [value]="account.RKey">{{ account.RKey }}</option>
+          }
+        </select>
+        <label for="reconID">Recon ID</label>
+        <input type="text" name="reconID" id="reconID" [(ngModel)]="reconQ.ReconKey" ngModel>
+        <div class="row">
+          <button class="btn btn-primary col-md-2" type="button"
+          (click)="filterReconciliations(false)">Query Reconciliations</button>
+        </div>
+        Reconciliation Rows: {{ filtRecon.length }}
+        @for (recon of filtRecon; track recon) {
+          <div class="row col-md-12">
+            {{ recon.StartDt }} to {{ recon.EndDt }} {{ recon.Account }} EndBal: {{ recon.EndBal }}
+            Begin: {{ recon.BeginBal }}  Delta: {{ recon.DeltaAmt }}  Credits: {{ recon.TotalCredits}}
+            Debits: {{ recon.TotalDebits }}  ID: {{ recon.ReconKey }}
+          </div>
+        }
       </div>
-      Reconciliation Rows: {{ filtRecon.length }}
-      <div class="row col-md-12" *ngFor="let recon of filtRecon">
-        {{ recon.StartDt }} to {{ recon.EndDt }} {{ recon.Account }} EndBal: {{ recon.EndBal }}
-          Begin: {{ recon.BeginBal }}  Delta: {{ recon.DeltaAmt }}  Credits: {{ recon.TotalCredits}}
-          Debits: {{ recon.TotalDebits }}  ID: {{ recon.ReconKey }}
-      </div>
-    </div>
+    }
     <div> {{ statusMsg }} </div>
   </div>
 </div>
