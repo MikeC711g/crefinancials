@@ -1,11 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { House } from './../../models/house.model';
 import { KeyVal } from './../../models/globals.model';
 import { Project } from './../../models/project.model';
 import { GenutilsService } from './../../services/genutils.service';
+import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-transrch',
+  standalone: true,
+  imports: [FormsModule, NgFor],
   templateUrl: './transrch.component.html',
   styleUrls: ['./transrch.component.css']
 })

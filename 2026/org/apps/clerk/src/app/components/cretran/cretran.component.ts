@@ -1,6 +1,8 @@
 import { FirebaseService } from './../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
+import { AsyncPipe } from '@angular/common';
 import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef} from '@angular/core';
-import { Subscription, Subject } from 'rxjs';
+import { Subscription, Subject, BehaviorSubject } from 'rxjs';
 import { TranRec, TranQ } from './../../models/TranRec.model';
 import { Project } from '../../models/project.model';
 import { QfxService } from './../../services/qfx.service';
@@ -10,9 +12,16 @@ import { DeactivatableComponent } from './../../interfaces/deactivatableComponen
 import { House, Mortgage } from './../../models/house.model';
 import { RuleData } from '../../models/ruledata.model';
 import { NavigationEnd, Router } from '@angular/router';
+import { CremessagesComponent } from '../cremessages/cremessages.component';
+import { CretranallComponent } from '../cretranall/cretranall.component';
+import { DateselComponent } from '../datesel/datesel.component';
+import { TransrchComponent } from '../transrch/transrch.component';
 
 @Component({
   selector: 'app-cretran',
+  standalone: true,
+  imports: [CremessagesComponent, CretranallComponent, DateselComponent, TransrchComponent, FormsModule,
+    AsyncPipe ],
   templateUrl: './cretran.component.html',
   styleUrls: ['./cretran.component.css']
 })
@@ -33,7 +42,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   creditTranRecs: TranRec[] = new Array<TranRec>() ;
   debitTotals = 0.0 ;  creditTotals = 0.0 ;
   expandDebits = false ;    expandCredits = false ;
-  completeActions = 0 ;   haveData = false ;
+  completeActions = 0 ;   globalsLoaded$ = new BehaviorSubject<boolean>(false) ;
   dateOpts: KeyVal[] = [ new KeyVal('30 days', '30'), new KeyVal('90 days', '90'),
     new KeyVal('6 months', '180'), new KeyVal('Custom Dates', '-1')]
   numDays = -1 ;  startDt = '' ;  endDt = '' ; // Current query parms
@@ -42,7 +51,6 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   newRow = false ;  // Are we inserting a new row
   dispMsgs: string[] = new Array<string>() ;
   project$: Subscription = new Subscription() ;
-  global$: Subject<Globals[]> = new Subject() ;
   tran$: Subscription = new Subscription() ;
   action$: Subscription = new Subscription() ;
   advancedSrch = { isOn: false } ;    // Advanced data base query or not
@@ -65,10 +73,10 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   }
 
   ngOnInit(): void {
-    this.haveData = false ;
     const curDt = new Date() ;
     this.endDt = curDt.toISOString().slice(0, 10)
     this.startDt = this.utilSvc.getDate(curDt, -45) ;
+    console.log(`creTran nginit Action: ${this.action}`) ;
     this.onRefreshParms(this.startDt, this.endDt) ;
     const dirtyTranLen = this.utilSvc.dirtyTrans.length ;
     if (dirtyTranLen > 0) this.utilSvc.dirtyTrans.splice(0, dirtyTranLen)
@@ -92,14 +100,12 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     const globRtn = this.fireSvc.getGlobals(false) ;
     if (Array.isArray(globRtn)) {
       this.globalLoad() ;
-      this.haveData = true ;
     } else {
       globRtn.subscribe({
         next: (globals) => {
           const globArr = globals as Globals[] ;
           this.fireSvc.setGlobals(globArr) ;
           this.globalLoad() ;
-          this.haveData = true ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
         }
@@ -112,8 +118,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     } else {
       houseRtn$.subscribe({
         next: (response) => {
-          this.houses = response ;
-          this.fireSvc.setHouses(this.houses) ;
+          this.houses = this.fireSvc.setHouses(response) ;
           this.utilSvc.cDebug(this.CLASSNAME, 'Got %d houses', this.houses.length) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'HouseErr..FireService: %s', error) ;
@@ -141,7 +146,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     } else {
       mortgageRtn$.subscribe({
         next: (response) => {
-          this.fireSvc.setMortgages(response) ;
+          this.mortgages = this.fireSvc.setMortgages(response) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'MortgageErr..FireService: %s', error) ;
         }
@@ -176,6 +181,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     this.utilSvc.loadCategoryTaxcat(this.categoryTaxcat) ;    // Give util Svc this array
     this.taxCats = this.fireSvc.getTaxCats() ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Accounts: %O', this.accounts) ;
+    this.globalsLoaded$.next(true) ;   // Notify that globals are loaded
   }
 
   multiSelAll() {   // action on option did not work well, so onto select
@@ -387,7 +393,6 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
   *****************************************************************************/
   ngOnDestroy() {
     this.project$.unsubscribe() ;
-    this.global$.unsubscribe() ;
     this.action$.unsubscribe() ;
     this.tran$.unsubscribe() ;
     const dirtyTranLen = this.utilSvc.dirtyTrans.length ;

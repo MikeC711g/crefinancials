@@ -197,16 +197,19 @@ export class FirebaseService {
     return resident$;
   }
 
-  setHouses(houses: House[]) {
+  setHouses(houses: House[]): House[] {
     this.houses = houses.sort((a, b) => a.name.localeCompare(b.name)) ;
+    return this.houses ;
   }
 
-  setLeases(leases: Lease[]) {
+  setLeases(leases: Lease[]): Lease[] {
     this.leases = leases.sort((a, b) => a.House.localeCompare(b.House)) ;
+    return this.leases ;
   }
 
-  setResidents(residents: Resident[]) {
+  setResidents(residents: Resident[]): Resident[] {
     this.residents = residents.sort((a, b) => a.LName.localeCompare(b.LName)) ;
+    return this.residents ;
   }
 
   getTranRuleDB(): Observable<RuleData[]> | RuleData[] {
@@ -890,8 +893,9 @@ export class FirebaseService {
     return this.tranRules ;
   }
 
-  setMortgages(mortgages: Mortgage[]) {
+  setMortgages(mortgages: Mortgage[]): Mortgage[] {
     this.mortgages = mortgages ;
     this.utilSvc.setMortgages(mortgages) ;
+    return this.mortgages
   }
 }

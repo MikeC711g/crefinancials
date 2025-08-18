@@ -19,6 +19,8 @@ interface HouseProj {
 
 @Component({
   selector: 'app-exp2projreport',
+  standalone: true,
+  imports: [],
   templateUrl: './exp2projreport.component.html',
   styleUrl: './exp2projreport.component.css'
 })

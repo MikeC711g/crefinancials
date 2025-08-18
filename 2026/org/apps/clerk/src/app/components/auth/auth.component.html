@@ -8,69 +8,75 @@
           #email="ngModel" [disabled]="guiMode === 'Change Password'" [(ngModel)]="eMail">
       </div>
       <div [hidden]="email.valid || !email.touched || guiMode === 'Change Password'"
-        class="alert alert-danger"> eMail is required </div>
-      <div class="form-group mt-5" *ngIf="'Change Password.Sign In'.includes(guiMode)">
-        <label for="oldPw" style="font-size: large;">Current Password</label>
-        <input type="password" id="oldPw" class="form-control" name="oldPw"
+      class="alert alert-danger"> eMail is required </div>
+      @if ('Change Password.Sign In'.includes(guiMode)) {
+        <div class="form-group mt-5">
+          <label for="oldPw" style="font-size: large;">Current Password</label>
+          <input type="password" id="oldPw" class="form-control" name="oldPw"
             required minlength="8" autocomplete="current-password" ngModel
             style="font-size: large;" data-cy="auth-oldPw">
-        <input type="checkbox" (click)="pwVisible('oldPw')">Show Password
-      </div>
-      <div *ngIf="'Sign Up.Change Password'.includes(guiMode)">
-        <div class="form-group mt-5">
-          <label for="newPw" style="font-size: large;">New Password</label>
-          <input type="password" id="newPw" class="form-control" name="newPw"
+          <input type="checkbox" (click)="pwVisible('oldPw')">Show Password
+        </div>
+      }
+      @if ('Sign Up.Change Password'.includes(guiMode)) {
+        <div>
+          <div class="form-group mt-5">
+            <label for="newPw" style="font-size: large;">New Password</label>
+            <input type="password" id="newPw" class="form-control" name="newPw"
               required minlength="8" ngModel style="font-size: large;" data-cy="auth-newPw"
               (input)="validatePassword(authForm.value.newPw)">
-          <input type="checkbox" (click)="pwVisible('newPw')">Show Password
-        </div>
-        <div class="row">{{ npwMsg }} </div>
-        <div class="form-group mt-5">
-          <label for="confirmPw" style="font-size: large;">Confirm Password</label>
-          <input type="password" id="confirmPw" class="form-control" name="confirmPw"
+            <input type="checkbox" (click)="pwVisible('newPw')">Show Password
+          </div>
+          <div class="row">{{ npwMsg }} </div>
+          <div class="form-group mt-5">
+            <label for="confirmPw" style="font-size: large;">Confirm Password</label>
+            <input type="password" id="confirmPw" class="form-control" name="confirmPw"
               required minlength="8" ngModel style="font-size: large;" data-cy="auth-confirmPw"
               (input)="validatePassword(authForm.value.newPw, authForm.value.confirmPw)">
-          <input type="checkbox" (click)="pwVisible('confirmPw')">Show Password
+            <input type="checkbox" (click)="pwVisible('confirmPw')">Show Password
+          </div>
         </div>
-      </div>
+      }
       <div class="row">{{ cpwMsg }} </div>
-      <div *ngIf="guiMode === 'Sign Up'">
-        <div class="form-group">
-          <label for="dispName" style="font-size: large;">Display Name</label>
-          <input type="text" class="form-control" name="dispName" id="dispName" ngModel required
-            style="font-size: large;" data-cy="auth-dispName">
+      @if (guiMode === 'Sign Up') {
+        <div>
+          <div class="form-group">
+            <label for="dispName" style="font-size: large;">Display Name</label>
+            <input type="text" class="form-control" name="dispName" id="dispName" ngModel required
+              style="font-size: large;" data-cy="auth-dispName">
+          </div>
+          <div class="form-group">
+            <label for="compName" style="font-size: large;">Company Name</label>
+            <input type="text" class="form-control" name="compName" id="compName" ngModel required
+              style="font-size: large;" data-cy="auth-compName">
+          </div>
+          <div class="form-group">
+            <label for="phone" style="font-size: large;">Telephone</label>
+            <input type="tel" class="form-control" name="phone" id="phone" ngModel required
+              style="font-size: large" data-cy="auth-phone">
+          </div>
         </div>
-        <div class="form-group">
-          <label for="compName" style="font-size: large;">Company Name</label>
-          <input type="text" class="form-control" name="compName" id="compName" ngModel required
-            style="font-size: large;" data-cy="auth-compName">
-        </div>
-        <div class="form-group">
-          <label for="phone" style="font-size: large;">Telephone</label>
-          <input type="tel" class="form-control" name="phone" id="phone" ngModel required
-            style="font-size: large" data-cy="auth-phone">
-        </div>
-      </div>
+      }
       <div class="row form-group" [hidden]="'Sign In.Change Password'.includes(guiMode)">
         <a (click)="chgGuiMode('Sign In')" style="cursor:pointer;text-decoration: underline;color: navy"
           data-cy="auth-rtn2sign"><br><p>Return to default signIn Mode</p></a>
+        </div>
+        <div class="row form-group" [hidden]="'Reset Password.Change Password'.includes(guiMode)">
+          <a (click)="chgGuiMode('Reset Password')" style="cursor:pointer;text-decoration: underline;color: navy"
+            data-cy="auth-resetpw"> <br><p>Forgot password (or reset/change password)</p></a>
+          </div>
+          <div class="row form-group" [hidden]="'Sign Up.Change Password'.includes(guiMode)">
+            <a (click)="chgGuiMode('Sign Up')" style="cursor:pointer;text-decoration: underline;color: navy"
+              data-cy="auth-signup"> <p>Sign Up to join the CLERK community</p></a>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <app-cremessages [dispMsgs]="dispMsgs"
+            (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+          </div>
+          <div class="offset-8 col-6 mt-4">
+            <button type="submit" class="btn btn-warning btn-lg btn3d" data-cy="auth-submit"
+            [disabled]="!authForm.valid || !npwValid || !cpwValid">{{ guiMode }}</button>
+          </div>
+        </form>
       </div>
-      <div class="row form-group" [hidden]="'Reset Password.Change Password'.includes(guiMode)">
-        <a (click)="chgGuiMode('Reset Password')" style="cursor:pointer;text-decoration: underline;color: navy"
-          data-cy="auth-resetpw"> <br><p>Forgot password (or reset/change password)</p></a>
-      </div>
-      <div class="row form-group" [hidden]="'Sign Up.Change Password'.includes(guiMode)">
-        <a (click)="chgGuiMode('Sign Up')" style="cursor:pointer;text-decoration: underline;color: navy"
-          data-cy="auth-signup"> <p>Sign Up to join the CLERK community</p></a>
-      </div>
-    </div>
-    <div class="col-md-12">
-      <app-cremessages [dispMsgs]="dispMsgs"
-      (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
-    </div>
-    <div class="offset-8 col-6 mt-4">
-      <button type="submit" class="btn btn-warning btn-lg btn3d" data-cy="auth-submit"
-        [disabled]="!authForm.valid || !npwValid || !cpwValid">{{ guiMode }}</button>
-    </div>
-  </form>
-</div>

@@ -1,9 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-admlogging',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './admlogging.component.html',
   styleUrls: ['./admlogging.component.css']
 })

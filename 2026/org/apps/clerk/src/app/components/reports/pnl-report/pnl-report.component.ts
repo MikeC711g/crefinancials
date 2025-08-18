@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { KeyValuePipe } from '@angular/common';
 import { TranRec } from './../../../models/TranRec.model';
 // import { FirebaseService } from '../../../services/firebase.service';
 import { GenutilsService } from './../../../services/genutils.service';
@@ -19,6 +20,9 @@ interface MapVal {    // Aggregate categories and keep totals
 
 @Component({
   selector: 'app-pnl-report',
+  standalone: true,
+  imports: [KeyValuePipe],
+  providers: [GenutilsService],
   templateUrl: './pnl-report.component.html',
   styleUrl: './pnl-report.component.css'
 })

@@ -1,7 +1,11 @@
 import { FirebaseService } from './../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
 import { MsgInfo } from './../../models/globals.model'
 import { Project } from './../../models/project.model';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { DateselComponent } from '../datesel/datesel.component';
+import { CremessagesComponent } from '../cremessages/cremessages.component';
+import { CreprojecteditComponent } from './creprojectedit/creprojectedit.component';
 import { Subscription } from 'rxjs';
 import { GenutilsService } from './../..//services/genutils.service';
 // import { GenutilsService } from 'src/app/services/genutils.service';
@@ -12,6 +16,8 @@ import { House } from '../../models/house.model';
 
 @Component({
   selector: 'app-creprojects',
+  standalone: true,
+  imports: [DateselComponent, CremessagesComponent, CreprojecteditComponent, FormsModule],
   templateUrl: './creprojects.component.html',
   styleUrls: ['./creprojects.component.css']
 })

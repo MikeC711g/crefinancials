@@ -3,19 +3,23 @@
   <select class="form-control" id="dateInterval" name="dateInterval"
     [(ngModel)]="dateIntvl" (change)="runFixedIntvl()" data-cy="cds-dateInterval">
     <option [value]="'0'" [selected]="dateIntvl === '0'">-- select an option --</option>
-    <option *ngFor="let intrvlVal of dateOpts" [value]="intrvlVal.RVal"
+    @for (intrvlVal of dateOpts; track intrvlVal) {
+      <option [value]="intrvlVal.RVal"
       [selected]="intrvlVal.RVal === dateIntvl">{{ intrvlVal.RKey }}</option>
+    }
   </select>
 </div>
-<div *ngIf="dateIntvl === '-1'">
+@if (dateIntvl === '-1') {
   <div>
-    <label for="startDate">{{ title }} Start Date&nbsp;&nbsp;</label>
-    <input type="date" id="startDate" name="startDate" [(ngModel)]="startDt"
-      (change)="runDates(false)" data-cy="cds-startDt" />
+    <div>
+      <label for="startDate">{{ title }} Start Date&nbsp;&nbsp;</label>
+      <input type="date" id="startDate" name="startDate" [(ngModel)]="startDt"
+        (change)="runDates(false)" data-cy="cds-startDt" />
+    </div>
+    <div>
+      <label for="endDate">{{ title }} End Date&nbsp;&nbsp;</label>
+      <input type="date" id="endDate" name="endDate" [(ngModel)]="endDt"
+        (change)="runDates(false)" data-cy="cds-endDt" />
+    </div>
   </div>
-  <div>
-    <label for="endDate">{{ title }} End Date&nbsp;&nbsp;</label>
-    <input type="date" id="endDate" name="endDate" [(ngModel)]="endDt"
-    (change)="runDates(false)" data-cy="cds-endDt" />
-  </div>
-</div>
+}

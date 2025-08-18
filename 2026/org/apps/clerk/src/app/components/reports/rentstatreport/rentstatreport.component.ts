@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranRec } from '../../../models/TranRec.model';
 import { GenutilsService } from '../../../services/genutils.service';
 
@@ -9,6 +10,8 @@ interface TranRunningTot {
 
 @Component({
   selector: 'app-rentstatreport',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './rentstatreport.component.html',
   styleUrl: './rentstatreport.component.css'
 })

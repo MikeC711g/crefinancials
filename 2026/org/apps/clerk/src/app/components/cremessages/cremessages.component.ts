@@ -1,8 +1,9 @@
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-cremessages',
+  standalone: true,
+  imports: [],
   templateUrl: './cremessages.component.html',
   styleUrls: ['./cremessages.component.css']
 })

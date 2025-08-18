@@ -1,9 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../../services/genutils.service';
 import { House, Mortgage } from '../../../models/house.model';
 
 @Component({
   selector: 'app-admmortgage',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './admmortgage.component.html',
   styleUrl: './admmortgage.component.css'
 })

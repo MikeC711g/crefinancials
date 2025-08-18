@@ -1,9 +1,16 @@
 import { Reconciliations } from './../../models/reconciliations.model';
+import { FormsModule } from '@angular/forms';
 import { Project } from './../../models/project.model';
 import { TranRec, TranQ } from './../../models/TranRec.model';
 import { FirebaseService } from '../../services/firebase.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Globals, KeyVal } from './../../models/globals.model';
+import { DateselComponent } from '../datesel/datesel.component';
+import { PnlReportComponent } from './pnl-report/pnl-report.component';
+import { Exp2projreportComponent } from './exp2projreport/exp2projreport.component';
+import { RentstatreportComponent } from './rentstatreport/rentstatreport.component';
+import { TransrchComponent } from '../transrch/transrch.component';
+import { CremessagesComponent } from '../cremessages/cremessages.component';
 import { House, Mortgage } from './../../models/house.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
@@ -23,6 +30,9 @@ interface RptInfo {   // Data for the running of each report
 
 @Component({
   selector: 'app-reports',
+  standalone: true,
+  imports: [DateselComponent, PnlReportComponent, Exp2projreportComponent,
+    RentstatreportComponent, TransrchComponent, CremessagesComponent, FormsModule],
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']
 })
@@ -364,8 +374,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     } else {
       houseRtn.subscribe({
         next: (houseRecs) => {
-          this.houses = houseRecs ;
-          this.fireSvc.setHouses(this.houses) ;
+          this.houses = this.fireSvc.setHouses(houseRecs) ;
           this.reportReady = true ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses for HouseDump err: %s: ', error)
@@ -543,8 +552,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     } else {
       houseRtn.subscribe({
         next: (houses) => {
-          this.houses = houses ;
-          this.fireSvc.setHouses(this.houses) ;
+          this.houses = this.fireSvc.setHouses(houses) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses: %s', error) ;
         }

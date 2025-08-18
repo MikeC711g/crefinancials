@@ -1,16 +1,29 @@
 import { FirebaseService } from './../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
+import { AsyncPipe } from '@angular/common';
 import { RuleData } from './../../models/ruledata.model';
 import { House, Lease, Mortgage, Resident } from './../../models/house.model';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { AdmhousesComponent } from './admhouses/admhouses.component';
+import { AdmkvComponent } from './admkv/admkv.component';
+import { AdmcategoryComponent } from './admcategory/admcategory.component';
+import { AdmruledataComponent } from './admruledata/admruledata.component';
+import { AdmleaseComponent } from './admlease/admlease.component';
+import { AdmresidentComponent } from './admresident/admresident.component';
+import { AdmmortgageComponent } from './admmortgage/admmortgage.component';
+import { AdmloggingComponent } from './admlogging/admlogging.component';
 import { GenutilsService } from './../../services/genutils.service';
 import { Globals, objwCid, KeyVal } from './../../models/globals.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { GlobalModsService } from './../../services/globalMods.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin',
+  standalone: true,
+  imports: [AdmhousesComponent, AdmkvComponent, AdmcategoryComponent, AdmruledataComponent, AdmleaseComponent, 
+    AdmresidentComponent, AdmmortgageComponent, AdmloggingComponent, FormsModule, AsyncPipe],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -37,7 +50,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   newRule = false ;  newHouse = false ;  newAccounts = false ;
   newTranTypes = false ;  newAccountTypes = false ;  newTaxCats = false ;
   statusMsg = '' ;
-  actionCounts = 0 ;  globalsLoaded = false
+  actionCounts = 0 ;  globalsLoaded$ = new Subject<boolean>() ;
   fbGlobals: Globals[] = new Array<Globals>() ;
   admTypes: string[] = [] ;  action$: Subscription = new Subscription() ;
   cid = 'noCid' ;     noGid = 'noGid' ;
@@ -61,7 +74,6 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
 
   ngOnInit(): void {
     this.logLevels = Object.values(this.utilSvc.msgLvls) ;
-    this.globalsLoaded = false ;
     const admTypes = Object.values(this.utilSvc.globalTypes) ;
     this.admTypes = admTypes.filter((admTp) => !this.utilSvc.noAdminGlobalTypes.includes(admTp)) ;
     this.cid = this.fireSvc.getCid() ;
@@ -100,8 +112,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     } else {
       const house$ = houseRtn.subscribe({
         next: (houses) => {
-          this.houses = houses as House[] ;
-          this.fireSvc.setHouses(this.houses) ;
+          this.houses = this.fireSvc.setHouses(houses as House[]) ;
           console.log('admin houses thru subscribe: ', this.houses)
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving houses: ', error) ;
@@ -116,8 +127,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     } else {
       const mortgage$ = mortgageRtn.subscribe({
         next: (mortgages) => {
-          this.mortgages = mortgages as Mortgage[] ;
-          this.fireSvc.setMortgages(this.mortgages) ;
+          this.mortgages = this.fireSvc.setMortgages(mortgages as Mortgage[]) ;
           console.log('admin mortgages thru subscribe: ', this.mortgages)
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving mortgages: ', error) ;
@@ -131,8 +141,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     } else {
       const lease$ = leaseRtn.subscribe({
         next: (leases) => {
-          this.leases = leases as Lease[] ;
-          this.fireSvc.setLeases(this.leases) ;
+          this.leases = this.fireSvc.setLeases(leases as Lease[]) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving leases: ', error) ;
         }
@@ -145,8 +154,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     } else {
       const resident$ = residentRtn.subscribe({
         next: (residents) => {
-          this.residents = residents as Resident[] ;
-          this.fireSvc.setResidents(this.residents) ;
+          this.residents = this.fireSvc.setResidents(residents as Resident[]) ;
         }, error: (error) => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving residents: ', error) ;
         }
@@ -163,7 +171,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
     this.categoryFolders = this.fireSvc.getCategoryFolders() ;
     this.loadLogging() ;    // Retrieve logging info
-    this.globalsLoaded = true
+    this.globalsLoaded$.next(true) ;   // Notify that globals are loaded
   }
 
   onLogMod(className: string, level: string): void {
@@ -205,23 +213,28 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
       case this.utilSvc.globalTypes.RuleData:
         anyArr = this.tranRules ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
-          oldVal, anyArr) ;  break ;
+          oldVal, anyArr) ;
+        this.tranRules = this.fireSvc.setTranRules(this.tranRules)  ; break ;
       case this.utilSvc.globalTypes.Houses:
         anyArr = this.houses ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
-          oldVal, anyArr) ;  break ;
+          oldVal, anyArr) ;
+        this.houses = this.fireSvc.setHouses(this.houses);  break ;
       case this.utilSvc.globalTypes.Mortgages:
         anyArr = this.mortgages ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
-          oldVal, anyArr) ;  break ;
+          oldVal, anyArr) ;
+        this.mortgages = this.fireSvc.setMortgages(this.mortgages) ;  break ;
       case this.utilSvc.globalTypes.Leases:
         anyArr = this.leases ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
-          oldVal, anyArr) ;  break ;
+          oldVal, anyArr) ;
+        this.leases = this.fireSvc.setLeases(this.leases);  break ;
       case this.utilSvc.globalTypes.Residents:
         anyArr = this.residents ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
-          oldVal, anyArr) ;  break ;
+          oldVal, anyArr) ;
+        this.residents = this.fireSvc.setResidents(this.residents) ;  break ;
       default:
         this.utilSvc.cWarn(this.CLASSNAME, 'Invalid parm type: %O', newVal) ;
     }

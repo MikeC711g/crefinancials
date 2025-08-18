@@ -1,10 +1,12 @@
 import { GenutilsService } from './../../../services/genutils.service';
-import { FirebaseService } from './../../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { KeyVal } from './../../../models/globals.model';
 
 @Component({
   selector: 'app-admkv',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './admkv.component.html',
   styleUrls: ['./admkv.component.css']
 })

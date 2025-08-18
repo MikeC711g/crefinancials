@@ -1,6 +1,9 @@
 import { FirebaseService } from './../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
 import { Reconciliations } from './../../models/reconciliations.model';
 import { Globals, MsgInfo, KeyVal } from './../../models/globals.model';
+import { CremessagesComponent } from '../cremessages/cremessages.component';
+import { CretranallComponent } from '../cretranall/cretranall.component';
 import { Subscription } from 'rxjs';
 import { TranRec, TranQ } from './../../models/TranRec.model';
 import { Project } from '../../models/project.model';
@@ -32,6 +35,8 @@ import { GenutilsService } from './../../services/genutils.service';
 
 @Component({
   selector: 'app-crerecon',
+  standalone: true,
+  imports: [CremessagesComponent, CretranallComponent, FormsModule],
   templateUrl: './crerecon.component.html',
   styleUrls: ['./crerecon.component.css']
 })

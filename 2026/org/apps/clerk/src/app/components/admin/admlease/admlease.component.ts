@@ -1,9 +1,12 @@
 import { Component, EventEmitter, OnInit, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../../services/genutils.service';
 import { House, Lease, Resident } from '../../../models/house.model';
 
 @Component({
   selector: 'app-admlease',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './admlease.component.html',
   styleUrl: './admlease.component.css'
 })

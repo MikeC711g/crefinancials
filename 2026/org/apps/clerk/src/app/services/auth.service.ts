@@ -24,7 +24,7 @@ export class AuthService {
 
   getCUser() { return this.cUser ; }
   setCUser(user: cUser) {  this.cUser = user ; }
-  getAuthUser(): User { return (this.aUser) ? this.aUser : this.auth.currentUser ; }
+  getAuthUser(): User { return (this.aUser) ? this.aUser : this.auth.currentUser! ; }
   setAuthuser(aUser: User) { this.aUser = aUser ; }
 
   doLogin(eMail: string, password: string): Promise<any> {

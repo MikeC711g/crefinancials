@@ -1,43 +1,57 @@
-<div class="row" *ngIf="!editMode">
-  <div class="col-md-3"> {{ kv.RKey }}      </div>
-  <div class="col-md-3"> {{ kv.RVal }}      </div>
-  <button class="btn btn-success btn-toggle col-md-2" type="button" data-cy="akv-edit"
+@if (!editMode) {
+  <div class="row">
+    <div class="col-md-3"> {{ kv.RKey }}      </div>
+    <div class="col-md-3"> {{ kv.RVal }}      </div>
+    <button class="btn btn-success btn-toggle col-md-2" type="button" data-cy="akv-edit"
     (click)="editMode = true"> Edit</button>
-  <button class="btn btn-danger col-md-2" type="button" data-cy="akv-delete"
+    <button class="btn btn-danger col-md-2" type="button" data-cy="akv-delete"
     (click)="onDeleteRecord()"> Delete</button>
-</div>
+  </div>
+}
 <p style="background-color: aqua;">{{ statusMsg }}</p>
-<div class="row" *ngIf="editMode">
-  <div class="col-md-6">
-    <div class="form-group">
-      <label for="parmKey">{{ keyLabel }}</label>
-      <input type="text" class="form-control" [(ngModel)]="kv.RKey" data-cy="akv-parmKey"
-        name="parmKey" id="parmKey" ngModel placeholder="{{ kv.RKey }}">
-      <div *ngIf="!isDomain && !isDomainKV">
-        <label for="parmVal">{{ valLabel }}</label>
-        <input type="text" class="form-control" [(ngModel)]="kv.RVal" data-cy="akv-parmVal"
-          name="parmVal" id="parmVal" ngModel placeholder="{{ kv.RVal }}">
-      </div>
-      <div *ngIf="isDomain">
-        <label for="pvDom">{{ valLabel }}</label>
-        <select class="form-control" id="pvDom" name="pvDom" [(ngModel)]="kv.RVal" data-cy="akv-pvDom">
-          <option [value]="''" [selected]="!kv.RVal">-- select an option --</option>
-          <option *ngFor="let domVal of valDomain" [value]="domVal">{{ domVal }}</option>
-        </select>
-      </div>
-      <div *ngIf="isDomainKV">
-        <label for="pvDomKV">{{ valLabel }}</label>
-        <select class="form-control" id="pvDomKV" name="pvDomKV" [(ngModel)]="kv.RVal"
-          data-cy="akv-pvDomKV">
-          <option [value]="''" [selected]="!kv.RVal">-- select an option --</option>
-          <option *ngFor="let domVal of valDomainKV" [value]="domVal.RKey">{{ domVal.RVal }}</option>
-        </select>
-      </div>
-      <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()"
+@if (editMode) {
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="parmKey">{{ keyLabel }}</label>
+        <input type="text" class="form-control" [(ngModel)]="kv.RKey" data-cy="akv-parmKey"
+          name="parmKey" id="parmKey" ngModel placeholder="{{ kv.RKey }}">
+        @if (!isDomain && !isDomainKV) {
+          <div>
+            <label for="parmVal">{{ valLabel }}</label>
+            <input type="text" class="form-control" [(ngModel)]="kv.RVal" data-cy="akv-parmVal"
+              name="parmVal" id="parmVal" ngModel placeholder="{{ kv.RVal }}">
+          </div>
+        }
+        @if (isDomain) {
+          <div>
+            <label for="pvDom">{{ valLabel }}</label>
+            <select class="form-control" id="pvDom" name="pvDom" [(ngModel)]="kv.RVal" data-cy="akv-pvDom">
+              <option [value]="''" [selected]="!kv.RVal">-- select an option --</option>
+              @for (domVal of valDomain; track domVal) {
+                <option [value]="domVal">{{ domVal }}</option>
+              }
+            </select>
+          </div>
+        }
+        @if (isDomainKV) {
+          <div>
+            <label for="pvDomKV">{{ valLabel }}</label>
+            <select class="form-control" id="pvDomKV" name="pvDomKV" [(ngModel)]="kv.RVal"
+              data-cy="akv-pvDomKV">
+              <option [value]="''" [selected]="!kv.RVal">-- select an option --</option>
+              @for (domVal of valDomainKV; track domVal) {
+                <option [value]="domVal.RKey">{{ domVal.RVal }}</option>
+              }
+            </select>
+          </div>
+        }
+        <button class="btn btn-success col-md-3" type="button" (click)="onAddRecord()"
         data-cy="akv-addRec">{{ newRow ? 'Add' : 'Update' }}</button>
-      <button class="btn btn-primary col-md-3" type="button" data-cy="akv-cancel"
-        (click)="onCancel()">
+        <button class="btn btn-primary col-md-3" type="button" data-cy="akv-cancel"
+          (click)="onCancel()">
         Cancel</button>
+      </div>
     </div>
   </div>
-</div>
+}

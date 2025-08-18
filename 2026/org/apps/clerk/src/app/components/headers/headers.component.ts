@@ -1,12 +1,15 @@
 import { FirebaseService } from './../../services/firebase.service';
+import { NgClass } from '@angular/common';
 import { AuthService } from './../../services/auth.service';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { GenutilsService } from './../../services/genutils.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { cUser } from '../../models/cUser.model';
 
 @Component({
   selector: 'app-headers',
+  standalone: true,
+  imports: [NgClass, RouterLink, RouterLinkActive],
   templateUrl: './headers.component.html',
   styleUrls: ['./headers.component.css']
 })

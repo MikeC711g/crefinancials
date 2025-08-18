@@ -1,9 +1,13 @@
 import { FirebaseService } from './../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
 import { Project } from '../../models/project.model';
 import { TranRec } from './../../models/TranRec.model';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GenutilsService } from './../../services/genutils.service';
+import { CreprojecteditComponent } from '../creprojects/creprojectedit/creprojectedit.component';
+import { AdmruledataComponent } from '../admin/admruledata/admruledata.component';
+import { CremessagesComponent } from '../cremessages/cremessages.component';
 import { KeyVal } from './../../models/globals.model';
 import { House } from './../../models/house.model';
 import { RuleData } from '../../models/ruledata.model';
@@ -11,6 +15,8 @@ import { GlobalModsService } from '../../services/globalMods.service';
 
 @Component({
   selector: 'app-cretranall',
+  standalone: true,
+  imports: [CreprojecteditComponent, AdmruledataComponent, CremessagesComponent, FormsModule],
   templateUrl: './cretranall.component.html',
   styleUrls: ['./cretranall.component.css']
 })

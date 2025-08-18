@@ -1,10 +1,12 @@
 import { GenutilsService } from './../../../services/genutils.service';
+import { FormsModule } from '@angular/forms';
 // import { FirebaseService } from './../../../services/firebase.service';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-adm1parm',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './adm1parm.component.html',
   styleUrls: ['./adm1parm.component.css']
 })

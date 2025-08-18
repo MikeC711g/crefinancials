@@ -1,4 +1,6 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { KeyValuePipe } from '@angular/common';
 import { KeyVal } from './../../../models/globals.model';
 import { FirebaseService } from './../../../services/firebase.service';
 import { GenutilsService } from './../../../services/genutils.service';
@@ -6,6 +8,8 @@ import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
   selector: 'app-admcategory',
+  standalone: true,
+  imports: [FormsModule, KeyValuePipe],
   templateUrl: './admcategory.component.html',
   styleUrls: ['./admcategory.component.css']
 })

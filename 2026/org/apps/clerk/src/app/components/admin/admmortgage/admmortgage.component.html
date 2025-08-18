@@ -1,44 +1,54 @@
-<div class="row" *ngIf="!editMode">
-  <div class="col-md-5"> {{ mortgage.house }}      </div>
-  <button class="btn btn-success btn-toggle col-md-2" type="button"
+@if (!editMode) {
+  <div class="row">
+    <div class="col-md-5"> {{ mortgage.house }}      </div>
+    <button class="btn btn-success btn-toggle col-md-2" type="button"
     (click)="editMode = true"> Edit</button>
-  <button class="btn btn-danger col-md-2" type="button"
+    <button class="btn btn-danger col-md-2" type="button"
     (click)="onDeleteRecord()"> Delete</button>
-</div>
+  </div>
+}
 <p style="background-color: aqua;">{{ statusMsg }}</p>
-<div class="row" *ngIf="editMode">
-  <div class="col-md-5">
-    <div class="form-group">
-      <div class="row" *ngIf="newRow">
-        <label for="house">House</label>
-        <select class="form-control" id="house" name="house" [(ngModel)]="mortgage.house" data-cy="amo-house">
-          <option [value]="''" [selected]="!mortgage.house"> -- select an option -- </option>
-          <option *ngFor="let house of houses" [value]="house.name">{{ house.name }}</option>
-        </select>
-        </div>
-      <div class="row" *ngIf="!newRow">{{ mortgage.house }} </div>
-      <label for="mortRate" title="ie: 5 for 5% annually">Mortgage Rate</label>
-      <input type="number" class="form-control" [(ngModel)]="mortgage.rate" name="mortRate" id="mortRate"
-        ngModel data-cy="amo-rate">
-      <label for="mortTerm" title="Number of years for mortgage (30/15/10/..)">Mortgage Term</label>
-      <input type="number" class="form-control" [(ngModel)]="mortgage.lterm" name="mortTerm" id="mortTerm"
-        ngModel data-cy="amo-term">
-      <label for="mortPmt" title="Amount paid monthly (including escrow and extra principal)">Mortgage Payment (monthly)</label>
-      <input type="number" class="form-control" [(ngModel)]="mortgage.lpmt" name="mortPmt" id="mortPmt"
-        ngModel data-cy="amo-pmt">
-      <label for="balYr" title="Year of a known balance (ie: after disrupting events)">Year of Ref Balance</label>
-      <input type="number" class="form-control" [(ngModel)]="mortgage.balYr" name="balYr" id="balYr"
-        ngModel data-cy="amo-balYr  ">
-      <label for="balMonth" title="Month of a known balance (ie: after disrupting events)">Month of Ref Balance</label>
-      <input type="number" class="form-control" [(ngModel)]="mortgage.balMth" name="balMth" id="balMth"
-        ngModel data-cy="amo-balMth">
-      <label for="curBal" title="Balance on the reference date">Balance on Ref Date</label>
-      <input type="number" class="form-control" [(ngModel)]="mortgage.cBal" name="curBal" id="curBal"
-        ngModel data-cy="amo-curBal">
-      <button class="btn btn-success col-md-3" type="button" data-cy="amo-add" (click)="onAddRecord()">
+@if (editMode) {
+  <div class="row">
+    <div class="col-md-5">
+      <div class="form-group">
+        @if (newRow) {
+          <div class="row">
+            <label for="house">House</label>
+            <select class="form-control" id="house" name="house" [(ngModel)]="mortgage.house" data-cy="amo-house">
+              <option [value]="''" [selected]="!mortgage.house"> -- select an option -- </option>
+              @for (house of houses; track house) {
+                <option [value]="house.name">{{ house.name }}</option>
+              }
+            </select>
+          </div>
+        }
+        @if (!newRow) {
+          <div class="row">{{ mortgage.house }} </div>
+        }
+        <label for="mortRate" title="ie: 5 for 5% annually">Mortgage Rate</label>
+        <input type="number" class="form-control" [(ngModel)]="mortgage.rate" name="mortRate" id="mortRate"
+          ngModel data-cy="amo-rate">
+        <label for="mortTerm" title="Number of years for mortgage (30/15/10/..)">Mortgage Term</label>
+        <input type="number" class="form-control" [(ngModel)]="mortgage.lterm" name="mortTerm" id="mortTerm"
+          ngModel data-cy="amo-term">
+        <label for="mortPmt" title="Amount paid monthly (including escrow and extra principal)">Mortgage Payment (monthly)</label>
+        <input type="number" class="form-control" [(ngModel)]="mortgage.lpmt" name="mortPmt" id="mortPmt"
+          ngModel data-cy="amo-pmt">
+        <label for="balYr" title="Year of a known balance (ie: after disrupting events)">Year of Ref Balance</label>
+        <input type="number" class="form-control" [(ngModel)]="mortgage.balYr" name="balYr" id="balYr"
+          ngModel data-cy="amo-balYr  ">
+        <label for="balMonth" title="Month of a known balance (ie: after disrupting events)">Month of Ref Balance</label>
+        <input type="number" class="form-control" [(ngModel)]="mortgage.balMth" name="balMth" id="balMth"
+          ngModel data-cy="amo-balMth">
+        <label for="curBal" title="Balance on the reference date">Balance on Ref Date</label>
+        <input type="number" class="form-control" [(ngModel)]="mortgage.cBal" name="curBal" id="curBal"
+          ngModel data-cy="amo-curBal">
+        <button class="btn btn-success col-md-3" type="button" data-cy="amo-add" (click)="onAddRecord()">
         {{ newRow ? 'Add' : 'Update' }}</button>
-      <button class="btn btn-primary col-md-3" type="button" data-cy="amo-cancel"
+        <button class="btn btn-primary col-md-3" type="button" data-cy="amo-cancel"
         (click)="onCancel()">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
+}

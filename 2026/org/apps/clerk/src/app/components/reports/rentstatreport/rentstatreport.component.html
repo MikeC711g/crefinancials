@@ -8,7 +8,7 @@
             name="rentamt" id="rentamt" ngModel placeholder="1000" data-cy="crs-rentstat">
         </div>
       </div>
-     <div class="col-md-6">
+      <div class="col-md-6">
         <div class="form-group">
           <label for="rentdue">Rent Due Day of Month</label>
           <input type="number" class="form-control" [(ngModel)]="rentDue"
@@ -41,15 +41,19 @@
         </div>
       </div>
     </div>
-  <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subRpt">Rent Status</button>
+    <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subRpt">Rent Status</button>
   </form>
-  <div class="row" *ngIf="reportReady"> <hr>
-    <div class="justify-content-center"><h1>Rent Summary for House {{ rHouse }}</h1></div>
-    <div class="row" *ngFor="let curEvent of rentArr">
-      <div class="col-md-3">{{ curEvent.tranRec.TranDate }}</div>
-      <div class="col-md-3">{{ curEvent.tranRec.Category }}</div>
-      <div class="col-md-3">{{ curEvent.tranRec.Amount }}</div>
-      <div class="col-md-3">{{ curEvent.runTot }}</div>
+  @if (reportReady) {
+    <div class="row"> <hr>
+      <div class="justify-content-center"><h1>Rent Summary for House {{ rHouse }}</h1></div>
+      @for (curEvent of rentArr; track curEvent) {
+        <div class="row">
+          <div class="col-md-3">{{ curEvent.tranRec.TranDate }}</div>
+          <div class="col-md-3">{{ curEvent.tranRec.Category }}</div>
+          <div class="col-md-3">{{ curEvent.tranRec.Amount }}</div>
+          <div class="col-md-3">{{ curEvent.runTot }}</div>
+        </div>
+      }
     </div>
-  </div>
+  }
 </div>

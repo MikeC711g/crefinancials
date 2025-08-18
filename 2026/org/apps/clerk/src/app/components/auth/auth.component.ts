@@ -1,5 +1,6 @@
-import { NgForm } from '@angular/forms';
+import { NgForm, FormsModule } from '@angular/forms';
 import { AuthService } from './../../services/auth.service';
+import { CremessagesComponent } from '../cremessages/cremessages.component';
 import { AfterViewInit, Component, ElementRef } from '@angular/core';
 import { cUser, UserRec } from './../../models/cUser.model';
 import { NavigationEnd, Router } from '@angular/router';
@@ -9,9 +10,12 @@ import { Subscription } from 'rxjs';
 import { User, user } from '@angular/fire/auth';
 
 type GuiMode = 'Sign In' | 'Change Password' | 'Reset Password' | 'Sign Up' 
+const successorRt = '/trans/loadfile' ;  // Default route to go to after login
 
 @Component({
   selector: 'app-auth',
+  standalone: true,
+  imports: [CremessagesComponent, FormsModule],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
 })
@@ -77,7 +81,7 @@ export class AuthComponent implements  AfterViewInit {
   }
 
   loginProcess(eMail: string, password: string) {
-    console.log('LoginProc: eml: %s  pw: %s', eMail, password)
+    console.log('LoginProc: eMail: %s', eMail)
     this.authSvc.doLogin(eMail, password).then(rslt => {
       this.utilSvc.cDebug(this.CLASSNAME, 'login: %s', rslt.user.uid) ;
       this.curUser = rslt.user ;
@@ -96,7 +100,8 @@ export class AuthComponent implements  AfterViewInit {
             this.authSvc.user$.next(user) ;
             this.loginDelay = 2
             this.dispMsgs.push('You are now logged in') ;
-            this.router.navigate(['/trans/loadfile']) ;
+            console.log('About to navigate to %s', successorRt) ;
+            this.router.navigate([successorRt]) ;
           }
         } else {
           this.utilSvc.cWarn(this.CLASSNAME,'uid: %s not in Users collection', this.uid) ;
@@ -142,7 +147,7 @@ export class AuthComponent implements  AfterViewInit {
     console.log('changePw w/user: %O  eMl: %s  oldPw: %s  newPw: %s  cPw: %s', aUser, eMail, oldPw, newPw, confirmPw)
     this.authSvc.changePw(aUser, eMail, oldPw, newPw, confirmPw).then(() => {
       this.dispMsgs.push(`Successfully changed password for user: ${eMail}`)
-      this.router.navigate(['/trans/loadfile']) ;
+      this.router.navigate([successorRt]) ;
     }).catch(error => {
       this.dispMsgs.push(`Error ${error} occurred changing the password`)
       this.utilSvc.cWarn(this.CLASSNAME, 'Error changing pw: %s', error)

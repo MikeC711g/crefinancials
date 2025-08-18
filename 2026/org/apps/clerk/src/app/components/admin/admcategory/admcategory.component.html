@@ -2,59 +2,71 @@
   <div class="row">
     <div class="col-md-6">
       <form (ngSubmit)="onNewCatFolder()" #ncfForm="ngForm">
-        <button class="btn btn-success col-md-6" type="button" *ngIf="!addCategory"
+        @if (!addCategory) {
+          <button class="btn btn-success col-md-6" type="button"
           data-cy="acat-addCatFold" (click)="addCatFolder = true">Add a New Category Folder</button>
-        <div class="row" *ngIf="addCatFolder">
-          <label for="newcatfold">New Category Folder</label>
-          <input type="text" class="row form-control col-md-6" id="newcatfold" name="newcatfold"
-            [(ngModel)]="newCatFolder" required #catFold="ngModel" placeholder="New Category Folder"
-            data-cy="acat-newCatFold">
-          <div [hidden]="catFold.valid || !catFold.touched"
-            class="alert alert-danger" data-cy="acat-catInv"> Category Folder is required
-          </div>
-          <button class="btn btn-success col-md-3" type="submit" data-cy="acat-sub1"
+        }
+        @if (addCatFolder) {
+          <div class="row">
+            <label for="newcatfold">New Category Folder</label>
+            <input type="text" class="row form-control col-md-6" id="newcatfold" name="newcatfold"
+              [(ngModel)]="newCatFolder" required #catFold="ngModel" placeholder="New Category Folder"
+              data-cy="acat-newCatFold">
+            <div [hidden]="catFold.valid || !catFold.touched"
+              class="alert alert-danger" data-cy="acat-catInv"> Category Folder is required
+            </div>
+            <button class="btn btn-success col-md-3" type="submit" data-cy="acat-sub1"
             [disabled]="!ncfForm.valid" [disabled]="newCatFolder.length < 4">Add Category Folder</button>
-          <button class="btn btn-warning col-md-3" type="button" data-cy="acat-can1"
+            <button class="btn btn-warning col-md-3" type="button" data-cy="acat-can1"
             (click)="addCatFolder = false">Cancel</button>
-        </div>
+          </div>
+        }
       </form>
     </div>
     <div class="col-md-6">
       <form (ngSubmit)="onNewCat()" #ncForm="ngForm">
-        <button class="btn btn-success col-md-6" type="button" *ngIf="!addCategory"
+        @if (!addCategory) {
+          <button class="btn btn-success col-md-6" type="button"
           data-cy="acat-addCat" (click)="addCategory = true">Add a New Category</button>
-        <div class="row"  *ngIf="addCategory">
-          <label for="newcat">New Category</label>
-          <input type="text" class="row form-control col-md-6" id="newcat" name="newcat"
-            [(ngModel)]="newCategory" #newCat="ngModel" required data-cy="acat-newCat">
-          <div [hidden]="newCat.valid || !newCat.touched"
-            class="alert alert-danger" data-cy="acat-catInv"> Category is required
-          </div>
-          <label for="catFolder">Category Folder</label>
-          <select class="form-control" [(ngModel)]="curCatFolderKey" id="catFolder" name="catFolder"
-            required #catFold="ngModel" data-cy="acat-catfold">
-            <option *ngFor="let catFolder of categoryMap | keyvalue" [value]="catFolder.key">
-              {{ catFolder.key }}
-            </option>
-          </select>
-          <div [hidden]="catFold.valid || !catFold.touched"
-            class="alert alert-danger" data-cy="acat-catInv"> Category Folder selection is required
-          </div>
-          <label for="actaxcat">Tax Category</label>
-          <select class="form-control" id="actaxcat" name="actaxcat"
-            [(ngModel)]="curCategory.RVal" required data-cy="acat-ataxCat1" #taxCat="ngModel">
-            <option [value]="''" [selected]="!curCategory">-- select an option --</option>
-            <option *ngFor="let curTcDesc of taxCats" [value]="curTcDesc.RKey"
-              [selected]="curTcDesc.RKey === curCategory.RVal">{{ curTcDesc.RKey }}</option>
-          </select>
-          <div [hidden]="taxCat.valid || !taxCat.touched"
-            class="alert alert-danger" data-cy="acat-taxCatInv"> Tax Category selection is required
-          </div>
-          <button class="btn btn-success col-md-3" type="submit" data-cy="acat-sub2"
+        }
+        @if (addCategory) {
+          <div class="row" >
+            <label for="newcat">New Category</label>
+            <input type="text" class="row form-control col-md-6" id="newcat" name="newcat"
+              [(ngModel)]="newCategory" #newCat="ngModel" required data-cy="acat-newCat">
+            <div [hidden]="newCat.valid || !newCat.touched"
+              class="alert alert-danger" data-cy="acat-catInv"> Category is required
+            </div>
+            <label for="catFolder">Category Folder</label>
+            <select class="form-control" [(ngModel)]="curCatFolderKey" id="catFolder" name="catFolder"
+              required #catFold="ngModel" data-cy="acat-catfold">
+              @for (catFolder of categoryMap | keyvalue; track catFolder) {
+                <option [value]="catFolder.key">
+                  {{ catFolder.key }}
+                </option>
+              }
+            </select>
+            <div [hidden]="catFold.valid || !catFold.touched"
+              class="alert alert-danger" data-cy="acat-catInv"> Category Folder selection is required
+            </div>
+            <label for="actaxcat">Tax Category</label>
+            <select class="form-control" id="actaxcat" name="actaxcat"
+              [(ngModel)]="curCategory.RVal" required data-cy="acat-ataxCat1" #taxCat="ngModel">
+              <option [value]="''" [selected]="!curCategory">-- select an option --</option>
+              @for (curTcDesc of taxCats; track curTcDesc) {
+                <option [value]="curTcDesc.RKey"
+                [selected]="curTcDesc.RKey === curCategory.RVal">{{ curTcDesc.RKey }}</option>
+              }
+            </select>
+            <div [hidden]="taxCat.valid || !taxCat.touched"
+              class="alert alert-danger" data-cy="acat-taxCatInv"> Tax Category selection is required
+            </div>
+            <button class="btn btn-success col-md-3" type="submit" data-cy="acat-sub2"
             [disabled]="!ncForm.valid || newCategory.length < 4">Add Category</button>
-          <button class="btn btn-warning col-md-3" type="button" data-cy="ac-can2"
+            <button class="btn btn-warning col-md-3" type="button" data-cy="ac-can2"
             (click)="addCategory = false">Cancel</button>
-        </div>
+          </div>
+        }
       </form>
     </div>
   </div>
@@ -62,46 +74,56 @@
     <label for="category">Category list</label>
     <select class="form-control" [(ngModel)]="curCatKey" id="category" name="category"
       (change)="onSelect()" data-cy="acat-category">
-      <optgroup *ngFor="let catFolder of categoryMap | keyvalue"  label="{{catFolder.key}} (Folder)">
-        <option *ngFor="let category of catFolder.value" [value]="category.RKey">
-            {{ category.RKey }}
-        </option>
-      </optgroup>
+      @for (catFolder of categoryMap | keyvalue; track catFolder) {
+        <optgroup  label="{{catFolder.key}} (Folder)">
+          @for (category of catFolder.value; track category) {
+            <option [value]="category.RKey">
+              {{ category.RKey }}
+            </option>
+          }
+        </optgroup>
+      }
     </select>
   </div>
-  <div class="row col-md-12" *ngIf="curCategory.RKey !== ''">
-    <form (ngSubmit)="onUpdateCategory()" #categoryForm="ngForm">
-      <div class="row">
-        <div style="font-size: large;">  <b> Category: </b>  {{ curCatKey }}  </div>
-        <br><br>
-        <div class="row form-group">
-          <label for="catfold">Category Folder</label>
-          <select class="form-control" id="catfold"
-            [(ngModel)]="curCatFolderKey" data-cy="acat-catfold">
-            <option [value]="''" [selected]="!curCatFolder">-- select an option --</option>
-            <option *ngFor="let curFolder of categoryFolders" [value]="curFolder.RKey"
-              [selected]="curFolder.RKey === curCatFolder.RKey">{{ curFolder.RKey }}</option>
-          </select>
-        </div>
-        <br><br>
-        <div class="row form-group">
-          <label for="ectaxcat">Tax Category</label>
-          <select class="form-control" id="ectaxcat" name="ectaxcat"
+  @if (curCategory.RKey !== '') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="onUpdateCategory()" #categoryForm="ngForm">
+        <div class="row">
+          <div style="font-size: large;">  <b> Category: </b>  {{ curCatKey }}  </div>
+          <br><br>
+          <div class="row form-group">
+            <label for="catfold">Category Folder</label>
+            <select class="form-control" id="catfold"
+              [(ngModel)]="curCatFolderKey" data-cy="acat-catfold">
+              <option [value]="''" [selected]="!curCatFolder">-- select an option --</option>
+              @for (curFolder of categoryFolders; track curFolder) {
+                <option [value]="curFolder.RKey"
+                [selected]="curFolder.RKey === curCatFolder.RKey">{{ curFolder.RKey }}</option>
+              }
+            </select>
+          </div>
+          <br><br>
+          <div class="row form-group">
+            <label for="ectaxcat">Tax Category</label>
+            <select class="form-control" id="ectaxcat" name="ectaxcat"
               [(ngModel)]="curCategory.RVal" data-cy="acat-taxCat">
               <option [value]="''" [selected]="!curCategory">-- select an option --</option>
-              <option *ngFor="let curTcDesc of taxCats" [value]="curTcDesc.RKey"
+              @for (curTcDesc of taxCats; track curTcDesc) {
+                <option [value]="curTcDesc.RKey"
                 [selected]="curTcDesc.RKey === curCategory.RVal">{{ curTcDesc.RKey }}</option>
-          </select>
-        </div>
-        <div class="row">
-          <button class="btn btn-success col-md-3" type="submit" data-cy="acat-sub3"
+              }
+            </select>
+          </div>
+          <div class="row">
+            <button class="btn btn-success col-md-3" type="submit" data-cy="acat-sub3"
             [disabled]="curCatFolderKey === origCatFolder.RKey && curCatKey === origCategory.RKey &&
               curCategory.RVal === origCategory.RVal">Update</button>
-          <button class="btn btn-warning col-md-3" type="button" data-cy="acat-can3"
+            <button class="btn btn-warning col-md-3" type="button" data-cy="acat-can3"
             (click)="onClearSelect()">Cancel</button>
+          </div>
         </div>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
+  }
   {{ statusMsg }}
 </div>

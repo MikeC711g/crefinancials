@@ -1,9 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../services/genutils.service';
 import { KeyVal } from './../../models/globals.model';
 
 @Component({
   selector: 'app-datesel',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './datesel.component.html',
   styleUrls: ['./datesel.component.css']
 })

@@ -1,9 +1,12 @@
 import { House } from './../../../models/house.model';
+import { FormsModule } from '@angular/forms';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
   selector: 'app-admhouses',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './admhouses.component.html',
   styleUrls: ['./admhouses.component.css']
 })

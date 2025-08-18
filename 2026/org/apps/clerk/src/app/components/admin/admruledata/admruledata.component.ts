@@ -1,4 +1,5 @@
 import { FirebaseService } from './../../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
 import { RuleData } from './../../../models/ruledata.model';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { GenutilsService } from './../../../services/genutils.service';
@@ -7,6 +8,8 @@ import { House } from './../../../models/house.model';
 
 @Component({
   selector: 'app-admruledata',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './admruledata.component.html',
   styleUrls: ['./admruledata.component.css']
 })

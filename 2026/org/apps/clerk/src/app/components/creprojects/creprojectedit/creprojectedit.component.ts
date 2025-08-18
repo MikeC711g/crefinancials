@@ -1,14 +1,17 @@
 import { FirebaseService } from './../../../services/firebase.service';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { NgForm, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DeactivatableComponent } from './../../../interfaces/deactivatableComponent.interface';
 import { House } from './../../../models/house.model';
 import { Project } from './../../../models/project.model';
+import { CremessagesComponent } from '../../cremessages/cremessages.component';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
   selector: 'app-creprojectedit',
+  standalone: true,
+  imports: [CremessagesComponent, FormsModule],
   templateUrl: './creprojectedit.component.html',
   styleUrls: ['./creprojectedit.component.css']
 })
