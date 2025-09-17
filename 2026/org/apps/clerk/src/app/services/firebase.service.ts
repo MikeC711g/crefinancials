@@ -2,14 +2,14 @@ import { TranRec, TranQ } from './../models/TranRec.model';
 import { Reconciliations } from './../models/reconciliations.model';
 import { Project } from './../models/project.model';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
-import { first, map } from 'rxjs/operators';
+import { first, map, min } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Firestore, collectionData, collection, query, where, CollectionReference,
   QueryConstraint, limit, orderBy, addDoc, doc, updateDoc, deleteDoc, runTransaction,
   DocumentReference} from '@angular/fire/firestore';
 import { Globals, objwCid, KeyVal } from '../models/globals.model'
 import { RuleData } from '../models/ruledata.model';
-import { House, Lease, Mortgage, Resident } from '../models/house.model';
+import { BalAdjust, House, Lease, Mortgage, Resident } from '../models/house.model';
 import { GenutilsService } from './genutils.service';
 
 @Injectable({
@@ -36,8 +36,9 @@ export class FirebaseService {
   houses: House[] = new Array<House>() ;  houseLoadTime: number ;
   tranRules: RuleData[] = new Array<RuleData>() ;  ruleLoadTime: number ;
   mortgages: Mortgage[] = new Array<Mortgage>() ;  mortgageLoadTime: number ;
-  leases: Lease[] = new Array<Lease>() ;  leaseLoadTime: number ;
+  leases: Lease[] = new Array<Lease>() ;  leaseLoadTime: number ;  lastHouse = '' ;
   residents: Resident[] = new Array<Resident>() ; residentLoadTime: number ;
+  balAdj: BalAdjust[] = new Array<BalAdjust>() ;  balAdjLoadTime: number ;
   accounts: KeyVal[] = new Array<KeyVal>() ;
   authMillis = 0 ;
   accountTypes: string[] = new Array<string>() ;
@@ -67,7 +68,7 @@ export class FirebaseService {
     const expiredTStamp = new Date().getTime() - 86400000; // Set to 1 day ago (timed out)
     this.houseLoadTime = expiredTStamp ;    this.ruleLoadTime = expiredTStamp
     this.mortgageLoadTime = expiredTStamp ;  this.leaseLoadTime = expiredTStamp ;
-    this.residentLoadTime = expiredTStamp ;
+    this.residentLoadTime = expiredTStamp ;  this.balAdjLoadTime = expiredTStamp ;
     this.projLoc$ = this.project$.subscribe(proj => {
       const preLen = this.projects.length ;
       this.projects = proj ;
@@ -139,6 +140,9 @@ export class FirebaseService {
     return this.isGlobalAdmin ;
   }
 
+  /***********************************************************************************************
+   * Globals collection related functions                                                        *
+   **********************************************************************************************/
   /**
    * function getGlobals kicks off retrieve of globals from FB if needed.  A bit of chicanery
    * to avoid extra loads
@@ -165,73 +169,65 @@ export class FirebaseService {
     return this.global$
   }
 
-  getHouseDB(): Observable<House[]> | House[] {
-    if (this.houseLoadTime + 600000 > new Date().getTime()) return this.houses ;
-    this.updtTimeStmp();
-    const house$ = collectionData<House>(query(
-      collection(this.firestore, 'Houses') as CollectionReference<House>,
-      where('Cid', '==', this.cid)), {idField: 'HouseId'}).pipe(first()) ;
-    this.houseLoadTime = new Date().getTime() ;
-    return house$
+  /**
+   * retrieveGlobals function brings back full array (not separated by types)
+   * @returns full global array
+   */
+  retrieveGlobals() {
+    return this.fbGlobals ;
   }
 
-  getLeaseDB(house?: string): Observable<Lease[]> | Lease[] {
-    if (this.leaseLoadTime + 600000 > new Date().getTime()) return this.leases ;
-    this.updtTimeStmp();
-    const lease$ = collectionData<Lease>(query(
-      collection(this.firestore, 'Leases') as CollectionReference<Lease>,
-      where('Cid', '==', this.cid),
-      ...(house ? [where('HouseId', '==', house)] : [])
-    ), {idField: 'LeaseId'}).pipe(first()) ;
-    this.leaseLoadTime = new Date().getTime() ;
-    return lease$;
-  }
-
-  getResidentDB(): Observable<Resident[]> | Resident[] {
-    if (this.residentLoadTime + 600000 > new Date().getTime()) return this.residents ;
-    this.updtTimeStmp();
-    const resident$ = collectionData<Resident>(query(
-      collection(this.firestore, 'Residents') as CollectionReference<Resident>,
-      where('Cid', '==', this.cid)), {idField: 'ResidentId'}).pipe(first()) ;
-    this.residentLoadTime = new Date().getTime() ;
-    return resident$;
-  }
-
-  setHouses(houses: House[]): House[] {
-    this.houses = houses.sort((a, b) => a.name.localeCompare(b.name)) ;
-    return this.houses ;
-  }
-
-  setLeases(leases: Lease[]): Lease[] {
-    this.leases = leases.sort((a, b) => a.House.localeCompare(b.House)) ;
-    return this.leases ;
-  }
-
-  setResidents(residents: Resident[]): Resident[] {
-    this.residents = residents.sort((a, b) => a.LName.localeCompare(b.LName)) ;
-    return this.residents ;
-  }
-
-  getTranRuleDB(): Observable<RuleData[]> | RuleData[] {
-    if (this.ruleLoadTime + 600000 > new Date().getTime()) return this.tranRules ;
-    console.log('fb gtrdb Out to do firebase')
+  /**
+   * function addGlobal adds a document to the GlobalVars collection
+   * It is complex as there are numerous different record types for different global info
+   * @param {string} gType type of global row (ruledata, house, account, trantype, ...)
+   * @param {string} rVal value which can be a JSON object with numerous values
+   * @returns {Promise} based on add action to FB collection
+   */
+  addGlobal(globRow: Globals): Promise<any> {
     this.updtTimeStmp() ;
-    const tranRule$ = collectionData<RuleData>(query(
-      collection(this.firestore, this.tranRuleNm) as CollectionReference<RuleData>,
-      where('Cid', '==', this.cid)), {idField: 'RuleId'}).pipe(first())
-    this.ruleLoadTime = new Date().getTime() ;
-    return tranRule$
+    if (!globRow.RVal)  delete globRow.RVal ;
+    delete globRow.GlobalId ;
+    return addDoc(collection(this.firestore, this.globalsNm),
+      {  ...globRow }) ;
   }
 
-  getMortgageDB(): Observable<Mortgage[]> | Mortgage[] {
-    if (this.mortgageLoadTime + 600000 > new Date().getTime()) return this.mortgages ;
-    this.updtTimeStmp();
-    const mortgage$ = collectionData<Mortgage>(query(
-      collection(this.firestore, 'Mortgages') as CollectionReference<Mortgage>,
-      where('Cid', '==', this.cid)), {idField: 'MortgageId'}).pipe(first()) ;
-    this.mortgageLoadTime = new Date().getTime() ;
-    return mortgage$
+  /**
+   * function updateGlobal updates an existing document in the GlobalVars collection
+   * @param {string} rKey type of global document
+   * @param {any} oldGlob original document
+   * @param {any} newGlob new document
+   * @param {string} globalId FB document ID
+   * @returns {Promise} or {string}. string if error before call, promise if call is made
+   */
+  updateGlobal(rKey: string, oldGlob: Globals, newGlob: Globals, globalId: string): Promise<any> | string {
+    this.updtTimeStmp() ;
+    if (globalId === 'noGid') {
+      return 'Error updating '+ rKey + ' Failed to find Gid for ' + oldGlob ;
+    }
+    if (!newGlob.RVal)  delete newGlob.RVal ;
+    delete newGlob.GlobalId ;
+    const dbGlob = doc(this.firestore, this.globalsNm, globalId)
+    this.utilSvc.cDebug(this.CLASSNAME, 'Updating Global for key: %s  Val: %O ', globalId, newGlob ) ;
+    return updateDoc(dbGlob, { ...newGlob }) ;
   }
+
+  /**
+   * function deleteGlobal to remove a document from GlobalVars collection
+   * @param {string} rKey Type of global
+   * @param {any} rVal Value (core of document)
+   * @param {string} globalId document ID to delete
+   * @returns {string} or {Promise}. String if early error, Promise if FB call made
+   */
+  deleteGlobal(rKey: string, rVal: any, globalId: string): Promise<any> | string {
+    this.updtTimeStmp() ;
+    if (globalId === 'noGid') {
+      return 'Error deleting '+ rKey + ' Failed to find key for ' + rVal ;
+    }
+    const dbGlob = doc(this.firestore, this.globalsNm, globalId)
+    return deleteDoc( dbGlob ) ;
+  }
+
   /**
    * retrieveGlobals function brings back full array (not separated by types)
    * @returns full global array
@@ -244,13 +240,216 @@ export class FirebaseService {
   }
 
   /**
-   * retrieveGlobals function brings back full array (not separated by types)
-   * @returns full global array
+   * function getAccounts return KeyVal for each account (name and type)
+   * @returns {KeyVal[]} list of accounts
    */
-  retrieveGlobals() {
-    return this.fbGlobals ;
+  getAccounts(): KeyVal[] {
+    return this.accounts ;
   }
 
+  /**
+   * function getAcctTypes returns list of account types (from globals)
+   * @returns {string[]} list of account types
+   */
+  getAcctTypes(): string[] {
+    return this.accountTypes ;
+  }
+
+  /**
+   * function getTranTypes returns list of Transaction types (tied to OFX spec)
+   * @returns {string[]} list of transaction thypes
+   */
+  getTranTypes(): string[] {
+    return this.tranTypes ;
+  }
+
+  /**
+   * function getCategoryTaxcat returns the list of valid categories + the tax categories for each
+   * @returns {KeyVal[]} list of categories and their default tax categories
+   */
+  getCategoryTaxcat(): KeyVal[] {
+    return this.categoryTaxcat ;
+  }
+
+  /**
+   * function getCategoryFolders returns the list of categories grouped into folders
+   * creatively called category folders
+   * @returns {KeyVal[]} list of category folders and their categories
+   */
+  getCategoryFolders(): KeyVal[] {
+    return this.categoryFolders ;
+  }
+
+  /**
+   * function getTaxCats return the tax categories as defined in globals
+   * @returns {KeyVal[]} list of tax categories for many select boxes
+   */
+  getTaxCats(): KeyVal[] {
+    return this.taxCats ;
+  }
+
+  /***********************************************************************************************
+   * House collection related functions                                                          *
+   **********************************************************************************************/
+  getHouseDB(): Observable<House[]> {
+    if (this.houseLoadTime + 600000 > new Date().getTime()) {
+      return new BehaviorSubject<House[]>(this.houses) ;
+    }
+    this.updtTimeStmp();
+    const house$ = collectionData<House>(query(
+      collection(this.firestore, 'Houses') as CollectionReference<House>,
+      where('Cid', '==', this.cid)), {idField: 'HouseId'}).pipe(first()) ;
+    this.houseLoadTime = new Date().getTime() ;
+    return house$
+  }
+
+  setHouses(houses: House[]): House[] {
+    this.houses = houses.sort((a, b) => a.name.localeCompare(b.name)) ;
+    return this.houses ;
+  }
+
+  /**
+   * function getHouses retrieves house record
+   * @returns
+   */
+  getHouses(): House[] {
+    return this.houses ;
+  }
+
+  /***********************************************************************************************
+   * Lease collection related functions                                                          *
+   **********************************************************************************************/
+  getLeaseDB(house?: string): Observable<Lease[]> {
+    if (this.leaseLoadTime + 600000 > new Date().getTime()) {
+      if ((!house && !this.lastHouse) || this.lastHouse === house) {
+        this.lastHouse = (house) ? house : '' ;
+        return new BehaviorSubject<Lease[]>(this.leases) ;
+      }
+    }
+    this.lastHouse = (house) ? house : '' ;
+    this.updtTimeStmp();
+    const lease$ = collectionData<Lease>(query(
+      collection(this.firestore, 'Leases') as CollectionReference<Lease>,
+      where('Cid', '==', this.cid),
+      ...(house ? [where('HouseId', '==', house)] : [])
+    ), {idField: 'LeaseId'}).pipe(first()) ;
+    this.leaseLoadTime = new Date().getTime() ;
+    return lease$;
+  }
+
+  setLeases(leases: Lease[]): Lease[] {   // Should only be called if caller has unqualified leases (all houses)
+    this.leases = leases.sort((a, b) => a.House.localeCompare(b.House)) ;
+    return this.leases ;
+  }
+
+  getLeases(): Lease[] {   return this.leases ;  }
+
+  /***********************************************************************************************
+   * Resident collection related functions                                                       *
+   **********************************************************************************************/
+  getResidentDB(): Observable<Resident[]> {
+    if (this.residentLoadTime + 600000 > new Date().getTime())
+      return new BehaviorSubject<Resident[]>(this.residents) ;
+    this.updtTimeStmp();
+    const resident$ = collectionData<Resident>(query(
+      collection(this.firestore, 'Residents') as CollectionReference<Resident>,
+      where('Cid', '==', this.cid)), {idField: 'ResidentId'}).pipe(first()) ;
+    this.residentLoadTime = new Date().getTime() ;
+    return resident$;
+  }
+
+  setResidents(residents: Resident[]): Resident[] {
+    this.residents = residents.sort((a, b) => a.LName.localeCompare(b.LName)) ;
+    return this.residents ;
+  }
+
+  /***********************************************************************************************
+   * Balance Adjustments collection related functions                                            *
+   **********************************************************************************************/
+  /**
+   * Retrieve entries in BalAdjust. If houseId is passed, then return all baladjusts for that house.
+   * If no houseId, then return all baladjusts for this company within the last 3 years (or minDae if sent).
+   * Because this query can return different results based on parms, we do not return cached data as
+   * the parms could be different.
+   * @param houseId Optional houseId to retrieve baladjusts for that house. Skip or '' for all houses
+   * @param minDate Optional minDate to retrieve baladjusts since that date. To send without houseId,
+   *  send houseId of '' and then minDate. If not sent; if houseId sent, 10 years. Else 2 years
+   * @returns Observable of BalAdjust array which, if they sent house AND minDate ... needs to be filtered for date
+   * 
+   * hereiam ... remove test and timer, always get from data base
+   */
+  getBalAdj4House(houseId?: string, minDate?: string): Observable<BalAdjust[]> {
+    this.updtTimeStmp() ;
+    const balAdjQuery: QueryConstraint[] = [where('Cid', '==', this.cid)]
+      // If date passed, use it, otherwise 10 years if one house, 2 years if all houses
+    const qDate = (minDate) ? minDate : (houseId) ? this.utilSvc.getDate(new Date(), -3650) :
+      this.utilSvc.getDate(new Date(), -730) ;
+    balAdjQuery.push(where('AdjDate', '>=', qDate)) ;
+    if (houseId) {
+      balAdjQuery.push(where('HouseId', '==', houseId))
+    }
+    balAdjQuery.push(orderBy('AdjDate', 'desc')) ;
+    const balAdj$: Observable<BalAdjust[]> = collectionData<BalAdjust>(query(
+      collection(this.firestore, 'BalAdjusts') as CollectionReference<BalAdjust>,
+      ...balAdjQuery), {idField: 'BalAdjId'}).pipe(first()) ;
+    this.balAdjLoadTime = new Date().getTime() ;
+    return balAdj$ ;
+  }
+
+  setBalAdj(balAdj: BalAdjust[]): BalAdjust[] {
+    this.balAdj = balAdj.sort((a, b) => a.ADate.localeCompare(b.ADate)) ;
+    return this.balAdj ;
+  }
+
+  /***********************************************************************************************
+   * Tran Rule collection related functions                                                      *
+   **********************************************************************************************/
+  getTranRuleDB(): Observable<RuleData[]> {
+    if (this.ruleLoadTime + 600000 > new Date().getTime())
+      return new BehaviorSubject<RuleData[]>(this.tranRules) ;
+    console.log('fb gtrdb Out to do firebase')
+    this.updtTimeStmp() ;
+    const tranRule$ = collectionData<RuleData>(query(
+      collection(this.firestore, this.tranRuleNm) as CollectionReference<RuleData>,
+      where('Cid', '==', this.cid)), {idField: 'RuleId'}).pipe(first())
+    this.ruleLoadTime = new Date().getTime() ;
+    return tranRule$
+  }
+
+  // Return a sorted array vs trusting ts/js impl
+  setTranRules(rules: RuleData []): RuleData[] {
+    this.tranRules = rules.sort((a, b) => a.ruleName.localeCompare(b.ruleName)) ;
+    this.utilSvc.setRules(this.tranRules) ;
+    return this.tranRules;
+  }
+
+  getTranRules(): RuleData[] {
+    return this.tranRules ;
+  }
+
+  /***********************************************************************************************
+   * Mortgage collection related functions                                                       *
+   **********************************************************************************************/
+  getMortgageDB(): Observable<Mortgage[]> {
+    if (this.mortgageLoadTime + 600000 > new Date().getTime())
+      return new BehaviorSubject<Mortgage[]>(this.mortgages) ;
+    this.updtTimeStmp();
+    const mortgage$ = collectionData<Mortgage>(query(
+      collection(this.firestore, 'Mortgages') as CollectionReference<Mortgage>,
+      where('Cid', '==', this.cid)), {idField: 'MortgageId'}).pipe(first()) ;
+    this.mortgageLoadTime = new Date().getTime() ;
+    return mortgage$
+  }
+
+  setMortgages(mortgages: Mortgage[]): Mortgage[] {
+    this.mortgages = mortgages ;
+    this.utilSvc.setMortgages(mortgages) ;
+    return this.mortgages
+  }
+
+  /***********************************************************************************************
+   * Transaction collection related functions                                                    *
+   **********************************************************************************************/
   /**
    * Query transactions allowing most possibilities. Many resolved thru filter
    * @param {TranQ} tranQ Query structure allowing for query on most fields in tran docs
@@ -398,108 +597,6 @@ export class FirebaseService {
   }
 
   /**
-   * getProjectsFromDB function to retrieve functions from Firebase. Either using number of
-   * days back from current date or using mindate/maxdate.
-   * @param {string} numDays Number of days back from current to get
-   * @returns {Observable} Observable of array of projects
-   */
-  getProjectsFromDB(numDays: number, minDate?: string, maxDate?: string): Observable<Project[]> {
-    this.updtTimeStmp() ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'proj, days: %d  strt: %s  end: %s',  numDays, minDate, maxDate)
-
-    if (!maxDate) {    // If mindate/maxdate not sent
-      this.projectLoadDays = numDays ;    // For future calls
-      const endDate = new Date() ;
-      this.projeDt = endDate.toISOString().slice(0, 10) ;
-      this.projsDt = this.utilSvc.getDate(endDate, numDays * -1) ;
-    } else {
-      this.projsDt = minDate! ;
-      this.projeDt = maxDate ;
-        // Since projectLoadDays implies from to current dt and this may not be, not setting it
-      // this.projectLoadDays = this.utilSvc.getDateDiff(new Date(startDtStr), new Date(endDtStr)) ;
-    }
-    this.utilSvc.cDebug(this.CLASSNAME, 'proj, cid: %s  days: %d  strt: %s  end: %s',
-      this.cid, numDays, this.projsDt, this.projeDt) ;
-    const projQuery: QueryConstraint[] = [where('EndDt', '>=', this.projsDt),
-      where('Cid', '==', this.cid)] ;
-    const project$: Observable<Project[]> = collectionData<Project>(query(
-      collection(this.firestore, this.projNm) as CollectionReference<Project>,
-      ...projQuery), {idField: 'ProjectId'}).pipe(map(results => results.filter((proj) => {
-        return proj['StartDt'] <= this.projeDt ; // {} allows more logic if needed
-      })),first()) ;
-    this.projectsStarted = true ;
-    return project$ ;
-  }
-
-  /**
-   * getProjects function retrieves projects for a date range
-   * @param {boolean} isForce force pulling from DB vs checking existing
-   * @param {number} numDays # days back to pull projects
-   * @returns {Project[]} or {Observable} depending on if we can use existing array vs retrieve
-   */
-  getProjects(isForce: boolean, numDays: number, minDate?: string, maxDate?: string):
-    Project[] | Observable<Project[]> {
-    if (!maxDate) {    // If mindate/maxdate not sent
-      this.projectLoadDays = numDays ;    // For future calls
-      const endDate = new Date() ;
-      maxDate = endDate.toISOString().slice(0, 10) ;
-      minDate = this.utilSvc.getDate(endDate, numDays * -1) ;
-    }
-    let needRefresh = false ;
-      // If force refresh, or projects not loaded, or #days in cache too small
-    if (isForce || !this.projectsLoaded || minDate! < this.projsDt ||
-      maxDate > this.projeDt) { needRefresh = true ; }
-      // If cache is too old
-    if (this.projectLoadTime + 900000 < new Date().getTime()) { needRefresh = true ; }
-    return (needRefresh) ? this.getProjectsFromDB(numDays, minDate, maxDate) : this.projects ;
-  }
-
-  /**
-   * getLatestRecon4Acct function finds the latest prior recon for this account to prefill
-   * for the current reconciliation
-   * @param {number} numDays How far back to search for prior reconciliation
-   * @param {string} account account being reconciled
-   * @returns {Observable} of Reconciliation array (which returns 1 or 0 reconciliations)
-   */
-  getLatestRecon4Acct(numDays: number, account: string): Observable<Reconciliations[]> {
-    this.updtTimeStmp() ;
-    const minEndDt = this.utilSvc.getDate(new Date(), numDays) ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'getRecon , cid: %s  eDt: %s  account: %s',
-      this.cid, minEndDt, account) ;
-    const reconQuery: QueryConstraint[] = [where('EndDt', '>=', minEndDt),
-      where('Cid', '==', this.cid), where('Account', '==', account),
-      orderBy('EndDt', 'desc'), limit(1)] ;
-    const recon$: Observable<Reconciliations[]> = collectionData<Reconciliations>(query(
-      collection(this.firestore, this.reconNm) as CollectionReference<Reconciliations>,
-      ...reconQuery), {idField: 'ReconKey'}).pipe(first()) ;
-    return recon$ ;
-  }
-
-  /**
-   * function getReconiliations retrieves an array of reconciliations. Firebase query and
-   * index limitations means we limit all we can in the query and then use the rxjs filter for
-   * final filtering.  For security, FB limits to all security related fields
-   * @param {string} minDate Furthest back date for which to grab recons
-   * @param {string} maxDate Latest/closest date for which to grab recons
-   * @param {string[]} accountArr
-   * @returns {Observable} of reconciliation array
-   */
-  getReconciliations(minDate: string, maxDate: string, accountArr: string[]): Observable<Reconciliations[]> {
-    this.updtTimeStmp() ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'getRecon , cid: %s  sDt: %s  eDt: %s  accounts: %s',
-      this.cid, minDate, maxDate, accountArr) ;
-    const reconQuery: QueryConstraint[] = [where('EndDt', '>=', minDate),
-      where('Cid', '==', this.cid), where('Account', 'in', accountArr),
-      orderBy('EndDt', 'desc')] ;
-    const recon$: Observable<Reconciliations[]> = collectionData<Reconciliations>(query(
-      collection(this.firestore, this.reconNm) as CollectionReference<Reconciliations>,
-      ...reconQuery), {idField: 'ReconKey'}).pipe(first(),map(results => results.filter((recon) => {
-        return recon['StartDt'] <= maxDate ; // {} allows more logic if needed
-      }))) ;
-    return recon$ ;
-  }
-
-  /**
    * function addTrans adds a transaction to the transaction collection.  It first uses FITID
    * to try to avoid adding duplicate transactions to the table
    * @param {TranRec} tranRec row to be added to transactions collection
@@ -588,6 +685,98 @@ export class FirebaseService {
   }
 
   /**
+   * function loadTrans receives transaction array as retrieved and sent async.
+   * @param {TranRec[]} inTrans Transaction array as returned from query to caller
+   * @param {Map} childTrans child trans associated with multiPart trans
+   */
+  loadTrans(inTrans: TranRec[], childTrans: Map<string, TranRec[]>) {
+    this.tranRecs = inTrans ;
+    this.childMap = childTrans ;
+  }
+
+  /**
+   * function getChildArray Retrieve child array for a particular parent document. Split
+   * trans have a parent representing the total amount, and child trans for the component parts.
+   * Example, if someone deposits 2 rents together (not recommended) ... there would be a parent
+   * tran representing the total deposit (matching a statement) and 2 child trans representing
+   * the individual rents tied to the appropriate houses/units
+   * @param {string} parentId tranId of the parent document
+   * @returns {TranRec[]} list of child tran documents
+   */
+  getChildArray(parentId: string): TranRec[] {
+    return this.childMap.get(parentId)! ;
+  }
+
+  rmvChildren4Parent(parentId: string) {
+    this.utilSvc.cLog(this.CLASSNAME, 'pre childMap has %s  %s', parentId, this.childMap.has(parentId))
+    if (this.childMap.has(parentId)) { this.childMap.delete(parentId) }
+  }
+
+  add2ChildMap(parentId: string, childArr: TranRec[]) {
+    this.childMap.set(parentId, childArr) ;
+  }
+
+  /***********************************************************************************************
+   * Project collection related functions                                                        *
+   **********************************************************************************************/
+  /**
+   * getProjectsFromDB function to retrieve functions from Firebase. Either using number of
+   * days back from current date or using mindate/maxdate.
+   * @param {string} numDays Number of days back from current to get
+   * @returns {Observable} Observable of array of projects
+   */
+  getProjectsFromDB(numDays: number, minDate?: string, maxDate?: string): Observable<Project[]> {
+    this.updtTimeStmp() ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'proj, days: %d  strt: %s  end: %s',  numDays, minDate, maxDate)
+
+    if (!maxDate) {    // If mindate/maxdate not sent
+      this.projectLoadDays = numDays ;    // For future calls
+      const endDate = new Date() ;
+      this.projeDt = endDate.toISOString().slice(0, 10) ;
+      this.projsDt = this.utilSvc.getDate(endDate, numDays * -1) ;
+    } else {
+      this.projsDt = minDate! ;
+      this.projeDt = maxDate ;
+        // Since projectLoadDays implies from to current dt and this may not be, not setting it
+      // this.projectLoadDays = this.utilSvc.getDateDiff(new Date(startDtStr), new Date(endDtStr)) ;
+    }
+    this.utilSvc.cDebug(this.CLASSNAME, 'proj, cid: %s  days: %d  strt: %s  end: %s',
+      this.cid, numDays, this.projsDt, this.projeDt) ;
+    const projQuery: QueryConstraint[] = [where('EndDt', '>=', this.projsDt),
+      where('Cid', '==', this.cid)] ;
+    const project$: Observable<Project[]> = collectionData<Project>(query(
+      collection(this.firestore, this.projNm) as CollectionReference<Project>,
+      ...projQuery), {idField: 'ProjectId'}).pipe(map(results => results.filter((proj) => {
+        return proj['StartDt'] <= this.projeDt ; // {} allows more logic if needed
+      })),first()) ;
+    this.projectsStarted = true ;
+    return project$ ;
+  }
+
+  /**
+   * getProjects function retrieves projects for a date range
+   * @param {boolean} isForce force pulling from DB vs checking existing
+   * @param {number} numDays # days back to pull projects
+   * @returns {Project[]} or {Observable} depending on if we can use existing array vs retrieve
+   */
+  getProjects(isForce: boolean, numDays: number, minDate?: string, maxDate?: string):
+    Project[] | Observable<Project[]> {
+    if (!maxDate) {    // If mindate/maxdate not sent
+      this.projectLoadDays = numDays ;    // For future calls
+      const endDate = new Date() ;
+      maxDate = endDate.toISOString().slice(0, 10) ;
+      minDate = this.utilSvc.getDate(endDate, numDays * -1) ;
+    }
+    let needRefresh = false ;
+      // If force refresh, or projects not loaded, or #days in cache too small
+    if (isForce || !this.projectsLoaded || minDate! < this.projsDt ||
+      maxDate > this.projeDt) { needRefresh = true ; }
+      // If cache is too old
+    if (this.projectLoadTime + 900000 < new Date().getTime()) { needRefresh = true ; }
+    return (needRefresh) ? this.getProjectsFromDB(numDays, minDate, maxDate) : this.projects ;
+  }
+
+  /**
    * function createProject adds a Project record to the FB collection
    * @param {Project} inProj Project to be added to collection
    * @returns {Promise} for async processing of result (docRef will have new ID)
@@ -624,6 +813,54 @@ export class FirebaseService {
     return deleteDoc( dbProj ) ;
   }
 
+  /***********************************************************************************************
+   * Reconciliation collection related functions                                                 *
+   **********************************************************************************************/
+  /**
+   * getLatestRecon4Acct function finds the latest prior recon for this account to prefill
+   * for the current reconciliation
+   * @param {number} numDays How far back to search for prior reconciliation
+   * @param {string} account account being reconciled
+   * @returns {Observable} of Reconciliation array (which returns 1 or 0 reconciliations)
+   */
+  getLatestRecon4Acct(numDays: number, account: string): Observable<Reconciliations[]> {
+    this.updtTimeStmp() ;
+    const minEndDt = this.utilSvc.getDate(new Date(), numDays) ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'getRecon , cid: %s  eDt: %s  account: %s',
+      this.cid, minEndDt, account) ;
+    const reconQuery: QueryConstraint[] = [where('EndDt', '>=', minEndDt),
+      where('Cid', '==', this.cid), where('Account', '==', account),
+      orderBy('EndDt', 'desc'), limit(1)] ;
+    const recon$: Observable<Reconciliations[]> = collectionData<Reconciliations>(query(
+      collection(this.firestore, this.reconNm) as CollectionReference<Reconciliations>,
+      ...reconQuery), {idField: 'ReconKey'}).pipe(first()) ;
+    return recon$ ;
+  }
+
+  /**
+   * function getReconiliations retrieves an array of reconciliations. Firebase query and
+   * index limitations means we limit all we can in the query and then use the rxjs filter for
+   * final filtering.  For security, FB limits to all security related fields
+   * @param {string} minDate Furthest back date for which to grab recons
+   * @param {string} maxDate Latest/closest date for which to grab recons
+   * @param {string[]} accountArr
+   * @returns {Observable} of reconciliation array
+   */
+  getReconciliations(minDate: string, maxDate: string, accountArr: string[]): Observable<Reconciliations[]> {
+    this.updtTimeStmp() ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'getRecon , cid: %s  sDt: %s  eDt: %s  accounts: %s',
+      this.cid, minDate, maxDate, accountArr) ;
+    const reconQuery: QueryConstraint[] = [where('EndDt', '>=', minDate),
+      where('Cid', '==', this.cid), where('Account', 'in', accountArr),
+      orderBy('EndDt', 'desc')] ;
+    const recon$: Observable<Reconciliations[]> = collectionData<Reconciliations>(query(
+      collection(this.firestore, this.reconNm) as CollectionReference<Reconciliations>,
+      ...reconQuery), {idField: 'ReconKey'}).pipe(first(),map(results => results.filter((recon) => {
+        return recon['StartDt'] <= maxDate ; // {} allows more logic if needed
+      }))) ;
+    return recon$ ;
+  }
+
   reconTrans(inRecon: Reconciliations, tranids: string[]): Promise<any> {
     this.updtTimeStmp() ;
     delete inRecon.ReconKey ;
@@ -658,57 +895,9 @@ export class FirebaseService {
     })
   }
 
-  /**
-   * function addGlobal adds a document to the GlobalVars collection
-   * It is complex as there are numerous different record types for different global info
-   * @param {string} gType type of global row (ruledata, house, account, trantype, ...)
-   * @param {string} rVal value which can be a JSON object with numerous values
-   * @returns {Promise} based on add action to FB collection
-   */
-  addGlobal(globRow: Globals): Promise<any> {
-    this.updtTimeStmp() ;
-    if (!globRow.RVal)  delete globRow.RVal ;
-    delete globRow.GlobalId ;
-    return addDoc(collection(this.firestore, this.globalsNm),
-      {  ...globRow }) ;
-  }
-
-  /**
-   * function updateGlobal updates an existing document in the GlobalVars collection
-   * @param {string} rKey type of global document
-   * @param {any} oldGlob original document
-   * @param {any} newGlob new document
-   * @param {string} globalId FB document ID
-   * @returns {Promise} or {string}. string if error before call, promise if call is made
-   */
-  updateGlobal(rKey: string, oldGlob: Globals, newGlob: Globals, globalId: string): Promise<any> | string {
-    this.updtTimeStmp() ;
-    if (globalId === 'noGid') {
-      return 'Error updating '+ rKey + ' Failed to find Gid for ' + oldGlob ;
-    }
-    if (!newGlob.RVal)  delete newGlob.RVal ;
-    delete newGlob.GlobalId ;
-    const dbGlob = doc(this.firestore, this.globalsNm, globalId)
-    this.utilSvc.cDebug(this.CLASSNAME, 'Updating Global for key: %s  Val: %O ', globalId, newGlob ) ;
-    return updateDoc(dbGlob, { ...newGlob }) ;
-  }
-
-  /**
-   * function deleteGlobal to remove a document from GlobalVars collection
-   * @param {string} rKey Type of global
-   * @param {any} rVal Value (core of document)
-   * @param {string} globalId document ID to delete
-   * @returns {string} or {Promise}. String if early error, Promise if FB call made
-   */
-  deleteGlobal(rKey: string, rVal: any, globalId: string): Promise<any> | string {
-    this.updtTimeStmp() ;
-    if (globalId === 'noGid') {
-      return 'Error deleting '+ rKey + ' Failed to find key for ' + rVal ;
-    }
-    const dbGlob = doc(this.firestore, this.globalsNm, globalId)
-    return deleteDoc( dbGlob ) ;
-  }
-
+  /***********************************************************************************************
+   * Generic table collection functions (Leases, Mortgages, Houses, Rules, Residents, etc)       *
+   **********************************************************************************************/
   // Generic functions to add/update/delete global documents in collections
   addGenGlob<T extends objwCid>(inGlob: T, collectNm: string, idVar: keyof T, 
     delFlds: (keyof T)[] = []): Promise<any> {
@@ -733,16 +922,6 @@ export class FirebaseService {
     this.updtTimeStmp() ;
     const globDoc = doc(this.firestore, collectNm, idVal)
     return deleteDoc(globDoc) ;
-  }
-
-  /**
-   * function loadTrans receives transaction array as retrieved and sent async.
-   * @param {TranRec[]} inTrans Transaction array as returned from query to caller
-   * @param {Map} childTrans child trans associated with multiPart trans
-   */
-  loadTrans(inTrans: TranRec[], childTrans: Map<string, TranRec[]>) {
-    this.tranRecs = inTrans ;
-    this.childMap = childTrans ;
   }
 
   /*****************************************************************************
@@ -801,101 +980,5 @@ export class FirebaseService {
     this.utilSvc.cDebug(this.CLASSNAME, 'PG Lens catTC: %d  acc: %d  tCats: %d  tTypes: %d',
       this.categoryTaxcat.length, this.accounts.length,
       this.taxCats.length, this.tranTypes.length)
-  }
-
-  /**
-   * function getChildArray Retrieve child array for a particular parent document. Split
-   * trans have a parent representing the total amount, and child trans for the component parts.
-   * Example, if someone deposits 2 rents together (not recommended) ... there would be a parent
-   * tran representing the total deposit (matching a statement) and 2 child trans representing
-   * the individual rents tied to the appropriate houses/units
-   * @param {string} parentId tranId of the parent document
-   * @returns {TranRec[]} list of child tran documents
-   */
-  getChildArray(parentId: string): TranRec[] {
-    return this.childMap.get(parentId)! ;
-  }
-
-  rmvChildren4Parent(parentId: string) {
-    this.utilSvc.cLog(this.CLASSNAME, 'pre childMap has %s  %s', parentId, this.childMap.has(parentId))
-    if (this.childMap.has(parentId)) { this.childMap.delete(parentId) }
-  }
-
-  add2ChildMap(parentId: string, childArr: TranRec[]) {
-    this.childMap.set(parentId, childArr) ;
-  }
-
-  /**
-   * function getHouses retrieves house record
-   * @returns
-   */
-  getHouses(): House[] {
-    return this.houses ;
-  }
-
-  /**
-   * function getAccounts return KeyVal for each account (name and type)
-   * @returns {KeyVal[]} list of accounts
-   */
-  getAccounts(): KeyVal[] {
-    return this.accounts ;
-  }
-
-  /**
-   * function getAcctTypes returns list of account types (from globals)
-   * @returns {string[]} list of account types
-   */
-  getAcctTypes(): string[] {
-    return this.accountTypes ;
-  }
-
-  /**
-   * function getTranTypes returns list of Transaction types (tied to OFX spec)
-   * @returns {string[]} list of transaction thypes
-   */
-  getTranTypes(): string[] {
-    return this.tranTypes ;
-  }
-
-  /**
-   * function getCategoryTaxcat returns the list of valid categories + the tax categories for each
-   * @returns {KeyVal[]} list of categories and their default tax categories
-   */
-  getCategoryTaxcat(): KeyVal[] {
-    return this.categoryTaxcat ;
-  }
-
-  /**
-   * function getCategoryFolders returns the list of categories grouped into folders
-   * creatively called category folders
-   * @returns {KeyVal[]} list of category folders and their categories
-   */
-  getCategoryFolders(): KeyVal[] {
-    return this.categoryFolders ;
-  }
-
-  /**
-   * function getTaxCats return the tax categories as defined in globals
-   * @returns {KeyVal[]} list of tax categories for many select boxes
-   */
-  getTaxCats(): KeyVal[] {
-    return this.taxCats ;
-  }
-
-  // Return a sorted array vs trusting ts/js impl
-  setTranRules(rules: RuleData []): RuleData[] {
-    this.tranRules = rules.sort((a, b) => a.ruleName.localeCompare(b.ruleName)) ;
-    this.utilSvc.setRules(this.tranRules) ;
-    return this.tranRules;
-  }
-
-  getTranRules(): RuleData[] {
-    return this.tranRules ;
-  }
-
-  setMortgages(mortgages: Mortgage[]): Mortgage[] {
-    this.mortgages = mortgages ;
-    this.utilSvc.setMortgages(mortgages) ;
-    return this.mortgages
   }
 }

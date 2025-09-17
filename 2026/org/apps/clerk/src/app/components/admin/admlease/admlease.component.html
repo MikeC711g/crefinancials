@@ -1,3 +1,23 @@
+@if (!selectedHouse) {
+  <p style="background-color: yellow;">Please select a house to manage leases</p>
+  <div class="row">
+    <label for="house">House</label>
+    <select class="form-control" id="house" name="house" [(ngModel)]="selectedHouse"  (change)="onChgHouse()"
+      data-cy="ale-house">
+      <option [value]="''" [selected]="!selectedHouse"> -- select an option -- </option>
+      @for (house of houses; track house) {
+        <option [value]="house.name">{{ house.name }}</option>
+      }
+    </select>
+  </div>
+} @else {
+  @for (lease of filtLeases; track lease; let i = index) {
+    <app-admleaseedit [lease]="lease" [idx]="i" [newRow]="false"
+      [residents]="residents" [selectedHouse]="selectedHouse"
+      (parmMod)="onLeaseMod($event)"></app-admleaseedit>
+  }
+}
+
 @if (!editMode) {
   <div class="row">
     <div class="col-md-5"> {{ lease.House }}  {{ lease.StartDt }}    </div>
@@ -26,10 +46,7 @@
         @if (!newRow) {
           <div class="row">{{ lease.House }} </div>
         }
-        <!-- <label for="currentLease" title="Check if this is current lease">Current Lease</label> -->
-        <input type="checkbox" [(ngModel)]="lease.currentFlag" name="currentLease" id="currentLease"
-          ngModel data-cy="ale-currentLease">Current Lease
-          <!-- <label for="official" title="Is this lease legal (or implied)">Official lease</label> -->
+          <label for="official" title="Is this lease legal (or implied)">Official lease</label>
           <input type="checkbox" [(ngModel)]="lease.official" name="official" id="official"
             ngModel data-cy="ale-official">Official Lease (vs implied)
             <label for="startDt" title="Start Date of the lease">Start Date</label>

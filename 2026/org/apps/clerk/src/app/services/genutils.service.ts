@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
 import { Project } from '../models/project.model';
 import { KeyVal } from '../models/globals.model';
-import { Mortgage, Resident } from '../models/house.model';
+import { BalAdjust, Mortgage, Resident } from '../models/house.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,7 @@ export class GenutilsService {
   globalTypes = { TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
     TranTypes: 'tranType', Accounts: 'accounts', AccountTypes: 'accountType',
     CategoryFolders: 'categoryFolders', Logging: 'logging', RuleData: 'tranRule', Houses: 'houses',
-    Mortgages: 'mortgages', Leases: 'leases', Residents: 'residents',} 
+    Mortgages: 'mortgages', Leases: 'leases', Residents: 'residents', BalAdjust: 'balAdjust' } ;
   noAdminGlobalTypes = [this.globalTypes.TranTypes, this.globalTypes.AccountTypes,
     this.globalTypes.CategoryFolders] ;
   adminGlobalTypes = [this.globalTypes.TaxCats, this.globalTypes.CategoryTaxcats,

@@ -45,6 +45,7 @@ export const appRoutes: Route[] = [
       { path: 'mortgages', component: AdminComponent },
       { path: 'leases', component: AdminComponent },
       { path: 'residents', component: AdminComponent },
+      { path: 'balAdjust', component: AdminComponent },
       { path: 'logging', component: AdminComponent }
     ] },
     { path: 'profile', component: AuthComponent, canActivate: [canActivate],

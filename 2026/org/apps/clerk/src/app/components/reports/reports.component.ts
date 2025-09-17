@@ -367,20 +367,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * @param tranQ 
    ************************************************************************ */
   dumpHouse() {
-    const houseRtn = this.fireSvc.getHouseDB() ;
-    if (Array.isArray(houseRtn)) {
-      this.houses = houseRtn as House[] ;
-      this.reportReady = true ;
-    } else {
-      houseRtn.subscribe({
-        next: (houseRecs) => {
-          this.houses = this.fireSvc.setHouses(houseRecs) ;
-          this.reportReady = true ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses for HouseDump err: %s: ', error)
-        }
-      })
-    }
+    const house$ = this.fireSvc.getHouseDB().subscribe({
+      next: (houseRecs) => {
+        this.houses = this.fireSvc.setHouses(houseRecs) ;
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses for HouseDump err: %s: ', error)
+      }
+    })
+    setTimeout(() => {   house$.unsubscribe() ; }, 30000);
     this.utilSvc.cDebug(this.CLASSNAME,'houseCnt: %d', this.houses.length)
   }
 
@@ -389,20 +384,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * @param tranQ 
    ************************************************************************ */
   dumpRule() {
-    const ruleRtn = this.fireSvc.getTranRuleDB() ;
-    if (Array.isArray(ruleRtn)) {
-      this.tranRules = ruleRtn as RuleData[] ;
-      this.reportReady = true ;
-    } else {
-      ruleRtn.subscribe({
-        next: (ruleRecs) => {
-          this.tranRules = ruleRecs ;
-          this.reportReady = true ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'Error getting rules for RuleDump  err: %s: ', error)
-        }
-      })
-    }
+    const tranRule$ = this.fireSvc.getTranRuleDB().subscribe({
+      next: (ruleRecs) => {
+        this.tranRules = ruleRecs ;
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting rules for RuleDump  err: %s: ', error)
+      }
+    })
+    setTimeout(() => {   tranRule$.unsubscribe() ; }, 30000);
     this.utilSvc.cDebug(this.CLASSNAME,'ruleCnt: %d', this.tranRules.length)
   }
 
@@ -411,20 +401,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * @param tranQ 
    ************************************************************************ */
   dumpMortgage() {
-    const mortRtn = this.fireSvc.getMortgageDB() ;
-    if (Array.isArray(mortRtn)) {
-      this.mortgages = mortRtn as Mortgage[] ;
-      this.reportReady = true ;
-    } else {
-      mortRtn.subscribe({
-        next: (mortRecs) => {
-          this.mortgages = mortRecs ;
-          this.reportReady = true ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'Error getting mortgages for MortDump  err: %s: ', error)
-        }
-      })
-    }
+    const mortgage$ = this.fireSvc.getMortgageDB().subscribe({
+      next: (mortRecs) => {
+        this.mortgages = mortRecs ;
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting mortgages for MortDump  err: %s: ', error)
+      }
+    })
+    setTimeout(() => {   mortgage$.unsubscribe() ; }, 30000);
     this.utilSvc.cDebug(this.CLASSNAME,'mortgageCnt: %d', this.mortgages.length)
   }
 
@@ -546,18 +531,14 @@ export class ReportsComponent implements OnInit, OnDestroy {
         }
       })
     }
-    const houseRtn = this.fireSvc.getHouseDB() ;
-    if (Array.isArray(houseRtn)) {
-      this.houses = houseRtn as House[] ;
-    } else {
-      houseRtn.subscribe({
-        next: (houses) => {
-          this.houses = this.fireSvc.setHouses(houses) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses: %s', error) ;
-        }
-      })
-    }
+    const house$ = this.fireSvc.getHouseDB().subscribe({
+      next: (houses) => {
+        this.houses = this.fireSvc.setHouses(houses) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting houses: %s', error) ;
+      }
+    })
+    setTimeout(() => {   house$.unsubscribe() ; }, 30000);
   }
 
   /** ************************************************************************

@@ -16,7 +16,6 @@ import { Lease } from '../models/house.model';
 
 export class GlobalModsService {
   CLASSNAME = 'globalMods'
-  updtNotice: Subject<genHelpers> = new Subject<genHelpers>() ;
   globInfoMap: Map<string, globInfo> = new Map<string, globInfo>() ;
   
   constructor(private utilSvc: GenutilsService, private fireSvc: FirebaseService) {
@@ -26,11 +25,6 @@ export class GlobalModsService {
     this.globInfoMap.set(this.utilSvc.globalTypes.Mortgages, new globInfo('Mortgages', 'MortgageId', 'house')) ;
     this.globInfoMap.set(this.utilSvc.globalTypes.Leases, new globInfo('Leases', 'LeaseId', 'House')) ;
     this.globInfoMap.set(this.utilSvc.globalTypes.Residents, new globInfo('Residents', 'ResidentId', 'LName')) ;
-    this.updtNotice.subscribe((helpers: genHelpers) => {
-      if (!helpers.isPreProc && helpers.gType === this.utilSvc.globalTypes.Leases) {
-        this.leasePostProc(helpers);
-      }
-    })
   }
 
   genCategoryMap(catFolders: KeyVal[], catTaxcat: KeyVal[]): Map<string, KeyVal[]> {
@@ -40,6 +34,27 @@ export class GlobalModsService {
     }
     this.utilSvc.cLog(this.CLASSNAME, 'genCategoryMap w/map: %O', curMap)
     return curMap ;
+  }
+
+  leaseDateVerify(lease: Lease): boolean {
+    const leases = this.fireSvc.getLeases() ;
+      // List of nonCancelled leases for this house that have a date conflict with current lease
+    const problemLeases = leases.filter(l => (l.StartDt <= lease.StartDt && l.EndDt >= lease.StartDt) ||
+      (l.StartDt <= lease.EndDt && l.EndDt >= lease.EndDt) && !l.cancelled)
+    if (problemLeases.length > 0) {
+      const msg = `${problemLeases.length} leases found that overlap with this lease's dates, terminate those leases?` ;
+      const cutLeases = confirm(msg) ;
+      if (cutLeases) {
+        const cancelDt = new Date().toISOString().substring(0,10) ;
+        for (const pLease of problemLeases) {
+          pLease.cancelled = true ;
+          pLease.cancelDt = cancelDt
+          const leaseAny: any = pLease as any ;    const leaseObj = leaseAny as objwCid ;
+          this.fireSvc.updtGenGlob(leaseObj, leaseObj, 'Leases', 'LeaseId') ;
+        }
+        return true ;
+      } else return false ;
+    } else return true ;
   }
 
   // This function handles persisting all globals that are in the globals collection
@@ -145,9 +160,9 @@ export class GlobalModsService {
     let updResp: string | Promise<any> ;    let delResp: string | Promise<any> ;
     actionCnt++ ;   // Unless cancel, this is an added action
     const globInfo = this.globInfoMap.get(gType) ;
-    if (!globInfo) { console.log('oh crums') 
+    if (!globInfo) { console.log('oh crumbs') 
     } else {
-      this.updtNotice.next(helper) ;
+      // Pre processing here
       helper.isPreProc = false ;
       switch (action) {
         case this.utilSvc.actionTypes.Add:
@@ -155,7 +170,7 @@ export class GlobalModsService {
           then(docRef => {
             newRow[globInfo.idVar] = docRef?.id ;
             statusMsg = `Successfully added ${gType}` ;
-            this.updtNotice.next(helper) ;
+            // post processing here
             if (entArr.length === 0 || newRow[globInfo.sortVar] > entArr[entArr.length - 1][globInfo.sortVar]) {
               entArr.push(newRow) ;   // First or highest key so just add to end
             } else {
@@ -163,7 +178,7 @@ export class GlobalModsService {
               entArr.splice(idx, 0, newRow) ;   // Should sort here or insert into sorted array
             }
           }).catch(error => {
-            statusMsg = `Failed to add ${gType}` ;
+            statusMsg = `Failed to add ${gType}` ;  actionCnt-- ;
             this.utilSvc.cWarn(this.CLASSNAME, 'Failed to add %s  Val: %O  err: %s', gType, newRow, error) ;
             isErr = true ;
           })
@@ -171,13 +186,13 @@ export class GlobalModsService {
         case this.utilSvc.actionTypes.Update:
           updResp = this.fireSvc.updtGenGlob(oldRow, newRow, globInfo.collectNm, oldRow[globInfo.idVar])
           if (typeof updResp === 'string') {
-            statusMsg = `Failed to update ${gType}`
+            statusMsg = `Failed to update ${gType}` ;  actionCnt-- ;
             this.utilSvc.cWarn(this.CLASSNAME,'Failed to update %s Val: %O  Error: %s', gType, newRow, updResp) ;
             isErr = true ;
           } else {
             updResp.then(() => {
               statusMsg = `Successfully updated ${gType}` ;
-              this.updtNotice.next(helper) ;
+              // pre or post processing here
               if (oldRow[globInfo.sortVar] !== newRow[globInfo.sortVar]) {  // Key flds modified, move row in array
                   // Array key modified, but needs to be moved to proper spot in array. So find, rmv, insert
                 const idx = entArr.findIndex(ent => ent[globInfo.sortVar].localeCompare(oldRow[globInfo.sortVar]) === 0) ;
@@ -190,7 +205,7 @@ export class GlobalModsService {
                 }
               }
             }).catch(error => {
-              statusMsg = `Failed to update ${gType}` ;
+              statusMsg = `Failed to update ${gType}` ;  actionCnt-- ;
               this.utilSvc.cWarn(this.CLASSNAME,'Failed to update %s Old: %O New: %O  Err: %s', gType, oldRow, newRow, error) ;
               isErr = true ;
             })
@@ -199,30 +214,56 @@ export class GlobalModsService {
         case this.utilSvc.actionTypes.Delete:
           delResp = this.fireSvc.deleteGenGlob(oldRow, globInfo.collectNm, oldRow[globInfo.idVar]) ;
           if (typeof delResp === 'string') {
-            statusMsg = `Failed to delete ${gType}` ;
+            statusMsg = `Failed to delete ${gType}` ;  actionCnt-- ;
             this.utilSvc.cWarn(this.CLASSNAME, 'Failed to delete %s  Val: %O  error: %s', gType, oldRow, delResp) ;
             isErr = true ;
           } else {
             delResp.then(() => {
               statusMsg = `Successfully deleted ${gType}` ;
-              this.updtNotice.next(helper) ;
+              // pre or post processing here
               const idx = entArr.findIndex(ent => ent[globInfo.idVar].localeCompare(oldRow[globInfo.idVar]) === 0) ;
               entArr.splice(idx, 1) ;
             }).catch(error => {
-              statusMsg = `Failed to delete ${gType}` ;
+              statusMsg = `Failed to delete ${gType}` ;  actionCnt-- ;
               this.utilSvc.cWarn(this.CLASSNAME,'Failed to delete %s Val: %O  Err: %s', gType, oldRow, error) ;
               isErr = true ;
             })
           }
           break ;
         case this.utilSvc.actionTypes.Cancel:
-          this.updtNotice.next(helper) ;
+          // pre or post processing here
           actionCnt-- ; break ;
         default:
           this.utilSvc.cWarn(this.CLASSNAME,'Invalid actionx: %s', action)
       }
     }
     return [actionCnt, statusMsg]
+  }
+  
+  preNPostProc(helper: genHelpers, globalInfo: globInfo): [boolean, string] {
+    if (helper.isPreProc && helper.gType === this.utilSvc.globalTypes.Leases) { // Before DB work for a lease
+      // Pull current flag out of lease (can just check date vs current date)
+      // Pull other leases for house and make sure no date overlaps. If overlap, alert.
+      // Back in ADD ... provide "renew" function to copy old and calculate balance forward
+      // In updates, check for valid dates
+      // So method here takes a lease and a date and calculates current balance considering
+      // Start w/lease startBal, BalAdj (adding late fees as needed after checking), up to that date
+      // SubFunc takes elements from lease + baladj array + rent income pmts from trans between dates and
+      // calculates and adds late fees.  SubFunc that gets rent income tran array and BalAdjust (after late
+      // fees calc'd) and returns balance on that closing date. Start date implied by start date on rent
+      // Back to lease, remove generic Add lease and, like BalAdj, choose house first.
+      // Then filter lease arr for that house.  Arranged in reverse order. First, if current (not ended)
+      // can be renewed which carries all over.  If changing residents, no renew.  If renew: Bring forth:
+      // Cid, house, Rent, AdlMthlyFees, RentDueDom, LateFee, GracePeriod, SecurityDeposit, AdlStartupFees,
+      // ResidentArr. Then calc and supply StartDt, EndDt, StartBal.  If NOT renewing: Cid, House, StartBal=0,
+      // startDt is next 1st and endDt is 364 days later (365 on leap).  On change of dates ... only allow back
+      // 1 yr for start and check for overlap with prior. If overlap, alert to end prior lease ahead.
+      // Remove currentFlag and consider a cancel flag or date/reason. Maybe have button for New, Renew, Cancel
+      // on first lease. No options for others.
+
+      return [true, ''] ;
+    }
+    return [true, ''] ;
   }
   
   /**
@@ -239,32 +280,6 @@ export class GlobalModsService {
   getKId4Global(gType: string, newGlobal: Globals, oldGlobal: Globals, fbGlobals: Globals[]): string {
     const tGlob = fbGlobals.find(fbGlobal => fbGlobal.GType == gType && fbGlobal.RKey === oldGlobal.RKey);
     return (tGlob) ? tGlob.GlobalId! : this.utilSvc.noGid ;
-  }
-
-  leasePostProc(helper: genHelpers): boolean {   // Verify this is correct
-    if (helper.gType !== this.utilSvc.globalTypes.Leases || helper.isPreProc) return false ;
-    console.log('leasePostProc with helper: %O', helper) ;
-    let anyLease: any = helper.newRow ; const newLease = anyLease as Lease ;
-    anyLease = helper.oldRow ; const oldLease = anyLease as Lease ;
-    const anyArr: any = helper.objArr ; const leaseArr = anyArr as Lease[] ;
-    if ((helper.action === this.utilSvc.actionTypes.Add && newLease.currentFlag === true) ||
-      (helper.action === this.utilSvc.actionTypes.Update && newLease.currentFlag === true)) {
-        // Find all other rows for this house that are set to current
-      const priorLeases = leaseArr.filter(lease => lease.currentFlag === true &&
-        lease.House === newLease.House && lease.LeaseId !== newLease.LeaseId) ;
-      console.log('Found prior leases %O', priorLeases) ;
-      for (const priorLease of priorLeases) {
-        priorLease.currentFlag = false ;
-        anyLease = priorLease ;
-        console.log('anyLease: %O  priorLease: %O', anyLease, priorLease) ;
-        this.fireSvc.updtGenGlob(anyLease, anyLease, 'Leases', priorLease.LeaseId!) 
-          .then(() => { console.log('Updated prior lease %O', priorLease) ; })
-          .catch(error => {
-            this.utilSvc.cWarn(this.CLASSNAME, 'Failed to update lease %O: %s', priorLease, error) ;
-          });
-      }
-      return true ; 
-    } else return false ;
   }
 
   // To avoid extra refreshing of globals from FB during mass editing of globals

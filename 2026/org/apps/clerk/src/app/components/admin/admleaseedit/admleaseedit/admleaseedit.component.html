@@ -1,0 +1,80 @@
+<div class="row col-md-12" style="border: 2px solid black; margin-bottom: 10px; padding: 10px;">
+  <div class="col-md-3">lease.StartDt</div>
+  <div class="col-md-3">residentNm</div>
+  @if (idx === 0) {
+    <button class="btn btn-secondary col-md-2" type="button" (click)="editMode = true"> Edit</button>
+    <button class="btn btn-primary col-md-2" type="button" (click)="onRenew()"> Renew </button>
+  } @else {
+    <button class="btn btn-secondary col-md-2" type="button" (click)="editMode = true"> Edit</button>
+  }
+  @if (editMode) {
+    <label for="official" title="Is this lease legal (or implied)">Official lease</label>
+    <input type="checkbox" [(ngModel)]="lease.official" name="official" id="official"
+      ngModel data-cy="ale-official">
+    <label for="startDt" title="Start Date of the lease">Start Date</label>
+    <input type="date" class="form-control" [(ngModel)]="lease.StartDt" name="startDt" id="startDt"
+      ngModel data-cy="ale-startDt" (change)="chgStartDate()">
+    <label for="endDt" title="End Date of the lease">End Date</label>
+    <input type="date" class="form-control" [(ngModel)]="lease.EndDt" name="endDt" id="endDt"
+      ngModel data-cy="ale-endDt">
+    <label for="rent" title="Monthly rent amount">Monthly Rent</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.Rent" name="rent" id="rent"
+      ngModel data-cy="ale-rent">
+    <label for="adlMth" title="Additional Monthly Fees (or 0)">Adl Mthly Fees</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.AdlMthlyFees" name="adlMth" id="adlMth"
+      ngModel data-cy="ale-adlMth">
+    <label for="rentDueDom" title="Day of Month Rent is Due">Day of Month Rent is Due</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.RentDueDom" name="rentDueDom" id="rentDueDom"
+      ngModel data-cy="ale-rentDueDom" min="1" max="31" required>
+    <label for="lateFee" title="Late Fee">Late Fee</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.LateFee" name="lateFee" id="lateFee"
+      ngModel data-cy="ale-lateFee">
+    <label for="gracePeriod" title="Grace Period">Grace Period</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.GracePeriod" name="gracePeriod" id="gracePeriod"
+      ngModel data-cy="ale-gracePeriod" min="0" max="31" required>
+    <label for="securityDeposit" title="Security Deposit">Security Deposit</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.SecurityDeposit" name="securityDeposit" id="securityDeposit"
+      ngModel data-cy="ale-securityDeposit">
+    <label for="adlStartupFees" title="Additional Startup Fees">Adl Startup Fees</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.AdlStartupFees" name="adlStartupFees" id="adlStartupFees"
+      ngModel data-cy="ale-adlStartupFees">
+    <label for="StartBal" title="Start Balance">Start Balance</label>
+    <input type="number" class="form-control" [(ngModel)]="lease.StartBal" name="startBal" id="StartBal"
+      ngModel data-cy="ale-startBal">
+    <label for="Residents">Residents</label>
+    <select class="form-control" id="residents" name="residents" [(ngModel)]="lease.ResidentArr"
+      multiple data-cy="ale-residents">
+      @for (resident of residents; track resident) {
+        <option [value]="resident.ResidentId"
+          [selected]="lease.ResidentArr.includes(resident.ResidentId!)">
+        {{ resident.LName }} {{ resident.FName }}</option>
+      }
+    </select>
+
+
+    <div class="col-md-2">
+      <button class="btn btn-primary col-md-2" type="button" (click)="onSaveRecord()"> Save </button>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-warning col-md-2" type="button" (click)="onCancelEdit()"> Cancel </button>
+    </div>
+    <!-- 
+        public StartDt: string,
+    public EndDt: string,
+    public Rent: number,
+    public AdlMthlyFees: number,
+    public RentDueDom: number,
+    public LateFee: number,
+    public GracePeriod: number,
+    public SecurityDeposit: number,
+    public AdlStartupFees: number,
+    public StartBal: number,
+    public Residents: string[],    
+
+    -->
+  }
+  <div class="col-md-2">
+    <button class="btn btn-secondary btn-toggle col-md-2" type="button"
+      (click)="editMode = true"> Edit</button>
+  </div>
+</div>

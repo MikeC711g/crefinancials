@@ -40,19 +40,16 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
   constructor(private fireSvc: FirebaseService, private utilSvc: GenutilsService) { }
 
   ngOnInit(): void {
-    const houseRtn = this.fireSvc.getHouseDB() ;
-    if (Array.isArray(houseRtn)) {
-      this.houses = houseRtn ;
-    } else {
-      houseRtn.subscribe({
-        next: () => {
-          this.houses = this.fireSvc.getHouses() ;
-          this.fireSvc.setHouses(this.houses) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Failed to get globals to find houses: %s', error) ;
-        }
-      })
-    }
+    const house$ = this.fireSvc.getHouseDB().subscribe({
+      next: () => {
+        this.houses = this.fireSvc.getHouses() ;
+        this.fireSvc.setHouses(this.houses) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Failed to get globals to find houses: %s', error) ;
+      }
+    })
+    setTimeout(() => {   house$.unsubscribe() ; }, 30000);
+
     this.onQueryProjects(parseInt(this.dateOpts[2].RVal) ) ;
     const idx = this.utilSvc.dirtyProj.length ;
     if (idx > 0)  this.utilSvc.dirtyProj.splice(0, idx) ;

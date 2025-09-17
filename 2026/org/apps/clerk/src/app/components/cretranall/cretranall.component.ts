@@ -408,15 +408,15 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       admin is occurring.  On exit from admin, will refresh all from DB.
    *****************************************************************************/
   onRuleMod(action: string, parmType: string, newVal: any, oldVal: any): void {
-    let actionCnt: number ;  let statusMsg = '' ;  
+    // let actionCnt: number ;  let statusMsg = '' ;  
     const tranRules = this.fireSvc.getTranRules() ;
     const anyRuless: any[] = tranRules ;
 
-    [actionCnt, statusMsg] = this.globSvc.genGlobMod(action, this.utilSvc.globalTypes.RuleData, newVal,
+    const [actionCnt, statusMsg] = this.globSvc.genGlobMod(action, this.utilSvc.globalTypes.RuleData, newVal,
       oldVal, anyRuless) ;
-    // [actionCnt, statusMsg] = this.globSvc.onRuleMod(action, newVal, oldVal, this.tranRec.Cid, tranRules)
-
-    this.utilSvc.addRule(newVal)
+    if (actionCnt === 0)
+      this.utilSvc.cWarn(this.CLASSNAME, `Failed to add rule with error: ${statusMsg}`) ;
+    else  this.utilSvc.addRule(newVal)
   }
     
   /** **********************************************************************************

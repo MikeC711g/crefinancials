@@ -10,14 +10,16 @@ import { House, Lease, Resident } from '../../../models/house.model';
   templateUrl: './admlease.component.html',
   styleUrl: './admlease.component.css'
 })
-export class AdmleaseComponent {
-  @Input() lease: Lease = new Lease('', '', false, false, '', '', 0, 0, 0, 0, 0, 0, 0, 0, [], '') ;
+export class AdmleaseComponent implements OnInit {
+  @Input() leases: Lease[] = new Array<Lease>() ;
   @Input() houses: House[] = new Array<House>() ;
   @Input() residents: Resident[] = new Array<Resident>() ;
+  @Input() selectedHouse = '' ;
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,
     newVal: any, oldVal: any }>() ;
+  filtLeases: Lease[] = new Array<Lease>() ;
   newRow = false ;  editMode = false ;
-  origLease: Lease = new Lease('', '', false, false, '', '', 0, 0, 0, 0, 0, 0, 0, 0, [], '') ;
+  origLease: Lease = new Lease('', '', false, false, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, [], '') ;
   statusMsg = "" ;
   gType: string ;
   CLASSNAME = 'admlease' ;
@@ -27,10 +29,29 @@ export class AdmleaseComponent {
   }
 
   ngOnInit(): void {
-    if (this.lease.House === '') {
-      this.newRow = true ;  this.editMode = true ;
+    // May need an "edit" subComponent here ... here is the basic idea
+    // Start w/selectedHouse as @Input() but don't feed it in so have basic house key be ''
+    // Template, if selectedHouse is '', show a select for house, else show all leases for house (< 3 yrs old)
+    // NonCurrent leases can be viewed but not edited
+    // If no leases, show a "New Lease" button
+    // View button for old leases (edit maybe later)
+    // Current lease has Edit OR Renew (which is a form of New)
+    // For renew, copy all data but move StartDt and EndDt 12 months forward and calculate balance
+    // For new ... pretty much all just new
+    // Include button for select different house which sets selectedHouse to ''
+    this.newRow = this.leases.length === 0 ;
+    if (this.selectedHouse !== '') this.onChgHouse() ;
+  }
+
+  onChgHouse() {    // Should not be callable with a new value of ''
+    this.filtLeases = this.leases.filter( l => l.House === this.selectedHouse).sort((a, b) => (a.StartDt < b.StartDt) ? 1 : -1) ;
+    if (this.filtLeases.length === 0) {
+      this.statusMsg = 'No existing leases found for house ' + this.selectedHouse ;
+      this.newRow = true ;
     } else {
-      this.origLease = { ...this.lease } ;
+      this.statusMsg = '' ;
+      this.newRow = false ;
+
     }
   }
 

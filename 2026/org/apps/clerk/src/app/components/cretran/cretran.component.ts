@@ -112,46 +112,33 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
       })
     }
 
-    const houseRtn$ = this.fireSvc.getHouseDB() ;
-    if (Array.isArray(houseRtn$)) {
-      this.houses = houseRtn$ ;
-    } else {
-      houseRtn$.subscribe({
-        next: (response) => {
-          this.houses = this.fireSvc.setHouses(response) ;
-          this.utilSvc.cDebug(this.CLASSNAME, 'Got %d houses', this.houses.length) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'HouseErr..FireService: %s', error) ;
-        }
-      })
-    }
+    const house$ = this.fireSvc.getHouseDB().subscribe({
+      next: (response) => {
+        this.houses = this.fireSvc.setHouses(response) ;
+        this.utilSvc.cDebug(this.CLASSNAME, 'Got %d houses', this.houses.length) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'HouseErr..FireService: %s', error) ;
+      }
+    })
+    setTimeout(() => {   house$.unsubscribe() ; }, 30000);
 
-    const tranRuleRtn$ = this.fireSvc.getTranRuleDB();
-    if (Array.isArray(tranRuleRtn$)) {
-      this.utilSvc.setRules(tranRuleRtn$) ;
-      console.log('cretran TranRules thru array %O', tranRuleRtn$) ;
-    } else {
-      tranRuleRtn$.subscribe({
-        next: (response) => {
-          this.fireSvc.setTranRules(response) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'TranRuleErr..FireService: %s', error) ;
-        }
-      })
-    }
+    const tranRule$ = this.fireSvc.getTranRuleDB().subscribe({
+      next: (response) => {
+        this.fireSvc.setTranRules(response) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'TranRuleErr..FireService: %s', error) ;
+      }
+    })
+    setTimeout(() => { tranRule$.unsubscribe() ; }, 30000);
 
-    const mortgageRtn$ = this.fireSvc.getMortgageDB() ;
-    if (Array.isArray(mortgageRtn$)) {
-      this.mortgages = mortgageRtn$ ;
-    } else {
-      mortgageRtn$.subscribe({
-        next: (response) => {
-          this.mortgages = this.fireSvc.setMortgages(response) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'MortgageErr..FireService: %s', error) ;
-        }
-      });
-    }
+    const mortgage4 = this.fireSvc.getMortgageDB().subscribe({
+      next: (response) => {
+        this.mortgages = this.fireSvc.setMortgages(response) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'MortgageErr..FireService: %s', error) ;
+      }
+    });
+    setTimeout(() => { mortgage4.unsubscribe() ; }, 30000);
 
     const projRtn = this.fireSvc.getProjects(false, 180) ;
     if (Array.isArray(projRtn)) {

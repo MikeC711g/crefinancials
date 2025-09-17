@@ -11,19 +11,20 @@ import { AdmruledataComponent } from './admruledata/admruledata.component';
 import { AdmleaseComponent } from './admlease/admlease.component';
 import { AdmresidentComponent } from './admresident/admresident.component';
 import { AdmmortgageComponent } from './admmortgage/admmortgage.component';
+import { AdmbaladjComponent } from './admbaladj/admbaladj.component';
 import { AdmloggingComponent } from './admlogging/admlogging.component';
 import { GenutilsService } from './../../services/genutils.service';
 import { Globals, objwCid, KeyVal } from './../../models/globals.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { GlobalModsService } from './../../services/globalMods.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
   imports: [AdmhousesComponent, AdmkvComponent, AdmcategoryComponent, AdmruledataComponent, AdmleaseComponent, 
-    AdmresidentComponent, AdmmortgageComponent, AdmloggingComponent, FormsModule, AsyncPipe],
+    AdmresidentComponent, AdmmortgageComponent, AdmbaladjComponent, AdmloggingComponent, FormsModule, AsyncPipe],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -35,7 +36,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   classMap: Map<string, string> = new Map<string, string>() ;
     classList: KeyVal[] = new Array<KeyVal>() ;
     defaultLevel = 'log' ;  logLevels = [''] ;  overrideLevel = '' ;
-  houses: House[] = new Array<House>() ;
+  houses: House[] = new Array<House>() ;  houseSubj = new Observable<House[]>() ;
   accounts: KeyVal[] = new Array<KeyVal>() ;  // label: accounts
   accountTypes: string[] = new Array<string>() ; // label: accounttypes
   tranTypes: string[] = new Array<string>() ; // label: trantypes
@@ -44,13 +45,13 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   categoryFolders: KeyVal[] = new Array<KeyVal>() ; // label: categoryFolders
   tranRules: RuleData[] = new Array<RuleData>() ; // label: tranRules
   mortgages: Mortgage[] = new Array<Mortgage>() ;
-  leases: Lease[] = new Array<Lease>() ;
+  leases: Lease[] = new Array<Lease>() ;  leaseSubj = new Observable<Lease[]>() ;
   residents: Resident[] = new Array<Resident>() ;
   selectedType = '' ;   completeActions = 0 ;  newRow = false ;
   newRule = false ;  newHouse = false ;  newAccounts = false ;
   newTranTypes = false ;  newAccountTypes = false ;  newTaxCats = false ;
   statusMsg = '' ;
-  actionCounts = 0 ;  globalsLoaded$ = new Subject<boolean>() ;
+  actionCounts = 0 ;  globalsLoaded$ = new Subject<boolean>() ;  parmLoadCnt = 0 ;
   fbGlobals: Globals[] = new Array<Globals>() ;
   admTypes: string[] = [] ;  action$: Subscription = new Subscription() ;
   cid = 'noCid' ;     noGid = 'noGid' ;
@@ -77,6 +78,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     const admTypes = Object.values(this.utilSvc.globalTypes) ;
     this.admTypes = admTypes.filter((admTp) => !this.utilSvc.noAdminGlobalTypes.includes(admTp)) ;
     this.cid = this.fireSvc.getCid() ;
+    this.parmLoadCnt = 0 ;
     const globRtn = this.fireSvc.getGlobals(true) ;
     if (Array.isArray(globRtn)) {
       this.fbGlobals = globRtn as Globals [] ;
@@ -93,74 +95,53 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
       })
       setTimeout(() => { global$.unsubscribe() ; }, 30000);
     }
-    const ruleRtn = this.fireSvc.getTranRuleDB() ;
-    if (Array.isArray(ruleRtn)) {
-      this.tranRules = ruleRtn as RuleData[] ;
-    } else {
-      const rule$ = ruleRtn.subscribe({
-        next: (rules) => {
-          this.tranRules = rules as RuleData[] ;
-          this.fireSvc.setTranRules(this.tranRules) ;
-        }
-      })
-      setTimeout(() => { rule$.unsubscribe() ; }, 30000);
-    }
-    const houseRtn = this.fireSvc.getHouseDB() ;
-    if (Array.isArray(houseRtn)) {
-      this.houses = houseRtn as House[] ;
-      console.log('admin houses thru array: ', this.houses)
-    } else {
-      const house$ = houseRtn.subscribe({
-        next: (houses) => {
-          this.houses = this.fireSvc.setHouses(houses as House[]) ;
-          console.log('admin houses thru subscribe: ', this.houses)
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving houses: ', error) ;
-        }
-      })
-      setTimeout(() => { house$.unsubscribe() ; }, 30000);
-    }
-    const mortgageRtn = this.fireSvc.getMortgageDB() ;
-    if (Array.isArray(mortgageRtn)) {
-      this.mortgages = mortgageRtn as Mortgage[] ;
-      console.log('admin mortgages thru array: ', this.mortgages)
-    } else {
-      const mortgage$ = mortgageRtn.subscribe({
-        next: (mortgages) => {
-          this.mortgages = this.fireSvc.setMortgages(mortgages as Mortgage[]) ;
-          console.log('admin mortgages thru subscribe: ', this.mortgages)
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving mortgages: ', error) ;
-        }
-      })
-      setTimeout(() => { mortgage$.unsubscribe() ; }, 30000);
-    }
-    const leaseRtn = this.fireSvc.getLeaseDB() ;
-    if (Array.isArray(leaseRtn)) {
-      this.leases = leaseRtn as Lease[] ;
-    } else {
-      const lease$ = leaseRtn.subscribe({
-        next: (leases) => {
-          this.leases = this.fireSvc.setLeases(leases as Lease[]) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving leases: ', error) ;
-        }
-      })
-      setTimeout(() => { lease$.unsubscribe() ; }, 30000);
-    }
-    const residentRtn = this.fireSvc.getResidentDB() ;
-    if (Array.isArray(residentRtn)) {
-      this.residents = residentRtn as Resident[] ;
-    } else {
-      const resident$ = residentRtn.subscribe({
-        next: (residents) => {
-          this.residents = this.fireSvc.setResidents(residents as Resident[]) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving residents: ', error) ;
-        }
-      })
-      setTimeout(() => { resident$.unsubscribe() ; }, 30000);
-    }
+
+    const rule$ = this.fireSvc.getTranRuleDB().subscribe({
+      next: (rules) => {
+        this.tranRules = rules as RuleData[] ;
+        this.fireSvc.setTranRules(this.tranRules) ;
+      }
+    })
+    setTimeout(() => { rule$.unsubscribe() ; }, 30000);
+
+    this.houseSubj = this.fireSvc.getHouseDB() ;
+    const house$ = this.houseSubj.subscribe({
+      next: (houses) => {
+        this.houses = this.fireSvc.setHouses(houses as House[]) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving houses: ', error) ;
+      }
+    })
+    setTimeout(() => {   house$.unsubscribe() ; }, 30000);
+
+    const mortgage$ = this.fireSvc.getMortgageDB().subscribe({
+      next: (mortgages) => {
+        this.mortgages = this.fireSvc.setMortgages(mortgages as Mortgage[]) ;
+        console.log('admin mortgages thru subscribe: ', this.mortgages)
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving mortgages: ', error) ;
+      }
+    })
+    setTimeout(() => { mortgage$.unsubscribe() ; }, 30000);
+
+    this.leaseSubj = this.fireSvc.getLeaseDB() ;
+    const lease$ = this.leaseSubj.subscribe({
+      next: (leases) => {
+        this.leases = this.fireSvc.setLeases(leases as Lease[]) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving leases: ', error) ;
+      }
+    })
+    setTimeout(() => { lease$.unsubscribe() ; }, 30000);
+
+    const resident$ = this.fireSvc.getResidentDB().subscribe({
+      next: (residents) => {
+        this.residents = this.fireSvc.setResidents(residents as Resident[]) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving residents: ', error) ;
+      }
+    })
+    setTimeout(() => { resident$.unsubscribe() ; }, 30000);
   }
 
   globalLoad() {
@@ -171,6 +152,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
     this.categoryFolders = this.fireSvc.getCategoryFolders() ;
     this.loadLogging() ;    // Retrieve logging info
+    console.log(`Admin loaded with ${this.houses.length} houses, and ${this.leases.length} leases` )
     this.globalsLoaded$.next(true) ;   // Notify that globals are loaded
   }
 

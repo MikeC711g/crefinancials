@@ -1,4 +1,4 @@
-@if (globalsLoaded$ | async) {
+@if ((globalsLoaded$ && houseSubj && leaseSubj) | async) {
 <div class="container">
   @if (selectedType === 'houses') {
     <div class="row col-md-12">
@@ -22,8 +22,7 @@
         }
       </ul>
     </div>
-  }
-  @if (selectedType === 'accounts') {
+  } @else  @if (selectedType === 'accounts') {
     <div class="col-md-12">
       <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
       New {{ selectedType }}</button>
@@ -46,8 +45,7 @@
           }
       </ul>
     </div>
-  }
-  @if (selectedType === 'taxCats') {
+  } @else @if (selectedType === 'taxCats') {
     <div class="col-md-12">
       <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
       New {{ selectedType }} </button>
@@ -68,8 +66,7 @@
           }
         </ul>
       </div>
-    }
-    @if (selectedType === 'categoryTaxcat') {
+    } @else @if (selectedType === 'categoryTaxcat') {
       <div class="col-md-12">
         <h2>Manage Categories</h2>
         <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
@@ -101,8 +98,7 @@
           }
         </ul>
       </div>
-    }
-    @if (selectedType === 'mortgages') {
+    } @else @if (selectedType === 'mortgages') {
       <div class="col-md-12">
         <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
           Add Mortgage</button>
@@ -124,30 +120,16 @@
           }
         </ul>
       </div>
-    }
-    @if (selectedType === 'leases') {
-      <div class="col-md-12">
-        <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-          Add Lease</button>
-        @if (newRow) {
-          <div>
-            <h2>Add a New Lease</h2>
-            <app-admlease (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)" 
-              [houses]="houses" [residents]="residents"></app-admlease>
-          </div>
-        }
-        <h2>Manage Leases</h2>
-        <ul>
-          @for (lease of leases; track lease) {
-            <li>
-              <app-admlease [lease]="lease" [houses]="houses" [residents]="residents"
-                (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admlease>
-            </li>
-          }
-        </ul>
-      </div>
-    }
-    @if (selectedType === 'residents') {
+    } @else @if (selectedType === 'leases') {
+      <h2>Manage Leases</h2>
+      <ul>
+        <li>
+          <app-admlease [leases]="leases" [houses]="houses" [residents]="residents"
+            (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admlease>
+        </li>
+      </ul>
+    </div>
+    } @else @if (selectedType === 'residents') {
       <div class="col-md-12">
         <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
           Add Resident</button>
@@ -167,9 +149,15 @@
             </li>
           }
         </ul>
+      /div>
+    } @else @if (selectedType === 'balAdjust') {
+      <div>
+        <h2>Work with balance adjustments</h2>
+        leaseLen: {{ leases.length }}, housesLen: {{ houses.length }} <br>
+        <app-admbaladj (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+          [houses]="houses" [leases]="leases"></app-admbaladj>
       </div>
-    }
-    @if (selectedType === 'logging') {
+    } @else @if (selectedType === 'logging') {
       <div class="row col-md-12">
         <h2>Log and trace management</h2>
         Please only use this section under the guidance of a Clerk support representative<br>
