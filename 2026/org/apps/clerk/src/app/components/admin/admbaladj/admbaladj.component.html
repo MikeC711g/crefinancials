@@ -11,15 +11,17 @@
     </select>
   </div>
 } @else {
-  Yo dude, I have house {{ selectedHouse}}
+  Yo dude, I have house {{ selectedHouse }}
   <div class="row">
     <label for="lease">Lease</label>
     <select class="form-control" id="lease" name="lease" data-cy="aba-lease"
         [(ngModel)]="selectedLease" (change)="selLease()">
       <option [value]="''" [selected]="!selectedLease"> -- select an option -- </option>
       @for (lease of leases; track lease) {
-        @if (lease.house === selectedHouse) {
-          <option [value]="lease.name">{{ lease.name }}</option>
+        @if (lease.House === selectedHouse) {
+          <option [value]="lease.House">{{ lease.House }}</option>
         }
       }
     </select>
+  </div>
+}

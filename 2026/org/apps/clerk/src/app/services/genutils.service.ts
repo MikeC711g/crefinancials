@@ -3,12 +3,16 @@ import { Injectable } from '@angular/core';
 import { TranRec } from '../models/TranRec.model';
 import { Project } from '../models/project.model';
 import { KeyVal } from '../models/globals.model';
-import { BalAdjust, Mortgage, Resident } from '../models/house.model';
+import { BalAdjust, Lease, Mortgage, Resident } from '../models/house.model';
 
 @Injectable({
   providedIn: 'root'
 })
 
+/**
+ * Utility functions that are logic intensive but have no dependencies (on other services including
+ * firebase). Also, global data that needs to be shared across multiple services/components)
+ */
 export class GenutilsService {
   classMap: Map<string, string> = new Map<string, string>() ;  dfltLevel = 'log' ;
   overrideLogLevel = '' ;   // If this is set, all logs will use it
@@ -26,9 +30,12 @@ export class GenutilsService {
     this.globalTypes.RuleData, this.globalTypes.Houses, this.globalTypes.Mortgages,
     this.globalTypes.Leases, this.globalTypes.Residents] ;
   addOnlyGlobalTypes = [this.globalTypes.TaxCats] ;
-  actionTypes = { Add: 'add', Update: 'update', Hide: 'hide', UnHide: 'unHide',
-    Cancel: 'cancel', Delete: 'delete', Split: 'split', UnSplit: 'unSplit',
-    SplitNew: 'splitNew', DirtyData: 'dirtyData', CleanData: 'cleanData' } ;
+  actionTypes = { Add: 'add', Update: 'update', Cancel: 'cancel', Delete: 'delete', 
+    Hide: 'hide', UnHide: 'unHide',   // For reconcile, some trx not in current statement
+    Split: 'split', UnSplit: 'unSplit',   // Split a parent tran into n children or unsplit back to atom
+    SplitNew: 'splitNew',             // Split a tran entered but not in data base yet
+    // DirtyData: 'dirtyData', CleanData: 'cleanData',
+    Renew: 'renew' } ;    // Renew a lease
   colorTypes = {Parent: 'Magenta', NotInDB: 'Beige', Default: 'White' } ;
   tblNames = { Globals: 'Globals', Transactions: 'Transactions',
     Projects: 'Projects', Reconciliations: 'Reconciliations', NewCustomer: 'newCustomer' } ;
@@ -197,6 +204,49 @@ export class GenutilsService {
   getDateDiff(minDate: Date, maxDate: Date): number {
     const diffTime = maxDate.getTime() - minDate.getTime() ;
     return diffTime / (1000 * 60 * 60 * 24) ;
+  }
+  /** */
+  calcLateFees(lease: Lease, trans: TranRec[], balAdjusts: BalAdjust[]): [number, BalAdjust[]] {
+    const rtnLateFees: BalAdjust[] = [] ;
+    const curLateFees = balAdjusts.filter( ba => ba.AType === 'lateFee').sort((a, b) => (a.ADate > b.ADate) ? 1 : -1) ;
+    const checkDates: string[] = this.getLateFeeDates(lease) ;
+    let curDate = lease.StartDt ;  let curBal = lease.StartBal ;
+    for ( const chkDt of checkDates) {
+      curBal = this.calcBalForDates(curBal, curDate, chkDt, balAdjusts, trans) ;
+      if (curLateFees.findIndex( lf => lf.ADate <= chkDt && lf.ADate >= curDate) < 0) { // No late fee yet
+        if (curBal > 0) {   // Only add late fee if balance positive
+          rtnLateFees.push(new BalAdjust(lease.Cid, chkDt, lease.House, 'lateFee', lease.LateFee)) ;
+        }
+        curDate = chkDt ;
+      }
+    }
+    return [curBal, rtnLateFees] ;
+  }
+
+  calcBalForDates(startBal: number, startDt: string, endDt: string, balAdjs: BalAdjust[],
+    trans: TranRec[]): number {
+    const curBals = balAdjs.filter( ba => ba.ADate > startDt && ba.ADate <= endDt)
+    const curTrans = trans.filter( tr => tr.TranDate > startDt && tr.TranDate <= endDt) ;
+    for (const cb of curBals) { if (!cb.deletedDate)  startBal += cb.Amount ; }
+    for (const ct of curTrans) { startBal -= ct.Amount ; }  // Only rent income in trans
+    return startBal ;
+  }
+
+  getLateFeeDates(lease: Lease): string[] {
+    const lateFeeDates: string[] = [] ;
+    const dayOfLateFee = (lease.RentDueDom + lease.GracePeriod).toString().padStart(2, '0') ;
+    let curYr = parseInt(lease.StartDt.slice(0, 4)) ;  let curMth = parseInt(lease.StartDt.slice(5, 7)) ;
+    let lateDate = curYr.toString() + '-' + curMth.toString().padStart(2, '0') + '-' + dayOfLateFee ;
+    if (lateDate < lease.StartDt) {   // If before start date, move to next month
+      curMth++ ;  if (curMth > 12) { curMth = 1 ; curYr++ ; }
+      lateDate = curYr.toString() + '-' + curMth.toString().padStart(2, '0') + '-' + dayOfLateFee ;
+    }
+    while (lateDate <= lease.EndDt) {
+      lateFeeDates.push(lateDate) ;
+      curMth++ ;  if (curMth > 12) { curMth = 1 ; curYr++ ; }
+      lateDate = curYr.toString() + '-' + curMth.toString().padStart(2, '0') + '-' + dayOfLateFee ;
+    }
+    return lateFeeDates ;
   }
 
   /**

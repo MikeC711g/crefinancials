@@ -1,5 +1,5 @@
 @if ((globalsLoaded$ && houseSubj && leaseSubj) | async) {
-<div class="container">
+  <div class="container">
   @if (selectedType === 'houses') {
     <div class="row col-md-12">
       <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
@@ -22,172 +22,187 @@
         }
       </ul>
     </div>
-  } @else  @if (selectedType === 'accounts') {
-    <div class="col-md-12">
-      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-      New {{ selectedType }}</button>
-      @if (newRow) {
-        <div>
-          <h2>Add a new Account</h2>
-          <app-admkv [parmType]="selectedType" [valDomain]="accountTypes"
-      (parmMod)="onParmMod($event.action, $event.parmType,
-        $event.newVal, $event.oldVal)"
-          [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></app-admkv>
-        </div>
-      }
-      <h2>Manage Accounts</h2>
-      <ul>
-        @for (account of accounts; track account) {
-          <li>
-            <app-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
-        [valLabel]="'Account Type:'" (parmMod)="onParmMod($event.action, $event.parmType,
-          $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></app-admkv></li>
-          }
-      </ul>
-    </div>
-  } @else @if (selectedType === 'taxCats') {
-    <div class="col-md-12">
-      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-      New {{ selectedType }} </button>
-      @if (newRow) {
-        <div>
-          <h2>Add a new Tax Category</h2>
-          <app-admkv [parmType]="selectedType" (parmMod)="onParmMod($event.action, $event.parmType,
-            $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'" [valLabel]="'Taxcat Label:'"></app-admkv>
-        </div>
-      }
-        <h2>Manage Tax Categories</h2>
-        <ul>
-          @for (taxCat of taxCats; track taxCat) {
-            <li>
-              <app-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
-                [valLabel]="'Taxcat Label:'" (parmMod)="onParmMod($event.action, $event.parmType,
-                $event.newVal, $event.oldVal)"></app-admkv></li>
-          }
-        </ul>
-      </div>
-    } @else @if (selectedType === 'categoryTaxcat') {
-      <div class="col-md-12">
-        <h2>Manage Categories</h2>
-        <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
-          [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
-          $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>
-      </div>
-    }
-    @if (selectedType === 'ruleData') {
+  } @else {
+     @if (selectedType === 'accounts') {
       <div class="col-md-12">
         <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-          Add Rule Data</button>
+        New {{ selectedType }}</button>
         @if (newRow) {
           <div>
-            <h2>Add a New Rule</h2>
-            <app-admruledata (parmMod)="onParmMod($event.action,
-              $event.parmType, $event.newVal, $event.oldVal)"
-              [tranTypes]="tranTypes" [taxCats]="taxCats" [accounts]="accounts"
-              [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+            <h2>Add a new Account</h2>
+            <app-admkv [parmType]="selectedType" [valDomain]="accountTypes"
+        (parmMod)="onParmMod($event.action, $event.parmType,
+          $event.newVal, $event.oldVal)"
+            [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></app-admkv>
           </div>
         }
-        <h2>Manage Rules</h2>
+        <h2>Manage Accounts</h2>
         <ul>
-          @for (rule of tranRules; track rule) {
+          @for (account of accounts; track account) {
             <li>
-              <app-admruledata [tranRule]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
-                (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
-                [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
-            </li>
-          }
+              <app-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
+          [valLabel]="'Account Type:'" (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></app-admkv></li>
+            }
         </ul>
       </div>
-    } @else @if (selectedType === 'mortgages') {
+    } @else {
+      @if (selectedType === 'taxCats') {
       <div class="col-md-12">
         <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-          Add Mortgage</button>
+        New {{ selectedType }} </button>
         @if (newRow) {
           <div>
-            <h2>Add a New Mortgage</h2>
-            <app-admmortgage (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
-              [houses]="houses"></app-admmortgage>
+            <h2>Add a new Tax Category</h2>
+            <app-admkv [parmType]="selectedType" (parmMod)="onParmMod($event.action, $event.parmType,
+              $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'" [valLabel]="'Taxcat Label:'"></app-admkv>
           </div>
         }
-        <h2>Manage Mortgages</h2>
-        <ul>
-          @for (mortgage of mortgages; track mortgage) {
-            <li>
-              <app-admmortgage [mortgage]="mortgage" [houses]="houses"
-                (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"
-              [mortgage]="mortgage" [houses]="houses"></app-admmortgage>
-            </li>
-          }
-        </ul>
-      </div>
-    } @else @if (selectedType === 'leases') {
-      <h2>Manage Leases</h2>
-      <ul>
-        <li>
-          <app-admlease [leases]="leases" [houses]="houses" [residents]="residents"
-            (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admlease>
-        </li>
-      </ul>
-    </div>
-    } @else @if (selectedType === 'residents') {
-      <div class="col-md-12">
-        <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
-          Add Resident</button>
-        @if (newRow) {
-          <div>
-            <h2>Add a New Resident</h2>
-            <app-admresident (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)">
-            </app-admresident>
-          </div>
-        }
-        <h2>Manage Residents</h2>
-        <ul>
-          @for (resident of residents; track resident) {
-            <li>
-              <app-admresident [resident]="resident"
-                (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admresident>
-            </li>
-          }
-        </ul>
-      /div>
-    } @else @if (selectedType === 'balAdjust') {
-      <div>
-        <h2>Work with balance adjustments</h2>
-        leaseLen: {{ leases.length }}, housesLen: {{ houses.length }} <br>
-        <app-admbaladj (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
-          [houses]="houses" [leases]="leases"></app-admbaladj>
-      </div>
-    } @else @if (selectedType === 'logging') {
-      <div class="row col-md-12">
-        <h2>Log and trace management</h2>
-        Please only use this section under the guidance of a Clerk support representative<br>
-        <label for="dfltLevel">Default Level</label>
-        <select class="form-control" id="dfltLevel" name="dfltLevel"
-          [(ngModel)]="defaultLevel" (change)="setDfltLogLevel()">
-          @for (level of logLevels; track level) {
-            <option [value]="level">{{ level }}</option>
-          }
-        </select>
-        <label for="orideLevel">OverRide Level</label>
-        <select class="form-control" id="orideLevel" name="orideLevel"
-          [(ngModel)]="overrideLevel" (change)="setOrideLogLevel()">
-          <option [value]="''" [selected]="!overrideLevel">-- select an option --</option>
-          @for (level of logLevels; track level) {
-            <option [value]="level">{{ level }}</option>
-          }
-        </select>
-        <div class="row col-md-12">
+          <h2>Manage Tax Categories</h2>
           <ul>
-            @for (lClass of classList; track lClass) {
+            @for (taxCat of taxCats; track taxCat) {
               <li>
-                <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
-                (logMod)="onLogMod($event.className, $event.level)"></app-admlogging>
-              </li>
+                <app-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
+                  [valLabel]="'Taxcat Label:'" (parmMod)="onParmMod($event.action, $event.parmType,
+                  $event.newVal, $event.oldVal)"></app-admkv></li>
             }
           </ul>
         </div>
-      </div>
+      } @else {
+        @if (selectedType === 'categoryTaxcat') {
+          <div class="col-md-12">
+            <h2>Manage Categories</h2>
+            <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
+              [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
+              $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>
+          </div>
+        }
+        @if (selectedType === 'ruleData') {
+          <div class="col-md-12">
+            <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+              Add Rule Data</button>
+            @if (newRow) {
+              <div>
+                <h2>Add a New Rule</h2>
+                <app-admruledata (parmMod)="onParmMod($event.action,
+                  $event.parmType, $event.newVal, $event.oldVal)"
+                  [tranTypes]="tranTypes" [taxCats]="taxCats" [accounts]="accounts"
+                  [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+              </div>
+            }
+            <h2>Manage Rules</h2>
+            <ul>
+              @for (rule of tranRules; track rule) {
+                <li>
+                  <app-admruledata [tranRule]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
+                    (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                    [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          @if (selectedType === 'mortgages') {
+            <div class="col-md-12">
+              <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+                Add Mortgage</button>
+              @if (newRow) {
+                <div>
+                  <h2>Add a New Mortgage</h2>
+                  <app-admmortgage (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                    [houses]="houses"></app-admmortgage>
+                </div>
+              }
+              <h2>Manage Mortgages</h2>
+              <ul>
+                @for (mortgage of mortgages; track mortgage) {
+                  <li>
+                    <app-admmortgage [mortgage]="mortgage" [houses]="houses"
+                      (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"
+                    [mortgage]="mortgage" [houses]="houses"></app-admmortgage>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            @if (selectedType === 'leases') {
+              <h2>Manage Leases</h2>
+              <ul>
+                <li>
+                  <app-admlease [leases]="leases" [houses]="houses" [residents]="residents"
+                    (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admlease>
+                </li>
+              </ul>
+            } @else {
+              @if (selectedType === 'residents') {
+                <div class="col-md-12">
+                  <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+                    Add Resident</button>
+                  @if (newRow) {
+                    <div>
+                      <h2>Add a New Resident</h2>
+                      <app-admresident (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)">
+                      </app-admresident>
+                    </div>
+                  }
+                  <h2>Manage Residents</h2>
+                  <ul>
+                    @for (resident of residents; track resident) {
+                      <li>
+                        <app-admresident [resident]="resident"
+                          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admresident>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              } @else {
+                @if (selectedType === 'balAdjust') {
+                  <div>
+                    <h2>Work with balance adjustments</h2>
+                    leaseLen: {{ leases.length }}, housesLen: {{ houses.length }} <br>
+                    <app-admbaladj (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                      [houses]="houses" [leases]="leases"></app-admbaladj>
+                  </div>
+                } @else {
+                  @if (selectedType === 'logging') {
+                    <div class="row col-md-12">
+                      <h2>Log and trace management</h2>
+                      Please only use this section under the guidance of a Clerk support representative<br>
+                      <label for="dfltLevel">Default Level</label>
+                      <select class="form-control" id="dfltLevel" name="dfltLevel"
+                        [(ngModel)]="defaultLevel" (change)="setDfltLogLevel()">
+                        @for (level of logLevels; track level) {
+                          <option [value]="level">{{ level }}</option>
+                        }
+                      </select>
+                      <label for="orideLevel">OverRide Level</label>
+                      <select class="form-control" id="orideLevel" name="orideLevel"
+                        [(ngModel)]="overrideLevel" (change)="setOrideLogLevel()">
+                        <option [value]="''" [selected]="!overrideLevel">-- select an option --</option>
+                        @for (level of logLevels; track level) {
+                          <option [value]="level">{{ level }}</option>
+                        }
+                      </select>
+                      <div class="row col-md-12">
+                        <ul>
+                          @for (lClass of classList; track lClass) {
+                            <li>
+                              <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
+                              (logMod)="onLogMod($event.className, $event.level)"></app-admlogging>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    <div> {{ statusMsg }} </div>
+  }
+  <div> {{ statusMsg }} </div>
   </div>
 }

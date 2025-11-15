@@ -390,7 +390,7 @@ export class FirebaseService {
     }
     balAdjQuery.push(orderBy('AdjDate', 'desc')) ;
     const balAdj$: Observable<BalAdjust[]> = collectionData<BalAdjust>(query(
-      collection(this.firestore, 'BalAdjusts') as CollectionReference<BalAdjust>,
+      collection(this.firestore, 'BalAdjust') as CollectionReference<BalAdjust>,
       ...balAdjQuery), {idField: 'BalAdjId'}).pipe(first()) ;
     this.balAdjLoadTime = new Date().getTime() ;
     return balAdj$ ;
@@ -501,6 +501,7 @@ export class FirebaseService {
       [where('TranDate', '>=', tranQ.MinDate), where('TranDate', '<=', tranQ.MaxDate)]
     tranQuery.push(where('Cid', '==', this.cid)) ;
     if (tranQ.AccountArr!.length > 0) tranQuery.push(where('Account', 'in', tranQ.AccountArr))
+    if (tranQ.House && tranQ.House.length > 0) tranQuery.push(where('House', 'in', tranQ.House))
     return tranQuery
   }
 
@@ -517,8 +518,6 @@ export class FirebaseService {
         !tranQ.TranType.includes(tr.TranType)) return false ;
       if (tranQ.TaxCat && tranQ.TaxCat.length > 0 &&
         !tranQ.TaxCat.includes(tr.TaxCat))  return false ;
-      if (tranQ.House && tranQ.House.length > 0 &&
-        !tranQ.House.includes(tr.House))  return false ;
       if (tranQ.Project && tranQ.Project !== tr.Project)  return false ;
       if ((tranQ.MinAmount !== 0 || tranQ.MaxAmount !== 0) &&
         (tr.Amount < tranQ.MinAmount! || tr.Amount > tranQ.MaxAmount!)) return false ;

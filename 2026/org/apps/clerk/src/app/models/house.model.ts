@@ -13,7 +13,7 @@ export class House {
 }
 
 export class Lease {
-
+  // future thoughts: Cancel reason/category and/or text for cancel comment
   constructor(
     public Cid: string,
     public House: string,
@@ -67,7 +67,7 @@ export class BalAdjust {
     public Cid: string,
     public ADate: string,
     public House: string,
-      // Adjustment type (e.g., newBill, late fee, rentChg, curBal, etc.)
+      // Adjustment type (e.g., newBill, lateFee, rentChg, curBal, etc.)
     public AType: string,   // Note no payment needed as those handled thru rent income
     public Amount: number,
     public deletedDate?: string,

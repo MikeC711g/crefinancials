@@ -17,7 +17,7 @@ export class AdmbaladjComponent implements OnInit {
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,
     newVal: any, oldVal: any }>() ;
   newRow = false ;  editMode = false ;
-  houseBA: BalAdjust[] = new Array<BalAdjust>() ;
+  houseBA: BalAdjust[] = new Array<BalAdjust>() ;  selectedLease = '' ;
   statusMsg = "" ;  houseSelected = false ;  selectedHouse = '' ;
   gType: string ;  curDate = '' ;
   CLASSNAME = 'admbaladj' ;
@@ -52,5 +52,9 @@ export class AdmbaladjComponent implements OnInit {
     const curDt = new Date().toISOString().slice(0, 10) ; // todo ... check on need of houseselected boolen
     const curLease = this.leases.find(lease => lease.House === this.selectedHouse &&
       lease.StartDt <= curDt && lease.EndDt >= curDt) ;
+  }
+
+  selLease() {
+    console.log(`selected lease: ${this.selectedLease}`) ;
   }
 }

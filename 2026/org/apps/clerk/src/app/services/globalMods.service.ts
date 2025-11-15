@@ -2,8 +2,8 @@ import { Globals, KeyVal, globInfo, objwCid, genHelpers } from './../models/glob
 import { Injectable } from '@angular/core';
 import { GenutilsService } from './genutils.service';
 import { FirebaseService } from './firebase.service';
-import { Subject } from 'rxjs';
-import { Lease } from '../models/house.model';
+import { BalAdjust, Lease } from '../models/house.model';
+import { TranQ, TranRec } from '../models/TranRec.model';
 
 // TODO: Create interface for function to call for each type. Interface should include
 // action, gtype, newrow, oldrow, locArray, fbglobals. Take as optional and only call if there.
@@ -14,9 +14,14 @@ import { Lease } from '../models/house.model';
   providedIn: 'root'
 })
 
+/**
+ * Service used often by administrative components to handle common or complex logic that is dependent ONLY
+ * on genutils or firebase services.  Similar to genUtils but with firebase dependencies.
+ */
 export class GlobalModsService {
   CLASSNAME = 'globalMods'
   globInfoMap: Map<string, globInfo> = new Map<string, globInfo>() ;
+  leases: Lease[] = new Array<Lease>() ;  
   
   constructor(private utilSvc: GenutilsService, private fireSvc: FirebaseService) {
     this.globInfoMap.set(utilSvc.globalTypes.RuleData, new globInfo('TranRules', 'RuleId', 'ruleName',
@@ -55,6 +60,155 @@ export class GlobalModsService {
         return true ;
       } else return false ;
     } else return true ;
+  }
+
+  /**
+   * Takes prior lease, retrieves payment/charge info, calculates late fees, and handles all up through
+   * last day of prior lease.  Assumes home rented to same resident(s) with no changes in rent/fees. If
+   * there are changes, those need to be handled manually.
+   * @param lease Prior lease with startBal, startDt, and house all populated
+   * @returns Calculated balance as of endDt of prior lease
+   */
+  calcLeaseBeginBal(lease: Lease): Promise<number> { // Future efficiency is let queries run in parallel
+    return new Promise<number>((resolve) => {
+      const tq = new TranQ(lease.StartDt, lease.EndDt) ;  tq.House = [ lease.House ] ;
+      tq.Category = [ 'Rent Income' ] ;
+      const tran$ = this.fireSvc.getTransFromDB(tq, false).subscribe({
+        next: (trans) => {
+          const balAdj$ = this.fireSvc.getBalAdj4House(lease.House).subscribe({
+            next: (adjustments) => {
+              resolve(this.calcBeginBal(lease, trans, adjustments)) ;
+            }
+          })
+          setTimeout(() => { balAdj$.unsubscribe }, 15000);
+        }
+      })
+      setTimeout(() => { tran$.unsubscribe }, 30000);
+    })
+  }
+
+  setLeases(leases: Lease[]) { this.leases = leases ; }
+
+  /**
+   * A date was changed on a lease. If it causes an overlap with another lease for the same house, offer to
+   * adjust the other lease to eliminate the overlap. If offer declined, return false and revert date
+   * @param newLease current lease including modified date
+   * @param isStart is start date or end date what we are checking
+   * @param idx Which idx in array is current lease (ignore self when checking)
+   * @returns boolean true if no overlap or overlap adjusted, false if overlap and not adjusted
+   */
+  checkLeaseOverlap(newLease: Lease, isStart: boolean, idx: number): boolean {
+    const filtLeases = this.leases.filter( l => l.House === newLease.House) ;
+    for (let i = 0 ; i < filtLeases.length; i++ ) {
+      if (i === idx) continue ;  // Skip self
+      const lse = filtLeases[i] ;
+      if (isStart) {
+        if ((newLease.StartDt >= lse.StartDt && newLease.StartDt < lse.EndDt && !lse.cancelled)) {
+          if (confirm('Start Date overlaps with existing lease, adjust dates on other lease?')) {
+            console.log('Would adjust date on lease: %O because startDt %s', lse, newLease.StartDt);
+            lse.EndDt = newLease.StartDt ;
+            this.updtLease(lse) ;
+          } else return false ;
+        }
+      } else {
+        if ((newLease.EndDt > lse.StartDt && newLease.EndDt <= lse.EndDt && !lse.cancelled)) {
+          if (confirm('End Date overlaps with existing lease, adjust dates on other lease?')) {
+            console.log('Would adjust date on lease: %O because endDt %s', lse, newLease.EndDt);
+            lse.StartDt = newLease.EndDt ;
+            this.updtLease(lse) ;
+          } else return false ;
+        }
+      }
+    }
+    return true ;
+  }
+
+  /**
+   * If date change on lease would cause an overlap, adjust other lease to eliminate overlap
+   * @param lease 
+   * @returns Promise
+   */
+  updtLease(lease: Lease): Promise<string> {
+    const leaseAny: any = lease as any ;    const leaseObj = leaseAny as objwCid ;
+    return this.fireSvc.updtGenGlob(leaseObj, leaseObj, 'Leases', 'LeaseId') ;
+  }
+
+  // Identify if lease ends between 6 months ago and 6 mopnths from now
+  isLeaseCurrent(lease: Lease): boolean {
+    if (lease.cancelled) return false ;
+    const currDt = new Date() ;
+    const oldDt =this.utilSvc.getDate(currDt, -180) ;
+    const newDt = this.utilSvc.getDate(currDt, 180) ;
+    return (lease.EndDt >= oldDt && lease.EndDt <= newDt);
+  }
+
+  tempLoadForLeaseTest() {
+    const leases: Lease[] = [] ;
+    leases.push(new Lease('test1', '111PR', true, false, '', '2022-10-01', '2023-09-30', 1200, 0, 1, 60, 5, 1200,
+      0, 0, ['43v65kB313Y9jhfCSnDt', '60qZqs7CTbHWUeJc2c7S']))
+    leases.push(new Lease('test1', '111PR', true, false, '', '2023-10-01', '2024-09-30', 1210, 0, 1, 60, 5, 1210,
+      0, 0, ['43v65kB313Y9jhfCSnDt', '60qZqs7CTbHWUeJc2c7S']))
+    leases.push(new Lease('test1', '111PR', true, false, '', '2024-10-01', '2025-09-30', 1220, 0, 1, 60, 5, 1220,
+      0, 0, ['43v65kB313Y9jhfCSnDt', '60qZqs7CTbHWUeJc2c7S']))
+    for (const lease of leases) {
+      const objAny: any = lease as any ;   const leaseObj = objAny as objwCid ;
+      this.fireSvc.addGenGlob(leaseObj, 'Leases', 'LeaseId', []) ;
+    }
+    const trans: TranRec[] = [] ;
+    trans.push(new TranRec('test1', '2024-10-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit123')) ;
+    trans.push(new TranRec('test1', '2024-11-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit124')) ;
+    trans.push(new TranRec('test1', '2024-12-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit125')) ;
+    trans.push(new TranRec('test1', '2025-01-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit126')) ;
+    trans.push(new TranRec('test1', '2025-02-02', 'phChecking', 'Rent Income', 'Deposit', 1200, '', 'BI',
+      '111PR', '', '', '', 'Fit127')) ;
+    trans.push(new TranRec('test1', '2025-03-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit128')) ;
+    trans.push(new TranRec('test1', '2025-04-02', 'phChecking', 'Rent Income', 'Deposit', 1100, '', 'BI',
+      '111PR', '', '', '', 'Fit129')) ;
+    trans.push(new TranRec('test1', '2025-05-02', 'phChecking', 'Rent Income', 'Deposit', 1820, '', 'BI',
+      '111PR', '', '', '', 'Fit130')) ;
+    trans.push(new TranRec('test1', '2025-06-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit131')) ;
+    trans.push(new TranRec('test1', '2025-07-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit132')) ;
+    trans.push(new TranRec('test1', '2025-08-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit133')) ;
+    trans.push(new TranRec('test1', '2025-09-02', 'phChecking', 'Rent Income', 'Deposit', 1220, '', 'BI',
+      '111PR', '', '', '', 'Fit134')) ;
+    trans.push(new TranRec('test1', 'tdate', 'acct', 'cat', 'ttype', 100, 'textra', 'tcat', 'house', 
+      'proj', 'annot', 'reconk', 'fitid', 'tranid', 'splitpar'))
+    for (const ctran of trans) {
+      delete ctran.SplitParent ;
+      this.fireSvc.addTrans(ctran, false)
+    }
+    const balAdjusts: BalAdjust[] = [] ;
+    balAdjusts.push(new BalAdjust('test1', '2025-01-15', '111PR', 'lateFee', 50)) ;
+    balAdjusts.push(new BalAdjust('test1', '2025-02-11', '111PR', 'newBill', 30)) ;
+    balAdjusts.push(new BalAdjust('test1', '2025-03-15', '111PR', 'lateFee', 50)) ;
+    for (const adj of balAdjusts) {
+      const adjAny: any = adj as any ;   const adjObj = adjAny as objwCid ;
+      this.fireSvc.addGenGlob(adjObj, 'BalAdjust', 'BalAdjId', ['deletedDate', 'Comment']) ;
+    }
+  }
+
+  /**
+   * Using the data, determine what current balance is at closing of lease
+   * @param lease Lease prior to new lease being created/renewed
+   * @param trans 
+   * @param balAdjusts 
+   */
+  calcBeginBal(lease: Lease, trans: TranRec[], balAdjusts: BalAdjust[]): number {
+    let newBal = 0 ;  let newAdjusts: BalAdjust[] = [] ;
+    [newBal, newAdjusts] = this.utilSvc.calcLateFees(lease, trans, balAdjusts) ;
+    for (const adj of newAdjusts) {
+      const adjAny: any = adj as any ;   const adjObj = adjAny as objwCid ;
+      this.fireSvc.addGenGlob(adjObj, 'BalAdjust', 'BalAdjId', ['deletedDate', 'Comment']) ;
+    }   // Not catching promise as we don't need to fill in new ID here
+    return newBal ;
   }
 
   // This function handles persisting all globals that are in the globals collection

@@ -18,7 +18,7 @@ import { Globals, objwCid, KeyVal } from './../../models/globals.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { GlobalModsService } from './../../services/globalMods.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin',
@@ -142,6 +142,8 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
       }
     })
     setTimeout(() => { resident$.unsubscribe() ; }, 30000);
+
+    // this.globSvc.tempLoadForLeaseTest() ;
   }
 
   globalLoad() {
@@ -211,7 +213,8 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
         anyArr = this.leases ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;
-        this.leases = this.fireSvc.setLeases(this.leases);  break ;
+        this.leases = this.fireSvc.setLeases(this.leases);    // Don't think I want renew in fb list yet
+        break ;
       case this.utilSvc.globalTypes.Residents:
         anyArr = this.residents ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,

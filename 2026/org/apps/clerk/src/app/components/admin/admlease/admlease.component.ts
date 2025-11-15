@@ -2,11 +2,13 @@ import { Component, EventEmitter, OnInit, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../../services/genutils.service';
 import { House, Lease, Resident } from '../../../models/house.model';
+import { AdmleaseeditComponent } from "../admleaseedit/admleaseedit/admleaseedit.component";
+import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
   selector: 'app-admlease',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, AdmleaseeditComponent],
   templateUrl: './admlease.component.html',
   styleUrl: './admlease.component.css'
 })
@@ -18,14 +20,13 @@ export class AdmleaseComponent implements OnInit {
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,
     newVal: any, oldVal: any }>() ;
   filtLeases: Lease[] = new Array<Lease>() ;
-  newRow = false ;  editMode = false ;
-  origLease: Lease = new Lease('', '', false, false, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, [], '') ;
+  newRow = false ;   canRenewLease = false ;
   statusMsg = "" ;
   gType: string ;
   CLASSNAME = 'admlease' ;
 
-  constructor(private utilSvc: GenutilsService) {
-    this.gType = utilSvc.globalTypes.Leases
+  constructor(private utilSvc: GenutilsService, private globSvc : GlobalModsService) {
+    this.gType = utilSvc.globalTypes.Leases ;
   }
 
   ngOnInit(): void {
@@ -41,6 +42,7 @@ export class AdmleaseComponent implements OnInit {
     // Include button for select different house which sets selectedHouse to ''
     this.newRow = this.leases.length === 0 ;
     if (this.selectedHouse !== '') this.onChgHouse() ;
+    this.globSvc.setLeases(this.leases) ;
   }
 
   onChgHouse() {    // Should not be callable with a new value of ''
@@ -50,42 +52,51 @@ export class AdmleaseComponent implements OnInit {
       this.newRow = true ;
     } else {
       this.statusMsg = '' ;
-      this.newRow = false ;
-
+      this.newRow = false ;   this.canRenewLease = false ;
+      const renewableLse = this.filtLeases.filter( l => !l.cancelled) ;
+      this.canRenewLease = this.globSvc.isLeaseCurrent(renewableLse[0]) ;
     }
   }
 
-  onAddRecord() {
-    this.utilSvc.cDebug(this.CLASSNAME, 'Came into add for lease: %O  newRow: %s', this.lease, this.newRow ) ;
-    if (this.newRow) {
-      this.parmMod.emit({action: this.utilSvc.actionTypes.Add,
-        parmType: this.gType, newVal: this.lease, oldVal: this.lease}) ;
-      this.newRow = false ;
-    } else {    // If update, send new and original for DB
-      this.parmMod.emit({action: this.utilSvc.actionTypes.Update,
-        parmType: this.gType, newVal: this.lease, oldVal: this.origLease}) ;
+  createNewLease(house: string, renew: boolean) {
+    let newLease: Lease ;
+    if (renew) {
+      const renewableLse = this.filtLeases.filter( l => !l.cancelled) ;
+      const lse = renewableLse[0] ;
+      newLease = { ...lse } ;
+      const eDt = new Date(lse.EndDt) ;
+      newLease.StartDt = this.utilSvc.getDate(eDt, 1) ;
+      const newEndYr = eDt.getFullYear() + 1 ;  eDt.setFullYear(newEndYr) ;
+      newLease.EndDt = eDt.toISOString().substring(0,10) ;
+      newLease.LeaseId = '' ;
+    } else {
+      newLease = new Lease('', house, true, false, '', '', '', 0, 0, 1, 0, 5, 0, 0, 0, [], '') ;
     }
-    this.editMode = false ;
+    this.filtLeases.splice(0, 0, newLease) ;
+    this.canRenewLease = false ;
   }
 
-  onDeleteRecord() {
-    this.utilSvc.cDebug(this.CLASSNAME,'Came into delete for name: %s', this.lease.House ) ;
-    this.parmMod.emit({action: this.utilSvc.actionTypes.Delete,
-      parmType: this.gType, newVal: this.lease, oldVal: this.lease}) ;
-    this.editMode = false ;
-  }
-
-  onCancel() {
-    this.utilSvc.cDebug(this.CLASSNAME, 'Came into cancel for name: %s', this.lease.House ) ;
-    if (this.newRow) {
-      this.parmMod.emit({action: this.utilSvc.actionTypes.Cancel,
-        parmType: this.gType, newVal: this.lease, oldVal: this.lease}) ;
+  onLeaseMod(event: { action: string; parmType: string; newVal: any; oldVal: any }) {
+    const actTp = this.utilSvc.actionTypes ;  const cLease: Lease = event.newVal as Lease ;
+    if ((event.action === actTp.Delete || event.action === actTp.Cancel) && 
+      !cLease.LeaseId) { // New row being deleted or cancelled before save
+      const idx = this.filtLeases.findIndex( l => l === cLease) ;
+      if (idx >= 0)    this.filtLeases.splice(idx, 1) ;
+      const renewableLse = this.filtLeases.filter( l => !l.cancelled) ;
+      this.canRenewLease = this.globSvc.isLeaseCurrent(renewableLse[0]) ;
+     return ;
     }
-    this.editMode = false ;    this.newRow = false ;
-  }
-
-  chgStartDate() {    // Run when dstart date is changed
-    this.lease.EndDt = this.utilSvc.getDate(new Date(this.lease.StartDt), 364) ;
+    this.parmMod.emit({action: event.action, parmType: event.parmType,
+      newVal: event.newVal, oldVal: event.oldVal}) ;
+      // Full array delete can be delayed, so fix this array in the meantime
+    if (event.action === actTp.Delete) {
+      const idx = this.filtLeases.findIndex( l => l.LeaseId === event.newVal.LeaseId) ;
+      if (idx >= 0)    this.filtLeases.splice(idx, 1) ;
+    } else {
+      if (event.action === actTp.Cancel) {
+        const idx = this.filtLeases.findIndex( l => l.LeaseId === event.newVal.LeaseId) ;
+        if (idx >= 0)    this.filtLeases[idx] = event.newVal ;
+      }
+    }
   }
 }
-
