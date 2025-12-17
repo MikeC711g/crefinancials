@@ -9,7 +9,7 @@ import { CremessagesComponent } from '../../cremessages/cremessages.component';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
-  selector: 'app-creprojectedit',
+  selector: 'crefinancials-creprojectedit',
   standalone: true,
   imports: [CremessagesComponent, FormsModule],
   templateUrl: './creprojectedit.component.html',

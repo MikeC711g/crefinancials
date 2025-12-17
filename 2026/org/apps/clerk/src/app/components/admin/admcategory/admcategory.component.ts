@@ -7,7 +7,7 @@ import { GenutilsService } from './../../../services/genutils.service';
 import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
-  selector: 'app-admcategory',
+  selector: 'crefinancials-admcategory',
   standalone: true,
   imports: [FormsModule, KeyValuePipe],
   templateUrl: './admcategory.component.html',

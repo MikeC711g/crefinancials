@@ -4,11 +4,11 @@ import { GenutilsService } from './../../../services/genutils.service';
 import { Resident } from '../../../models/house.model';
 
 @Component({
-  selector: 'app-admresident',
+  selector: 'crefinancials-admresident',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admresident.component.html',
-  styleUrl: './admresident.component.css'
+  styleUrls: ['./admresident.component.css']
 })
 export class AdmresidentComponent {
   @Input() resident: Resident = new Resident('', '', '', '', '', '', '') ;

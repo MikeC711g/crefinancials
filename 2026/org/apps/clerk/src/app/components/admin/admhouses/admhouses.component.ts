@@ -4,7 +4,7 @@ import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
-  selector: 'app-admhouses',
+  selector: 'crefinancials-admhouses',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admhouses.component.html',

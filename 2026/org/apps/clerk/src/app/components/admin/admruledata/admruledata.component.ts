@@ -7,7 +7,7 @@ import { KeyVal } from './../../../models/globals.model';
 import { House } from './../../../models/house.model';
 
 @Component({
-  selector: 'app-admruledata',
+  selector: 'crefinancials-admruledata',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admruledata.component.html',

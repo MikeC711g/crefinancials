@@ -7,7 +7,7 @@ import { GenutilsService } from './../../services/genutils.service';
 import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-transrch',
+  selector: 'crefinancials-transrch',
   standalone: true,
   imports: [FormsModule, NgFor],
   templateUrl: './transrch.component.html',

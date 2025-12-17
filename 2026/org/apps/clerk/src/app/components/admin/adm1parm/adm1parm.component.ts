@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 
 @Component({
-  selector: 'app-adm1parm',
+  selector: 'crefinancials-adm1parm',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './adm1parm.component.html',

@@ -62,15 +62,15 @@
         data-cy="cre-savrecon">Save Reconciliation</button>
       </div>
       <div>
-        <app-cremessages [dispMsgs]="dispMsgs"
-        (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+        <crefinancials-cremessages [dispMsgs]="dispMsgs"
+        (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
       </div>
     </form>
   </div>
   @if (newRow) {
     <div class="col-md-12">
       <hr>
-        <app-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)" [idx]="1"></app-cretranall>
+        <crefinancials-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)" [idx]="1"></crefinancials-cretranall>
       </div>
     }
     <div class="col-md-12">
@@ -85,9 +85,9 @@
             <ul>
               @for (tran of debitTranRecs; track tran; let i = $index) {
                 <li>
-                  <app-cretranall [tranRec]="tran" [idx]="i"
+                  <crefinancials-cretranall [tranRec]="tran" [idx]="i"
                     [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
-                  (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
+                  (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
                 }
               </ul>
             }
@@ -105,9 +105,9 @@
               <ul>
                 @for (tran of creditTranRecs; track tran; let i = $index) {
                   <li>
-                    <app-cretranall [tranRec]="tran" [idx]="i"
+                    <crefinancials-cretranall [tranRec]="tran" [idx]="i"
                       [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
-                    (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
+                    (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
                   }
                 </ul>
               }
@@ -124,9 +124,9 @@
                 <ul>
                   @for (tran of hiddenTranRecs; track tran; let i = $index) {
                     <li>
-                      <app-cretranall [tranRec]="tran" [idx]="i"
+                      <crefinancials-cretranall [tranRec]="tran" [idx]="i"
                         [isParent]="tran.TranType === 'TPARENT'"
-                      (tranMod)="onTranMod($event.action, $event.tranRec)"></app-cretranall></li>
+                      (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
                     }
                   </ul>
                 }

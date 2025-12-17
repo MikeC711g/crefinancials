@@ -15,7 +15,7 @@ import { House } from '../../models/house.model';
 // import { House } from 'src/app/models/house.model';
 
 @Component({
-  selector: 'app-creprojects',
+  selector: 'crefinancials-creprojects',
   standalone: true,
   imports: [DateselComponent, CremessagesComponent, CreprojecteditComponent, FormsModule],
   templateUrl: './creprojects.component.html',

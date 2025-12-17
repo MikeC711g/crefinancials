@@ -3,8 +3,8 @@
     <h2>Manage Clerk Projects</h2>
     <div class="col-12">
       <div class="row">
-        <app-datesel [title]="'Project'" [dateOpts]="dateOpts"
-        (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
+        <crefinancials-datesel [title]="'Project'" [dateOpts]="dateOpts"
+        (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></crefinancials-datesel>
         <hr>
         </div>
         <div class="form-group">
@@ -24,21 +24,21 @@
           <button class="btn btn-success col-3" type="button"
           (click)="newRow=true">New Project</button>
           @if (newRow) {
-            <app-creprojectedit
-            (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+            <crefinancials-creprojectedit
+            (projMod)="onProjMod($event.action, $event.project)"></crefinancials-creprojectedit>
           }
         </div>
         <div>
-          <app-cremessages [dispMsgs]="dispMsgs"
-          (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+          <crefinancials-cremessages [dispMsgs]="dispMsgs"
+          (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
         </div>
         @if (!!projects && projects.length > 0) {
           <div class="row">
             <ul>
               @for (project of projects; track project) {
                 <li>
-                  <app-creprojectedit [projId]="project.ProjectId!"
-                  (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+                  <crefinancials-creprojectedit [projId]="project.ProjectId!"
+                  (projMod)="onProjMod($event.action, $event.project)"></crefinancials-creprojectedit>
                 </li>
               }
             </ul>

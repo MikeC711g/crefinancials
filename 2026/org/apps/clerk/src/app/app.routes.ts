@@ -6,6 +6,7 @@ import { CreprojectsComponent } from './components/creprojects/creprojects.compo
 import { CrereconComponent } from './components/crerecon/crerecon.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import { AdminComponent } from './components/admin/admin.component';
+import { GlobadmComponent } from './components/globadm/globadm.component';
 
 // export const appRoutes: Route[] = [];
 
@@ -34,6 +35,9 @@ export const appRoutes: Route[] = [
     { path: 'dumphouses', component: ReportsComponent },
     { path: 'dumprules', component: ReportsComponent },
     { path: 'dumpmortgages', component: ReportsComponent },
+    { path: 'dumpleases', component: ReportsComponent },
+    { path: 'dumpresidents', component: ReportsComponent },
+    { path: 'dumpbaladj', component: ReportsComponent },
   ] },
   { path: 'admin', component: AdminComponent, canActivate: [canActivate],
     canDeactivate: [canDeactivate], children: [
@@ -48,9 +52,11 @@ export const appRoutes: Route[] = [
       { path: 'balAdjust', component: AdminComponent },
       { path: 'logging', component: AdminComponent }
     ] },
-    { path: 'profile', component: AuthComponent, canActivate: [canActivate],
-      canDeactivate: [canDeactivate], children: [
-        { path: 'chgpw', component: AuthComponent }
-      ] }
+  { path: 'globadm', component: GlobadmComponent, canActivate: [canActivate],
+    canDeactivate: [canDeactivate] },
+  { path: 'profile', component: AuthComponent, canActivate: [canActivate],
+    canDeactivate: [canDeactivate], children: [
+      { path: 'chgpw', component: AuthComponent }
+    ] }
   ];
 

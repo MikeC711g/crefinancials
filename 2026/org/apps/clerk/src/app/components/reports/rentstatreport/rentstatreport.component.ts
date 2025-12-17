@@ -9,11 +9,11 @@ interface TranRunningTot {
 }
 
 @Component({
-  selector: 'app-rentstatreport',
+  selector: 'crefinancials-rentstatreport',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './rentstatreport.component.html',
-  styleUrl: './rentstatreport.component.css'
+  styleUrls: ['./rentstatreport.component.css']
 })
 export class RentstatreportComponent {
   @Input() tranRecs: TranRec[] = [] ;

@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../../services/genutils.service';
 
 @Component({
-  selector: 'app-admlogging',
+  selector: 'crefinancials-admlogging',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admlogging.component.html',

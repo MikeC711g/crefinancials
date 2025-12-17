@@ -4,7 +4,7 @@ import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { KeyVal } from './../../../models/globals.model';
 
 @Component({
-  selector: 'app-admkv',
+  selector: 'crefinancials-admkv',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admkv.component.html',

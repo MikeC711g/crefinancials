@@ -42,8 +42,7 @@ export class Mortgage {
     public rate: number,
     public lterm: number,
     public lpmt: number,
-    public balYr: number,
-    public balMth: number,
+    public balDate: string, // Date when cBal was calculated
     public cBal: number,
     public MortgageId?: string  ) {}
 }

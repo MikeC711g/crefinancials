@@ -1,7 +1,7 @@
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-cremessages',
+  selector: 'crefinancials-cremessages',
   standalone: true,
   imports: [],
   templateUrl: './cremessages.component.html',

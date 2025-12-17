@@ -7,17 +7,17 @@
       @if (newRow) {
         <div>
           <h2>Add a new House</h2>
-      <app-admhouses (parmMod)="onParmMod($event.action,
-      $event.parmType, $event.newVal, $event.oldVal)"></app-admhouses>
+      <crefinancials-admhouses (parmMod)="onParmMod($event.action,
+      $event.parmType, $event.newVal, $event.oldVal)"></crefinancials-admhouses>
         </div>
       }
       <h2 title="Modify or delete existing houses">Manage Houses</h2>
       <ul>
         @for (lHouse of houses; track lHouse) {
           <li>
-            <app-admhouses [house]="lHouse"
+            <crefinancials-admhouses [house]="lHouse"
           (parmMod)="onParmMod($event.action, $event.parmType,
-            $event.newVal, $event.oldVal)"></app-admhouses>
+            $event.newVal, $event.oldVal)"></crefinancials-admhouses>
           </li>
         }
       </ul>
@@ -30,19 +30,19 @@
         @if (newRow) {
           <div>
             <h2>Add a new Account</h2>
-            <app-admkv [parmType]="selectedType" [valDomain]="accountTypes"
+            <crefinancials-admkv [parmType]="selectedType" [valDomain]="accountTypes"
         (parmMod)="onParmMod($event.action, $event.parmType,
           $event.newVal, $event.oldVal)"
-            [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></app-admkv>
+            [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></crefinancials-admkv>
           </div>
         }
         <h2>Manage Accounts</h2>
         <ul>
           @for (account of accounts; track account) {
             <li>
-              <app-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
+              <crefinancials-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
           [valLabel]="'Account Type:'" (parmMod)="onParmMod($event.action, $event.parmType,
-            $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></app-admkv></li>
+            $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></crefinancials-admkv></li>
             }
         </ul>
       </div>
@@ -54,17 +54,17 @@
         @if (newRow) {
           <div>
             <h2>Add a new Tax Category</h2>
-            <app-admkv [parmType]="selectedType" (parmMod)="onParmMod($event.action, $event.parmType,
-              $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'" [valLabel]="'Taxcat Label:'"></app-admkv>
+            <crefinancials-admkv [parmType]="selectedType" (parmMod)="onParmMod($event.action, $event.parmType,
+              $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'" [valLabel]="'Taxcat Label:'"></crefinancials-admkv>
           </div>
         }
           <h2>Manage Tax Categories</h2>
           <ul>
             @for (taxCat of taxCats; track taxCat) {
               <li>
-                <app-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
+                <crefinancials-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
                   [valLabel]="'Taxcat Label:'" (parmMod)="onParmMod($event.action, $event.parmType,
-                  $event.newVal, $event.oldVal)"></app-admkv></li>
+                  $event.newVal, $event.oldVal)"></crefinancials-admkv></li>
             }
           </ul>
         </div>
@@ -72,9 +72,9 @@
         @if (selectedType === 'categoryTaxcat') {
           <div class="col-md-12">
             <h2>Manage Categories</h2>
-            <app-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
+            <crefinancials-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
               [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
-              $event.parmType, $event.newVal, $event.oldVal)">   </app-admcategory>
+              $event.parmType, $event.newVal, $event.oldVal)">   </crefinancials-admcategory>
           </div>
         }
         @if (selectedType === 'ruleData') {
@@ -84,19 +84,19 @@
             @if (newRow) {
               <div>
                 <h2>Add a New Rule</h2>
-                <app-admruledata (parmMod)="onParmMod($event.action,
+                <crefinancials-admruledata (parmMod)="onParmMod($event.action,
                   $event.parmType, $event.newVal, $event.oldVal)"
                   [tranTypes]="tranTypes" [taxCats]="taxCats" [accounts]="accounts"
-                  [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+                  [categoryTaxcat]="categoryTaxcat"></crefinancials-admruledata>
               </div>
             }
             <h2>Manage Rules</h2>
             <ul>
               @for (rule of tranRules; track rule) {
                 <li>
-                  <app-admruledata [tranRule]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
+                  <crefinancials-admruledata [tranRule]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
                     (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
-                    [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+                    [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></crefinancials-admruledata>
                 </li>
               }
             </ul>
@@ -109,17 +109,17 @@
               @if (newRow) {
                 <div>
                   <h2>Add a New Mortgage</h2>
-                  <app-admmortgage (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
-                    [houses]="houses"></app-admmortgage>
+                  <crefinancials-admmortgage (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                    [houses]="houses"></crefinancials-admmortgage>
                 </div>
               }
               <h2>Manage Mortgages</h2>
               <ul>
                 @for (mortgage of mortgages; track mortgage) {
                   <li>
-                    <app-admmortgage [mortgage]="mortgage" [houses]="houses"
+                    <crefinancials-admmortgage [mortgage]="mortgage" [houses]="houses"
                       (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"
-                    [mortgage]="mortgage" [houses]="houses"></app-admmortgage>
+                    [mortgage]="mortgage" [houses]="houses"></crefinancials-admmortgage>
                   </li>
                 }
               </ul>
@@ -129,8 +129,8 @@
               <h2>Manage Leases</h2>
               <ul>
                 <li>
-                  <app-admlease [leases]="leases" [houses]="houses" [residents]="residents"
-                    (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admlease>
+                  <crefinancials-admlease [leases]="leases" [houses]="houses" [residents]="residents"
+                    (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></crefinancials-admlease>
                 </li>
               </ul>
             } @else {
@@ -141,16 +141,16 @@
                   @if (newRow) {
                     <div>
                       <h2>Add a New Resident</h2>
-                      <app-admresident (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)">
-                      </app-admresident>
+                      <crefinancials-admresident (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)">
+                      </crefinancials-admresident>
                     </div>
                   }
                   <h2>Manage Residents</h2>
                   <ul>
                     @for (resident of residents; track resident) {
                       <li>
-                        <app-admresident [resident]="resident"
-                          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></app-admresident>
+                        <crefinancials-admresident [resident]="resident"
+                          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></crefinancials-admresident>
                       </li>
                     }
                   </ul>
@@ -160,8 +160,8 @@
                   <div>
                     <h2>Work with balance adjustments</h2>
                     leaseLen: {{ leases.length }}, housesLen: {{ houses.length }} <br>
-                    <app-admbaladj (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
-                      [houses]="houses" [leases]="leases"></app-admbaladj>
+                    <crefinancials-admbaladj (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                      [houses]="houses" [leases]="leases"></crefinancials-admbaladj>
                   </div>
                 } @else {
                   @if (selectedType === 'logging') {
@@ -187,8 +187,8 @@
                         <ul>
                           @for (lClass of classList; track lClass) {
                             <li>
-                              <app-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
-                              (logMod)="onLogMod($event.className, $event.level)"></app-admlogging>
+                              <crefinancials-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
+                              (logMod)="onLogMod($event.className, $event.level)"></crefinancials-admlogging>
                             </li>
                           }
                         </ul>

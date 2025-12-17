@@ -14,7 +14,7 @@ import { RuleData } from '../../models/ruledata.model';
 import { GlobalModsService } from '../../services/globalMods.service';
 
 @Component({
-  selector: 'app-cretranall',
+  selector: 'crefinancials-cretranall',
   standalone: true,
   imports: [CreprojecteditComponent, AdmruledataComponent, CremessagesComponent, FormsModule],
   templateUrl: './cretranall.component.html',

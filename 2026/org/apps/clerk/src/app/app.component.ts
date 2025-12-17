@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-root',
+  selector: 'crefinancials-root',
   standalone: true,
   imports: [HeadersComponent, RouterOutlet, CommonModule],
   templateUrl: './app.component.html',

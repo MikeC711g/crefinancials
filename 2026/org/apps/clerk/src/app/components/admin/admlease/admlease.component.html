@@ -14,9 +14,9 @@
   <button class="btn btn-primary col-md-4" type="button" (click)="selectedHouse = ''"> Select different house </button>
   @if (filtLeases.length === 0) {
     <p style="background-color: yellow;">No leases found for house {{ selectedHouse }}</p>
-    <app-admleaseedit [idx]="0" [newRow]="true" [selHouse]="selectedHouse"
+    <crefinancials-admleaseedit [idx]="0" [newRow]="true" [selHouse]="selectedHouse"
       [residents]="residents" [selectedHouse]="selectedHouse"
-      (parmMod)="onLeaseMod($event)"></app-admleaseedit>
+      (parmMod)="onLeaseMod($event)"></crefinancials-admleaseedit>
   } @else {
     <h3>Leases for house {{ selectedHouse }} </h3>
     <button class="btn btn-primary col-md-4" type="button" (click)="createNewLease(selectedHouse, false)"
@@ -26,9 +26,9 @@
         title="Used to renew the current lease, same residents, no major changes"> Renew current lease </button>
     }
     @for (lease of filtLeases; track lease; let i = $index) {
-      <app-admleaseedit [lease]="lease" [idx]="i" [newRow]="false"
+      <crefinancials-admleaseedit [lease]="lease" [idx]="i" [newRow]="false"
         [residents]="residents" [selHouse]="selectedHouse"
-        (parmMod)="onLeaseMod($event)"></app-admleaseedit>
+        (parmMod)="onLeaseMod($event)"></crefinancials-admleaseedit>
     }
   }
 }

@@ -1,16 +1,16 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../services/genutils.service';
 import { KeyVal } from './../../models/globals.model';
 
 @Component({
-  selector: 'app-datesel',
+  selector: 'crefinancials-datesel',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './datesel.component.html',
   styleUrls: ['./datesel.component.css']
 })
-export class DateselComponent  {
+export class DateselComponent implements OnInit {
   @Input() title = 'Date'
   @Input() dateOpts: KeyVal[] = [ new KeyVal('30 days', '30'), new KeyVal('90 days', '90'),
     new KeyVal('Custom Dates', '-1')]
@@ -22,6 +22,10 @@ export class DateselComponent  {
   CLASSNAME = 'datesel' ;
 
   constructor(private utilSvc: GenutilsService ) { }
+
+  ngOnInit(): void {
+    this.startDt = '' ;  this.endDt = '' ;
+  }
 
   runFixedIntvl() {
     if (this.dateIntvl === '0') { return ; }   // No action "select option"

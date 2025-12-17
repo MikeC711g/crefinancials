@@ -471,7 +471,9 @@ export class GenutilsService {
       const curYr = parseInt(tranRec.TranDate.slice(0, 4)) ;
       const curMth = parseInt(tranRec.TranDate.slice(5, 7)) ;
       const rate = mtg.rate / 100 / 12 ;
-      const dateDiff = (curYr - mtg.balYr) * 12 + curMth - mtg.balMth ;
+      const balYr = parseInt(mtg.balDate.slice(0, 4)) ;
+      const balMth = parseInt(mtg.balDate.slice(5, 7)) ;
+      const dateDiff = (curYr - balYr) * 12 + curMth - balMth ;
       runPrin = mtg.cBal ;
       for (let i = 0; i < dateDiff; i++) {
         curInt = runPrin * rate ;

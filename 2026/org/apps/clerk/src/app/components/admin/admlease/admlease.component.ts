@@ -6,11 +6,11 @@ import { AdmleaseeditComponent } from "../admleaseedit/admleaseedit/admleaseedit
 import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
-  selector: 'app-admlease',
+  selector: 'crefinancials-admlease',
   standalone: true,
   imports: [FormsModule, AdmleaseeditComponent],
   templateUrl: './admlease.component.html',
-  styleUrl: './admlease.component.css'
+  styleUrls: ['./admlease.component.css']
 })
 export class AdmleaseComponent implements OnInit {
   @Input() leases: Lease[] = new Array<Lease>() ;

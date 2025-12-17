@@ -21,7 +21,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Observable, Subject, Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-admin',
+  selector: 'crefinancials-admin',
   standalone: true,
   imports: [AdmhousesComponent, AdmkvComponent, AdmcategoryComponent, AdmruledataComponent, AdmleaseComponent, 
     AdmresidentComponent, AdmmortgageComponent, AdmbaladjComponent, AdmloggingComponent, FormsModule, AsyncPipe],

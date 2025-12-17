@@ -155,8 +155,8 @@
               <button class="btn btn-success" type="button" data-cy="cta-newProjBtn"
               (click)="newProj=true">New Project</button>
               @if (newProj) {
-                <app-creprojectedit
-                (projMod)="onProjMod($event.action, $event.project)"></app-creprojectedit>
+                <crefinancials-creprojectedit
+                (projMod)="onProjMod($event.action, $event.project)"></crefinancials-creprojectedit>
               }
             </div>
           </div>
@@ -196,9 +196,9 @@
             <ul>
               @for (splitChild of splitChildren; track splitChild; let i2 = $index) {
                 <li data-cy="cta-childRow">
-                  <app-cretranall [tranRec]="splitChild" [newExpand]="childExpand"
+                  <crefinancials-cretranall [tranRec]="splitChild" [newExpand]="childExpand"
                     [isChild]="true" [idx]="i2" [locAction]="useSplitChild[i2]"
-                  (tranMod)="onChildMod($event.action, $event.tranRec)"></app-cretranall></li>
+                  (tranMod)="onChildMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
                 }
               </ul>
               <div class="row col-md12">
@@ -238,16 +238,16 @@
         </div>
         @if (newRule) {
           <div class="row" data-cy="cta-newRule">
-            <app-admruledata [tranRule]="ruleAdd" [tranTypes]="tranTypes" [taxCats]="taxCats"
+            <crefinancials-admruledata [tranRule]="ruleAdd" [tranTypes]="tranTypes" [taxCats]="taxCats"
               [newRow]="true" (parmMod)="onRuleMod($event.action, $event.parmType,
               $event.newVal, $event.oldVal)"
-              [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></app-admruledata>
+              [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></crefinancials-admruledata>
           </div>
         }
       </form>
     </div>
   }
   <div>
-    <app-cremessages [dispMsgs]="dispMsgs" data-cy="cta-msgs"
-    (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
+    <crefinancials-cremessages [dispMsgs]="dispMsgs" data-cy="cta-msgs"
+    (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
   </div>

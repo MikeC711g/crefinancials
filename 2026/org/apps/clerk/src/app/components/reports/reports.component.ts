@@ -11,11 +11,12 @@ import { Exp2projreportComponent } from './exp2projreport/exp2projreport.compone
 import { RentstatreportComponent } from './rentstatreport/rentstatreport.component';
 import { TransrchComponent } from '../transrch/transrch.component';
 import { CremessagesComponent } from '../cremessages/cremessages.component';
-import { House, Mortgage } from './../../models/house.model';
+import { BalAdjust, House, Lease, Mortgage, Resident } from './../../models/house.model';
 import { GenutilsService } from './../../services/genutils.service';
 import { Subscription } from 'rxjs';
 import { NavigationEnd, Router } from '@angular/router';
 import { RuleData } from '../../models/ruledata.model';
+import { DatarptComponent } from "./datarpt/datarpt.component";
 
 interface RptInfo {   // Data for the running of each report
   name: string,
@@ -29,10 +30,10 @@ interface RptInfo {   // Data for the running of each report
 }
 
 @Component({
-  selector: 'app-reports',
+  selector: 'crefinancials-reports',
   standalone: true,
   imports: [DateselComponent, PnlReportComponent, Exp2projreportComponent,
-    RentstatreportComponent, TransrchComponent, CremessagesComponent, FormsModule],
+    RentstatreportComponent, TransrchComponent, CremessagesComponent, FormsModule, DatarptComponent],
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']
 })
@@ -64,7 +65,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     { name: 'Dump of Globals', url: 'dumpglobals', dateList: this.noDateOpts,
       acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: true},
     { name: 'Dump of Projects', url: 'dumpprojects', dateList: this.dateOptsData,
-      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false},
+      acctOne: false, acctMulti: false, houseOne: true, houseMulti: false, moreData: false},
     { name: 'Dump of Reconciliations', url: 'dumprecons', dateList: this.dateOptsData,
       acctOne: false, acctMulti: true, houseOne: false, houseMulti: false, moreData: false},
     { name: 'Dump of Transactions', url: 'dumptrans', dateList: this.dateOptsReport,
@@ -74,7 +75,13 @@ export class ReportsComponent implements OnInit, OnDestroy {
     { name: 'Dump of Rules', url: 'dumprules', dateList: this.noDateOpts,
       acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false},
     { name: 'Dump of Mortgages', url: 'dumpmortgages', dateList: this.noDateOpts,
-      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false}  ]
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: true, moreData: false},
+    { name: 'Dump of Leases', url: 'dumpleases', dateList: this.dateOptsData,
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: true, moreData: false},
+    { name: 'Dump of Residents', url: 'dumpresidents', dateList: this.noDateOpts,
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: false, moreData: false},
+    { name: 'Dump of Balance Adjustments', url: 'dumpbaladj', dateList: this.dateOptsData,
+      acctOne: false, acctMulti: false, houseOne: false, houseMulti: true, moreData: false}   ]
          // Generic report parms and info
   startDt = '' ;  endDt = '' ;  reportReady = false ;  screenDisplay = false ;
   selectedReport = '' ;  selectedType = '' ;  selectedHouse = '' ;
@@ -103,6 +110,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
   accounts: KeyVal[] = new Array<KeyVal>() ;
   tranRules: RuleData[] = new Array<RuleData>() ;
   mortgages: Mortgage[] = new Array<Mortgage>() ;
+  leases: Lease[] = new Array<Lease>() ;
+  residents: Resident[] = new Array<Resident>() ;
+  balanceAdjustments: BalAdjust[] = new Array<BalAdjust>() ;
   accountTypes: string[] = new Array<string>() ;
   tranTypes: string[] = new Array<string>() ;
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
@@ -116,12 +126,16 @@ export class ReportsComponent implements OnInit, OnDestroy {
     for (const rinfo of this.reportList) { this.reportArr.push(rinfo.url) }
     this.report$ = route.events.subscribe((routeUrl) => { // Determine menu item selected
       if (routeUrl instanceof NavigationEnd) {
+          // Clear reportInfo so subElements re-initialized
+        this.reportInfo = { name: '', url: '', dateList: this.noDateOpts, acctOne: false,
+          acctMulti: false, houseOne: false, houseMulti: false, moreData: false } ;
         const urlParts = routeUrl.url.split('/') ;
         const lastPart = urlParts[urlParts.length-1]
         this.selectedReport = (this.reportArr.indexOf(lastPart) > -1) ?
           lastPart : 'profitnloss' 
-        this.onSelectRpt() ; this.dispMsgs.splice(0, this.dispMsgs.length)
-        utilSvc.cDebug(this.CLASSNAME, 'Into url chg with report: ', this.selectedReport)
+        setTimeout(() => {    // Give html to re-init to blank reportInfo
+          this.onSelectRpt() ; this.dispMsgs.splice(0, this.dispMsgs.length)
+        }, 250);
       }
     })
   }
@@ -140,7 +154,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.selectedReport = this.reportInfo.name ;    // Go to long version of report
     console.log('selRpt: %s  rptInfo: %O', this.selectedReport, this.reportInfo)
     this.reportReady = false ; this.screenDisplay = false ;
-    this.startDt = '' ;  this.endDt = '' ;
     if (this.reportInfo.dateList.length < 1 && !this.reportInfo.acctOne &&
       !this.reportInfo.acctMulti && !this.reportInfo.houseOne && !this.reportInfo.houseMulti &&
       !this.reportInfo.moreData) {
@@ -148,7 +161,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
       this.runReport(this.reportInfo.name) ;
     } else {
       console.log('selRpt setting vars and waiting for input')
-      this.startDt = '' ; this.endDt = '' ; this.accountArr = [] ; this.reportReady = false
     }
   }
 
@@ -157,22 +169,25 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * @param report2Run - selected report
    ************************************************************************ */
   runReport(report2Run: string) {
-    console.log('Came into runReport w/report: ', report2Run)
     this.reportReady = false ;   this.screenDisplay = false ;
     switch (report2Run) {
-      case 'Profit and Loss': this.profitNLoss() ; break ;
+      case 'Profit and Loss': this.profitNLoss(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
       case 'Personal Profit and Loss': this.expCats = ['PE'] ;  this.incCats = ['PI'] ;
-        this.title = report2Run ; this.profitNLoss() ; break ;
-      case 'Rent Status': this.rentStatus() ; break ;
-      case 'Expense By Project': this.expByProject() ; break ;
+        this.title = report2Run ; this.profitNLoss(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
+      case 'Rent Status': this.rentStatus(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
+      case 'Expense By Project': this.expByProject(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
       case 'Dump of Globals': this.dumpGlobal() ; break ;
-      case 'Dump of Projects': this.dumpProject() ; break ;
-      case 'Dump of Reconciliations': this.dumpRecon() ; break ;
+      case 'Dump of Projects': this.dumpProject(this.startDt, this.endDt, this.selectedHouse) ; break ;
+      case 'Dump of Reconciliations': this.dumpRecon(this.startDt, this.endDt, this.accountArr) ; break ;
       case 'Dump of Transactions':  this.dumpTran() ; break ;
       case 'Dump of Houses':  this.dumpHouse() ; break ;
       case 'Dump of Rules':  this.dumpRule() ; break ;
-      case 'Dump of Mortgages':  this.dumpMortgage() ; break ;
+      case 'Dump of Mortgages':  this.dumpMortgage(this.selectedHouseArr) ; break ;
+      case 'Dump of Leases':  this.dumpLeases(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
+      case 'Dump of Residents':  this.dumpResidents() ; break ;
+      case 'Dump of Balance Adjustments':  this.dumpBalAdj(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
     }
+    this.accountArr = [] ; this.selectedAccount = '' ; this.selectedHouseArr = [] ; this.selectedHouse = '' ;
   }
 
   /** ************************************************************************
@@ -247,10 +262,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
       }
   }
 
-  profitNLoss() {
-    this.utilSvc.cLog(this.CLASSNAME,'P&L startDt: %s  endDt: %s  houseArr: %O',
-      this.startDt, this.endDt, this.selectedHouseArr) ;
-    const tranQ = new TranQ(this.startDt, this.endDt, '', [], [], [], 0, 0, [], this.selectedHouseArr)
+  profitNLoss(startDt: string, endDt: string, houseArr: string[]) {
+    this.utilSvc.cLog(this.CLASSNAME,'P&L startDt: %s  endDt: %s  houseArr: %O', startDt, endDt, houseArr) ;
+    const tranQ = new TranQ(startDt, endDt, '', [], [], [], 0, 0, [], houseArr)
     this.fireSvc.getTransFromDB(tranQ, false).subscribe({
       next: (tranRecs) => {
         this.transactions = tranRecs ;
@@ -264,10 +278,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
   /** ************************************************************************
    * Main logic for expenses by project
    ************************************************************************ */
-  expByProject() {
+  expByProject(startDt: string, endDt: string, houseArr: string[]) {
     this.utilSvc.cLog(this.CLASSNAME,'expBP startDt: %s  endDt: %s  houseArr: %O',
-      this.startDt, this.endDt, this.selectedHouseArr) ;
-    const tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr, [], [], 0, 0, [], this.selectedHouseArr)
+      startDt, endDt, houseArr) ;
+    const tranQ = new TranQ(startDt, endDt, '', this.accountArr, [], [], 0, 0, [], houseArr)
     this.fireSvc.getTransFromDB(tranQ, false).subscribe({
       next: (tranRecs) => {   // Filter recs w/out house or filter then sort house/proj/dt
         this.transactions = tranRecs ;
@@ -278,10 +292,10 @@ export class ReportsComponent implements OnInit, OnDestroy {
     })
   }
 
-  rentStatus() {
+  rentStatus(startDt: string, endDt: string, houseArr: string[]) {
     this.utilSvc.cLog(this.CLASSNAME,'RentStat startDt: %s  endDt: %s  houseArr: %O',
-      this.startDt, this.endDt, this.selectedHouseArr) ;
-    const tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr, ['Rent Income'], [],
+      startDt, endDt, houseArr) ;
+    const tranQ = new TranQ(startDt, endDt, '', this.accountArr, ['Rent Income'], [],
       0, 0, [], [this.selectedHouse ])
     this.fireSvc.getTransFromDB(tranQ, false).subscribe({
       next: (tranRecs) => {
@@ -297,42 +311,45 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * Dump the globals ... all globals or globals of a particular type
    ************************************************************************ */
   dumpGlobal() {
+    this.reportReady = false ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpGlobal selType: %s', this.selectedType)
     this.filtGlob =  (this.selectedType) ?
-      this.globals.filter((glob) => glob.RKey === this.selectedType) : this.globals
+      this.globals.filter((glob) => glob.GType === this.selectedType) : 
+      this.globals.sort((a, b) => {
+        const comp1 = a.GType.localeCompare(b.GType) ;
+        if (comp1 !== 0) return comp1 ;
+        return a.RKey.localeCompare(b.RKey) ;
+      })
     this.reportReady = true
-  }
-
-  /** ************************************************************************
-   * So html can stringify w/out changing source arrays
-   * @param inStr 
-   * @returns 
-   *************************************************************************/
-  jsonStr(inStr: any): string {   
-    return JSON.stringify(inStr)
   }
 
   /** ************************************************************************
    * Dump projects for csv or json
    ************************************************************************ */
-  dumpProject() {
-    this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpProj sDt: %s  eDt: %s', this.startDt, this.endDt)
-    this.filtProj = this.projects.filter((proj) => {
-      if (proj.StartDt > this.endDt) return false ;
-      if (proj.EndDt < this.startDt) return false ;
-      if (this.selectedHouse && proj.House !== this.selectedHouse)  return false ;
+  dumpProject(startDt: string, endDt: string, house: string) {
+    this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpProj sDt: %s  eDt: %s', startDt, endDt)
+    const tProj = this.projects.filter((proj) => {
+      if (proj.StartDt > endDt) return false ;
+      if (proj.EndDt < startDt) return false ;
+      if (house && proj.House !== house)  return false ;
       return true ;
     })
+    this.filtProj = tProj.sort((a, b) => {
+      const houseComp = a.House.localeCompare(b.House) ;
+      if (houseComp !== 0) return houseComp ;
+      return a.StartDt.localeCompare(b.StartDt) ;
+    }) ;
     this.reportReady = true ;
   }
 
   /** ************************************************************************
    * Dump reconciliations for csv or json
    ************************************************************************ */
-  dumpRecon() {
+  dumpRecon(startDt: string, endDt: string, accountArr: string[]) {
     this.utilSvc.cDebug(this.CLASSNAME,'dumpRecon w/startDt: %s  endDt: %s  accountArr: %O',
-      this.startDt, this.endDt, this.accountArr) ;
-    this.fireSvc.getReconciliations(this.startDt, this.endDt, this.accountArr).subscribe({
+      startDt, endDt, accountArr) ;
+    this.reportReady = false ;
+    this.fireSvc.getReconciliations(startDt, endDt, accountArr).subscribe({
       next: (recons) => {
         this.reconciliations = recons ;
         this.filtRecon = this.reconciliations ; // No filter beyond what db did
@@ -350,11 +367,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
    ************************************************************************ */
   dumpTran(tranQ?: TranQ) {
     // Removed re-use logic since tq too complex to make it accurate, just requery
+    this.reportReady = false ;
     if (!tranQ) tranQ = new TranQ(this.startDt, this.endDt, '', this.accountArr)
     this.fireSvc.getTransFromDB(tranQ, true).subscribe({
       next: (tranRecs) => {
         this.transactions = tranRecs ;
-        this.showTranResults(this.transactions)
+        this.reportReady = true ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME,'Error getting trans for TranDump TranQ %O  err: %s: ', tranQ, error)
       }
@@ -367,6 +385,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * @param tranQ 
    ************************************************************************ */
   dumpHouse() {
+    this.reportReady = false ;
     const house$ = this.fireSvc.getHouseDB().subscribe({
       next: (houseRecs) => {
         this.houses = this.fireSvc.setHouses(houseRecs) ;
@@ -384,6 +403,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * @param tranQ 
    ************************************************************************ */
   dumpRule() {
+    this.reportReady = false ;
     const tranRule$ = this.fireSvc.getTranRuleDB().subscribe({
       next: (ruleRecs) => {
         this.tranRules = ruleRecs ;
@@ -397,13 +417,13 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   /** ************************************************************************
-   * Dump transactions for CSV or JSON
-   * @param tranQ 
+   * Dump Mortgages for CSV or JSON
    ************************************************************************ */
-  dumpMortgage() {
+  dumpMortgage(houseArr: string[]) {
+    this.reportReady = false ; 
     const mortgage$ = this.fireSvc.getMortgageDB().subscribe({
       next: (mortRecs) => {
-        this.mortgages = mortRecs ;
+        this.mortgages = mortRecs.filter(mort => houseArr.length === 0 || houseArr.includes(mort.house)) ;
         this.reportReady = true ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME,'Error getting mortgages for MortDump  err: %s: ', error)
@@ -414,11 +434,68 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   /** ************************************************************************
-   * Func callable from html and ts to identify report ready
-   * @param tranRecs 
+   * Dump Leases for CSV or JSON
+   * @param startDt
    ************************************************************************ */
-  showTranResults(tranRecs: TranRec[]) {
-    this.reportReady = true ;
+  dumpLeases(startDt: string, endDt: string, houseArr: string[]) {
+    this.reportReady = false ;
+    const lease$ = this.fireSvc.getLeaseDB().subscribe({
+      next: (leaseRecs) => {
+        this.leases = leaseRecs.filter(lease => {
+          if (houseArr.length > 0 && !houseArr.includes(lease.House)) return false ;
+          if (lease.EndDt < startDt) return false ;
+          if (lease.StartDt > endDt) return false ;
+          return true ;
+        })
+        // this.leases = (!startDt) ? leaseRecs : leaseRecs.filter(lease => lease.StartDt >= startDt);
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting leases for LeaseDump  err: %s: ', error)
+      }
+    })
+    setTimeout(() => {   lease$.unsubscribe() ; }, 30000);
+    this.utilSvc.cDebug(this.CLASSNAME,'leaseCnt: %d', this.leases.length)
+  }
+
+  /** ************************************************************************
+   * Dump Leases for CSV or JSON
+   * @param startDt
+   ************************************************************************ */
+  dumpResidents() {
+    this.reportReady = false ;
+    const resident$ = this.fireSvc.getResidentDB().subscribe({
+      next: (residentRecs) => {
+        this.residents = residentRecs ;
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting residents for ResidentDump  err: %s: ', error)
+      }
+    })
+    setTimeout(() => {   resident$.unsubscribe() ; }, 30000);
+    this.utilSvc.cDebug(this.CLASSNAME,'residentCnt: %d', this.residents.length)
+  }
+
+  /** ************************************************************************
+   * Dump Leases for CSV or JSON
+   * @param startDt
+   ************************************************************************ */
+  dumpBalAdj(startDt: string, endDt: string, houseArr: string[]) {
+    this.reportReady = false ;
+    const baladj$ = this.fireSvc.getBalAdj4House().subscribe({
+      next: (balAdjData) => {
+        this.balanceAdjustments = balAdjData.filter(adj => {
+          if (houseArr.length > 0 && !houseArr.includes(adj.House)) return false ;
+          if (adj.ADate < startDt) return false ;
+          if (adj.ADate > endDt) return false ;
+          return true ;
+        })
+        this.reportReady = true ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error getting balAdjust for BalAdjDump  err: %s: ', error)
+      }
+    })
+    setTimeout(() => {   baladj$.unsubscribe() ; }, 30000);
+    this.utilSvc.cDebug(this.CLASSNAME,'balAdjCnt: %d', this.balanceAdjustments.length)
   }
 
   /** ************************************************************************
@@ -434,6 +511,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
       case 'Dump of Houses': this.writeGenericCsv(this.houses, 'houses.csv') ; break ;
       case 'Dump of Rules': this.writeGenericCsv(this.tranRules, 'rules.csv') ; break ;
       case 'Dump of Mortgages': this.writeGenericCsv(this.mortgages, 'mortgages.csv') ; break ;
+      case 'Dump of Leases': this.writeGenericCsv(this.leases, 'leases.csv') ; break ;
+      case 'Dump of Residents': this.writeGenericCsv(this.residents, 'residents.csv') ; break ;
+      case 'Dump of Balance Adjustments': this.writeGenericCsv(this.balanceAdjustments, 'balanceAdjustments.csv') ; break ;
       default: this.utilSvc.cWarn(this.CLASSNAME, 'writeCsv unknown report: %s', reportNm) ;
     }
   }
@@ -451,6 +531,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
       case 'Dump of Houses': this.writeGenericJson(this.houses, 'houses.json') ; break ;
       case 'Dump of Rules': this.writeGenericJson(this.tranRules, 'rules.json') ; break ;
       case 'Dump of Mortgages': this.writeGenericJson(this.mortgages, 'mortgages.json') ; break ;
+      case 'Dump of Leases': this.writeGenericJson(this.leases, 'leases.json') ; break ;
+      case 'Dump of Residents': this.writeGenericJson(this.residents, 'residents.json') ; break ;
+      case 'Dump of Balance Adjustments': this.writeGenericJson(this.balanceAdjustments, 'balanceAdjustments.json') ; break ;
       default: this.utilSvc.cWarn(this.CLASSNAME, 'writeJson unknown report: %s', reportNm) ;
     }
   }
@@ -479,6 +562,32 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.utilSvc.cDebug(this.CLASSNAME, 'writeGenericJson w/arr: %O  nm: %s', inArr, fName)
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(inArr))
     this.utilSvc.writeFile(dataStr, fName)
+  }
+
+  /** ************************************************************************
+   * Creating a CSV string from a JSON array
+   * @param inArr 
+   * @returns 
+   ************************************************************************ */
+  jsonArr2Html(inArr: any[]): string {
+    let outStr = '<table border="1"> <tr> ';
+    const fldNames: string[] = Object.keys(inArr[0])
+    const sortNames = fldNames.sort((a, b) =>  a.localeCompare(b))
+    for (const fldNm of sortNames) {
+      outStr += '<th>' + fldNm + '</th>' ;
+    }
+    outStr += '</tr>'
+    this.utilSvc.cDebug(this.CLASSNAME,'inarr len: ', inArr.length) ;
+    for (const anyObj of inArr) {
+      for (const fldNm of sortNames) {
+        let curObj = anyObj[fldNm]
+        if (typeof curObj === 'object') { curObj = JSON.stringify(curObj) }
+        outStr += '<td>' + curObj + '</td>' ;
+      }
+      outStr += '</tr>'
+    }
+    outStr += '</table>' ;
+    return outStr ;
   }
 
   /** ************************************************************************

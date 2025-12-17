@@ -3,8 +3,8 @@
     <h2>Run {{ reportInfo.name }} Report</h2>
     @if (reportInfo.dateList.length > 0) {
       <div class="row">
-        <app-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList"
-        (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></app-datesel>
+        <crefinancials-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList"
+        (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></crefinancials-datesel>
       </div>
     }
     @if (reportInfo.acctMulti) {
@@ -62,17 +62,16 @@
     }
 
     @if (selectedReport === 'Profit and Loss' || selectedReport === 'Personal Profit and Loss') {
-      <div class="row col-md-12"
-        >
+      <div class="row col-md-12">
         <form (ngSubmit)="runReport(selectedReport)" #PnLForm="ngForm">
           <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub3"
           [disabled]="startDt === ''">{{ selectedReport }}</button>
         </form>
         @if (reportReady) {
           <div class="col-md-12"> <hr>
-            <app-pnl-report [categoryFolders]="categoryFolders" [startDt]="startDt"
-              [endDt]="endDt" [tranRecs]="transactions" [debitTaxCats]="expCats"
-            [creditTaxCats]="incCats" [title]="title"> </app-pnl-report>  <hr>
+            <crefinancials-pnl-report [categoryFolders]="categoryFolders" [startDt]="startDt" [endDt]="endDt"
+              [tranRecs]="transactions" [debitTaxCats]="expCats" [creditTaxCats]="incCats"
+              [title]="title" [selectedHouseArr]="selectedHouseArr"> </crefinancials-pnl-report>  <hr>
           </div>
         }
       </div>
@@ -87,8 +86,8 @@
         >{{ selectedReport }}</button>
         @if (reportReady) {
           <div class="row"> <hr>
-            <app-exp2projreport [tranRecs]="transactions" [projects]="projects"
-            [startDt]="startDt" [endDt]="endDt"></app-exp2projreport>  <hr>
+            <crefinancials-exp2projreport [tranRecs]="transactions" [projects]="projects"
+            [startDt]="startDt" [endDt]="endDt"></crefinancials-exp2projreport>  <hr>
           </div>
         }
       </form>
@@ -102,8 +101,8 @@
         [disabled]="selectedHouse === ''">{{ selectedReport }}</button>
         @if (reportReady) {
           <div class="row"> <hr>
-            <app-rentstatreport [tranRecs]="transactions" [rHouse]="selectedHouse"
-            [startDt]="startDt" [endDt]="endDt"> </app-rentstatreport>  <hr>
+            <crefinancials-rentstatreport [tranRecs]="transactions" [rHouse]="selectedHouse"
+            [startDt]="startDt" [endDt]="endDt"> </crefinancials-rentstatreport>  <hr>
           </div>
         }
       </form>
@@ -113,297 +112,120 @@
   @if (selectedReport === 'Dump of Transactions') {
     <div class="row col-md-12">
       <form #tranDumpForm="ngForm">
-        <app-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
+        <crefinancials-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
           [houses]="houses" [projects]="projects" [taxCats]="taxCats"
-        (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
+          (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
           $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
-        </app-transrch>
-        @if (reportReady) {
-          <div class="row">
-            <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
-            (click)="writeCsv(selectedReport)">Write CSV</button>
-            <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
-            (click)="writeJson(selectedReport)">Write Json</button>
-            <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
-            (click)="screenDisplay = true">Display on Screen</button>
-            <div class="col-md-4">{{ transactions.length }}  Rows to display</div>
-          </div>
-        }
+        </crefinancials-transrch>
       </form>
-      @if (screenDisplay) {
-        <div class="row col-md-12">
-          <table>
-            <tr>
-              <th>TranDate</th> <th>Account</th> <th>Category</th> <th>TranType</th>
-              <th>Amount</th> <th>House</th> <th>Project</th> <th>TranExtra</th>
-              <th>Annotation</th><th>TranId</th><th>ReconKey</th><th>splitParent</th>
-              <th>TaxCat</th><th>FitID</th>   </tr>
-              @for (tran of transactions; track tran) {
-                <tr>
-                  <td>{{ tran.TranDate }}</td> <td>{{ tran.Account }}</td>
-                  <td>{{ tran.Category }}</td> <td>{{ tran.TranType }}</td>
-                  <td>{{ tran.Amount }}</td> <td>{{ tran.House }}</td>
-                  <td>{{ tran.Project }}</td>  <td>{{ tran.TranExtra }}</td>
-                  <td>{{ tran.Annotation }}</td>  <td>{{ tran.TranId }}</td>
-                  <td>{{ tran.ReconKey }}</td>  <td>{{ tran.SplitParent }}</td>
-                  <td>{{ tran.TaxCat }}</td>  <td> {{ tran.FitID }}</td>
-                </tr>
-              }
-            </table>
-          </div>
-        }
-      </div>
-    }
-    <!-- **************************************************************************** -->
-    @if (selectedReport === 'Dump of Houses') {
-      <div class="row col-md-12">
-        <form #houseDumpForm="ngForm">
-          @if (reportReady) {
-            <div class="row">
-              <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
-              (click)="writeCsv(selectedReport)">Write CSV</button>
-              <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
-              (click)="writeJson(selectedReport)">Write Json</button>
-              <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
-              (click)="screenDisplay = true">Display on Screen</button>
-              <div class="col-md-4">{{ houses.length }}  Rows to display</div>
-            </div>
-          }
-        </form>
-        @if (screenDisplay) {
-          <div class="row col-md-12">
-            <table>
-              <tr>
-                <th>Name</th> <th>Address</th> <th>City</th> <th>State</th>
-                <th>ZipCode</th> <th>ActiveDt</th> <th>InActiveDt</th> <th>ID</th>
-              </tr>
-              @for (house of houses; track house) {
-                <tr>
-                  <td>{{ house.name }}</td> <td>{{ house.Addr }}</td>
-                  <td>{{ house.City }}</td> <td>{{ house.State }}</td>
-                  <td>{{ house.zipCode }}</td> <td>{{ house.activeDt }}</td>
-                  <td>{{ house.inactiveDt }}</td> <td>{{ house.HouseId }}</td>
-                </tr>
-              }
-            </table>
-          </div>
-        }
-      </div>
-    }
-    <!-- **************************************************************************** -->
-    @if (selectedReport === 'Dump of Rules') {
-      <div class="row col-md-12">
-        <form #ruleDumpForm="ngForm">
-          @if (reportReady) {
-            <div class="row">
-              <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
-              (click)="writeCsv(selectedReport)">Write CSV</button>
-              <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
-              (click)="writeJson(selectedReport)">Write Json</button>
-              <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
-              (click)="screenDisplay = true">Display on Screen</button>
-              <div class="col-md-4">{{ tranRules.length }}  Rows to display</div>
-            </div>
-          }
-        </form>
-        @if (screenDisplay) {
-          <div class="row col-md-12">
-            <table>
-              <tr>
-                <th>RuleName</th> <th>SearchStr</th> <th>Accounts</th> <th>SearchAmt</th>
-                <th>Category</th> <th>TranType</th> <th>TranExtra</th> <th>TaxCat</th>
-                <th>House</th><th>Annotation</th><th>ID</th></tr>
-                @for (rule of tranRules; track rule) {
-                  <tr>
-                    <td>{{ rule.ruleName }}</td> <td>{{ rule.srchStr }}</td>
-                    <td>{{ rule.accounts }}</td> <td>{{ rule.srchAmt }}</td>
-                    <td>{{ rule.Category }}</td> <td>{{ rule.TranType }}</td>
-                    <td>{{ rule.TranExtra }}</td>  <td>{{ rule.TaxCat }}</td>
-                    <td>{{ rule.House }}</td>  <td>{{ rule.Annotation }}</td>
-                    <td>{{ rule.RuleId }}</td>
-                  </tr>
-                }
-              </table>
-            </div>
-          }
-        </div>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="transactions" [fName]="'tranDump'"></crefinancials-datarpt>
       }
-      <!-- **************************************************************************** -->
-      @if (selectedReport === 'Dump of Mortgages') {
-        <div class="row col-md-12">
-          <form #mortgageDumpForm="ngForm">
-            @if (reportReady) {
-              <div class="row">
-                <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
-                (click)="writeCsv(selectedReport)">Write CSV</button>
-                <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
-                (click)="writeJson(selectedReport)">Write Json</button>
-                <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
-                (click)="screenDisplay = true">Display on Screen</button>
-                <div class="col-md-4">{{ mortgages.length }}  Rows to display</div>
-              </div>
-            }
-          </form>
-          @if (screenDisplay) {
-            <div class="row col-md-12">
-              <table>
-                <tr>
-                  <th>House</th> <th>Rate</th> <th>LoanTerm</th> <th>LoanPmt</th>
-                  <th>BalYear</th> <th>BalMo</th> <th>CurBal</th> <th>ID</th>
-                </tr>
-                @for (mortgage of mortgages; track mortgage) {
-                  <tr>
-                    <td>{{ mortgage.house }}</td> <td>{{ mortgage.rate }}</td>
-                    <td>{{ mortgage.lterm }}</td> <td>{{ mortgage.lpmt }}</td>
-                    <td>{{ mortgage.balYr }}</td> <td>{{ mortgage.balMth }}</td>
-                    <td>{{ mortgage.cBal }}</td>  <td>{{ mortgage.MortgageId }}</td>
-                  </tr>
-                }
-              </table>
-            </div>
-          }
-        </div>
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Houses') {
+    <div class="row col-md-12">
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="houses" [fName]="'houseDump'"></crefinancials-datarpt>
       }
-      <!-- **************************************************************************** -->
-      @if (selectedReport === 'Dump of Globals') {
-        <div class="row col-md-12">
-          <form (ngSubmit)="runReport(selectedReport)" #globalsDumpForm="ngForm">
-            <div class="row">
-              <div class="col-md-6 border-right">
-                <div class="form-group">
-                  <label for="admType">Admin Type</label>
-                  <select class="form-control" [(ngModel)]="selectedType" id="admType" name="admType"
-                    data-cy="rpt-admtype">
-                    <option [value]="''" [selected]="!selectedType">-- select an option --</option>
-                    @for (admType of admTypes; track admType) {
-                      <option [value]="admType">{{ admType }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-            </div>
-            <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subdog"
-            >{{ selectedReport }}</button>
-            @if (reportReady) {
-              <div class="row">
-                <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdog"
-                (click)="writeCsv(selectedReport)">Write CSV</button>
-                <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondog"
-                (click)="writeJson(selectedReport)">Write Json</button>
-                <button class="btn btn-info col-md-2" type="button" data-cy="rpt-writeDispdog"
-                (click)="screenDisplay = true">Display on Screen</button>
-                <div class="col-md-4">{{ filtGlob.length }}  Rows to display</div>
-              </div>
-            }
-          </form>
-          @if (screenDisplay) {
-            <div class="row col-md-12">
-              <table>
-                <tr>
-                  <th>GlobalId</th> <th>Cid</th> <th>RKey</th> <th>RVal</th>  </tr>
-                  @for (glob of filtGlob; track glob) {
-                    <tr>
-                      <td>{{ glob.GlobalId }}</td> <td>{{ glob.Cid }}</td>
-                      <td>{{ glob.RKey }}</td> <td>{{ jsonStr(glob.RVal) }}</td>
-                    </tr>
-                  }
-                </table>
-              </div>
-            }
-          </div>
-        }
-        <!-- **************************************************************************** -->
-        @if (selectedReport === 'Dump of Projects') {
-          <div class="row col-md-12">
-            <form (ngSubmit)="runReport(selectedReport)" #projectsDumpForm="ngForm">
-              <div class="row">
-                <div class="col-md-6 border-right">
-                  <div class="form-group">
-                    <label for="house">House</label>
-                    <select class="form-control" id="house" name="house" data-cy="rpt-housedop"
-                      [(ngModel)]="selectedHouse">
-                      <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
-                      @for (house of houses; track house) {
-                        <option [value]="house.name"
-                        [selected]="house.name === selectedHouse">{{ house.name }}</option>
-                      }
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subdop"
-              [disabled]="startDt === ''">{{ selectedReport }}</button>
-              @if (reportReady) {
-                <div class="row">
-                  <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdop"
-                  (click)="writeCsv(selectedReport)">Write CSV</button>
-                  <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondop"
-                  (click)="writeJson(selectedReport)">Write Json</button>
-                  <button class="btn btn-info col-md-2" type="button" data-cy="rpt-writeDispdop"
-                  (click)="screenDisplay = true">Display on Screen</button>
-                  <div class="col-md-4">{{ filtProj.length }}  Rows to display</div>
-                </div>
-              }
-            </form>
-            @if (screenDisplay) {
-              <div class="row col-md-12">
-                <table>
-                  <tr>
-                    <th>ID</th> <th>Cid</th> <th>StartDt</th> <th>EndDt</th>
-                    <th>House</th> <th>Description</th>  </tr>
-                    @for (proj of filtProj; track proj) {
-                      <tr>
-                        <td>{{ proj.ProjectId }}</td> <td>{{ proj.Cid }}</td>
-                        <td>{{ proj.StartDt }}</td> <td>{{ proj.EndDt }}</td>
-                        <td>{{ proj.House }}</td> <td>{{ proj.Description }}</td>
-                      </tr>
-                    }
-                  </table>
-                </div>
-              }
-            </div>
-          }
-          <!-- **************************************************************************** -->
-          @if (selectedReport === 'Dump of Reconciliations') {
-            <div class="row col-md-12">
-              <form (ngSubmit)="runReport(selectedReport)" #reconDumpForm="ngForm">
-                <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrec"
-                [disabled]="startDt === ''">{{ selectedReport }}</button>
-                @if (reportReady) {
-                  <div class="row">
-                    <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVrec"
-                    (click)="writeCsv(selectedReport)">Write CSV</button>
-                    <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsonrec"
-                    (click)="writeJson(selectedReport)">Write Json</button>
-                    <button class="btn btn-info col-md-2" type="button" data-cy="rpt-writeDisprec"
-                    (click)="screenDisplay = true">Display on Screen</button>
-                    <div class="col-md-4">{{ filtRecon.length }}  Rows to display</div>
-                  </div>
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Rules') {
+    <div class="row col-md-12">
+    @if (reportReady) {
+      <crefinancials-datarpt [contentArray]="tranRules" [fName]="'ruleDump'"></crefinancials-datarpt>
+    }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Mortgages') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-mtgrpt"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="mortgages" [fName]="'mortgageDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Leases') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-mtgrpt"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="leases" [fName]="'leaseDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Residents') {
+    <div class="row col-md-12">
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="residents" [fName]="'residentDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Balance Adjustments') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-baladjrpt"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="balanceAdjustments" [fName]="'balAdjDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Globals') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="runReport(selectedReport)" #globalsDumpForm="ngForm">
+        <div class="row">
+          <div class="col-md-6 border-right">
+            <div class="form-group">
+              <label for="admType">Admin Type</label>
+              <select class="form-control" [(ngModel)]="selectedType" id="admType" name="admType"
+                data-cy="rpt-admtype">
+                <option [value]="''" [selected]="!selectedType">-- select an option --</option>
+                @for (admType of admTypes; track admType) {
+                  <option [value]="admType">{{ admType }}</option>
                 }
-              </form>
-              @if (screenDisplay) {
-                <div class="row col-md-12">
-                  <table>
-                    <tr>
-                      <th>Account</th> <th>Cid</th> <th>StartDt</th> <th>EndDt</th>
-                      <th>TotCredits</th> <th>TotDebits</th> <th>BeginBal</th>
-                      <th>EndBal</th> <th>DeltaAmt</th> <th>ReconKey</th> </tr>
-                      @for (recon of filtRecon; track recon) {
-                        <tr>
-                          <td>{{ recon.Account }}</td> <td>{{ recon.Cid }}</td>
-                          <td>{{ recon.StartDt }}</td> <td>{{ recon.EndDt }}</td>
-                          <td>{{ recon.TotalCredits }}</td> <td>{{ recon.TotalDebits }}</td>
-                          <td>{{ recon.BeginBal }}</td> <td>{{ recon.EndBal }}</td>
-                          <td>{{ recon.DeltaAmt }}</td> <td>{{ recon.ReconKey }}</td>
-                        </tr>
-                      }
-                    </table>
-                  </div>
-                }
-                <div>
-                  <app-cremessages [dispMsgs]="dispMsgs"
-                  (msgDel)="onMsgDel($event.idx, $event.msg)"></app-cremessages>
-                </div>
-              </div>
-            }
+              </select>
+            </div>
           </div>
+        </div>
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subdog">{{ selectedReport }}</button>
+      </form>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="filtGlob" [fName]="'globalsDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Projects') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-subdop"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="filtProj" [fName]="'projectsDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Reconciliations') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="runReport(selectedReport)" #reconDumpForm="ngForm">
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrec"
+          [disabled]="startDt === ''">{{ selectedReport }}</button>
+      </form>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="filtRecon" [fName]="'reconDump'"></crefinancials-datarpt>
+      }
+      <div>
+        <crefinancials-cremessages [dispMsgs]="dispMsgs"
+        (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
+      </div>
+    </div>
+  }
+</div>

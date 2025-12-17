@@ -18,7 +18,7 @@ import { DateselComponent } from '../datesel/datesel.component';
 import { TransrchComponent } from '../transrch/transrch.component';
 
 @Component({
-  selector: 'app-cretran',
+  selector: 'crefinancials-cretran',
   standalone: true,
   imports: [CremessagesComponent, CretranallComponent, DateselComponent, TransrchComponent, FormsModule,
     AsyncPipe ],

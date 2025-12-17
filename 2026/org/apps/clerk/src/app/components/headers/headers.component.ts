@@ -7,7 +7,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { cUser } from '../../models/cUser.model';
 
 @Component({
-  selector: 'app-headers',
+  selector: 'crefinancials-headers',
   standalone: true,
   imports: [NgClass, RouterLink, RouterLinkActive],
   templateUrl: './headers.component.html',

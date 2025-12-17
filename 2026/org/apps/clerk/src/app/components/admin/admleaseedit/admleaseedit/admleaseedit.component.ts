@@ -5,11 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { GlobalModsService } from './../../../../services/globalMods.service';
 
 @Component({
-  selector: 'app-admleaseedit',
+  selector: 'crefinancials-admleaseedit',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admleaseedit.component.html',
-  styleUrl: './admleaseedit.component.css'
+  styleUrls: ['./admleaseedit.component.css'] 
 })
 
 export class AdmleaseeditComponent implements OnInit {

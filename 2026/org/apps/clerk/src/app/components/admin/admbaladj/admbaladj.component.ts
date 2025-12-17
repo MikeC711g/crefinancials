@@ -5,11 +5,11 @@ import { GenutilsService } from '../../../services/genutils.service';
 import { GlobalModsService } from '../../../services/globalMods.service';
 
 @Component({
-  selector: 'app-admbaladj',
+  selector: 'crefinancials-admbaladj',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admbaladj.component.html',
-  styleUrl: './admbaladj.component.css'
+  styleUrls: ['./admbaladj.component.css']
 })
 export class AdmbaladjComponent implements OnInit {
   @Input() houses: House[] = new Array<House>() ;

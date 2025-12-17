@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, input, Input, OnInit } from '@angular/core';
 import { KeyValuePipe } from '@angular/common';
 import { TranRec } from './../../../models/TranRec.model';
 // import { FirebaseService } from '../../../services/firebase.service';
@@ -19,12 +19,12 @@ interface MapVal {    // Aggregate categories and keep totals
 }
 
 @Component({
-  selector: 'app-pnl-report',
+  selector: 'crefinancials-pnl-report',
   standalone: true,
   imports: [KeyValuePipe],
   providers: [GenutilsService],
   templateUrl: './pnl-report.component.html',
-  styleUrl: './pnl-report.component.css'
+  styleUrls: ['./pnl-report.component.css']
 })
 
 export class PnlReportComponent  implements OnInit {
@@ -33,10 +33,12 @@ export class PnlReportComponent  implements OnInit {
   @Input() startDt = '' ;    @Input() endDt = '' ;
   @Input() debitTaxCats = ['BE', 'CE'] ;  @Input() creditTaxCats = ['BI'] ;
   @Input() 'title' = 'Profit & Loss Report' ;
+  @Input() selectedHouseArr: string[] = [] ;
 
         // Structures for P&L report
   totExpense = 0 ;  totIncome = 0 ;  netIncome = 0 ;
   allTaxCats = [''] ;
+  houseList = '' ;
   incomeMap: Map<string, MapVal> = new Map<string, MapVal>() ;
   expenseMap: Map<string, MapVal> = new Map<string, MapVal>() ;
   CLASSNAME = 'pnlreport' ;
@@ -47,6 +49,7 @@ export class PnlReportComponent  implements OnInit {
     this.utilSvc.cLog(this.CLASSNAME, "In w/tranRecs: %O  dts: %s %s catFolders: %O",
       this.tranRecs, this.startDt, this.endDt, this.categoryFolders)
     this.allTaxCats = this.creditTaxCats.concat(this.debitTaxCats) ;
+    if (this.selectedHouseArr.length > 0)    this.houseList = this.selectedHouseArr.join(', ') ;
     this.profitNLoss() ;
   }
 
@@ -114,8 +117,9 @@ export class PnlReportComponent  implements OnInit {
     let fStr = '{\\rtf1\\ansi\\deff0\n'+    // Doc header
       '{\\fonttbl {\\f0 Times New Roman;} {\\f1\\fswiss Arial;} {\\f2\\fmodern Courier New;}}\n' +
       `\\f0 {\\pard\\fs36\\qc\\b ${this.title} \\line\\par}\n` +
-      `{\\pard\\fs20\\qc Start Date: ${this.startDt}  End Date: ${this.endDt} \\line\\par}\n` +
-      '{\\pard\\fs32\\b Income \\line\\par}\n'
+      `{\\pard\\fs20\\qc Start Date: ${this.startDt}  End Date: ${this.endDt} \\line\\par}\n`
+    if (this.houseList != '')  fStr += `{\\pard\\fs20\\qc Houses: ${this.houseList} \\line\\par}\n`
+    fStr += '{\\pard\\fs32\\b Income \\line\\par}\n'
     const [incomeTot, iStr] = this.catGrpRtf(false, this.incomeMap) ;
     fStr += iStr ;    const incomeStr = this.utilSvc.dispFmt(incomeTot)
     fStr += '  {\\trowd \\trgaph180  \\cellx5760\\cellx8640\n'
@@ -210,8 +214,11 @@ export class PnlReportComponent  implements OnInit {
       text(this.title, xCenter, yCoord, {align: 'center'}) ;
     yCoord += 7 ;
     const dtStr = `Start Date: ${this.startDt}   End Date: ${this.endDt}` ;
-    doc.setFontSize(10).text(dtStr, xCenter, yCoord, {align: 'center'}) ;  yCoord += 8
-
+    doc.setFontSize(10).text(dtStr, xCenter, yCoord, {align: 'center'}) ;  yCoord += 8 ;
+    if (this.houseList != '') {
+      doc.setFontSize(10).text(`Houses: ${this.houseList}`, xCenter, yCoord, {align: 'center'}) ;
+      yCoord += 8 ;
+    }
     doc.setFontSize(14).text('Income', xCoord, yCoord) ;
     [incomeTot, xCoord, yCoord] = this.catGrpPdf(doc, xCoord, yCoord+8, this.incomeMap)
     yCoord += 2

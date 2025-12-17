@@ -34,7 +34,7 @@ import { GenutilsService } from './../../services/genutils.service';
  *************************************************************************************/
 
 @Component({
-  selector: 'app-crerecon',
+  selector: 'crefinancials-crerecon',
   standalone: true,
   imports: [CremessagesComponent, CretranallComponent, FormsModule],
   templateUrl: './crerecon.component.html',

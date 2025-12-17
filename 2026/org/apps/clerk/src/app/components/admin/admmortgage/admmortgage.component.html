@@ -35,12 +35,9 @@
         <label for="mortPmt" title="Amount paid monthly (including escrow and extra principal)">Mortgage Payment (monthly)</label>
         <input type="number" class="form-control" [(ngModel)]="mortgage.lpmt" name="mortPmt" id="mortPmt"
           ngModel data-cy="amo-pmt">
-        <label for="balYr" title="Year of a known balance (ie: after disrupting events)">Year of Ref Balance</label>
-        <input type="number" class="form-control" [(ngModel)]="mortgage.balYr" name="balYr" id="balYr"
-          ngModel data-cy="amo-balYr  ">
-        <label for="balMonth" title="Month of a known balance (ie: after disrupting events)">Month of Ref Balance</label>
-        <input type="number" class="form-control" [(ngModel)]="mortgage.balMth" name="balMth" id="balMth"
-          ngModel data-cy="amo-balMth">
+        <label for="balDate" title="Date of a known balance (ie: after disrupting events)">Date of Ref Balance</label>
+        <input type="date" class="form-control" [(ngModel)]="mortgage.balDate" name="balDate" id="balDate"
+          ngModel data-cy="amo-balDate  ">
         <label for="curBal" title="Balance on the reference date">Balance on Ref Date</label>
         <input type="number" class="form-control" [(ngModel)]="mortgage.cBal" name="curBal" id="curBal"
           ngModel data-cy="amo-curBal">

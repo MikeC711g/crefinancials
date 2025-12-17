@@ -25,6 +25,8 @@ import { GenutilsService } from './genutils.service';
         case 'admin':
           return (aUser?.role === utilSvc.roleNames.Admin ||
             aUser?.role === utilSvc.roleNames.GlobalAdmin)
+        case 'globadm':
+          return (aUser?.role === utilSvc.roleNames.GlobalAdmin)
         default:
           utilSvc.cWarn('canActivateFunc', 'Invalid route: %s', route.routeConfig!.path)
           return false ;

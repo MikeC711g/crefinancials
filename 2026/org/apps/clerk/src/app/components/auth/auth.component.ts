@@ -13,7 +13,7 @@ type GuiMode = 'Sign In' | 'Change Password' | 'Reset Password' | 'Sign Up'
 const successorRt = '/trans/loadfile' ;  // Default route to go to after login
 
 @Component({
-  selector: 'app-auth',
+  selector: 'crefinancials-auth',
   standalone: true,
   imports: [CremessagesComponent, FormsModule],
   templateUrl: './auth.component.html',
