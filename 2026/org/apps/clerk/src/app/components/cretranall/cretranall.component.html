@@ -1,0 +1,253 @@
+<!-- One component to display trans in 2 columns and allow all tran actions -->
+@if (displayList()) {
+  <div class="row" [style]="rowStyle">
+    <div class="col-md-2" data-cy="cta-ldt"> {{ tranRec.TranDate }} </div>
+    <div class="col-md-1" data-cy="cta-ltt"> {{ tranRec.TranType }}     </div>
+    <div class="col-md-3" data-cy="cta-ltd"> {{ tranRec.Category }}  </div>
+    <div class="col-md-1" data-cy="cta-lta"> {{ tranRec.Amount }}     </div>
+    <div class="col-md-3" data-cy="cta-lte"> {{ tranRec.TranExtra.slice(0, 22) }} </div>
+    @if (!isInDB) {
+      <div class="col-md-1" data-cy="cta-ltndb">
+        <img class="img-responsive" src="assets/images/saveAsIconBlack.png" style="width: 16px; height: 16px;"
+          title="Not yet saved in data base">
+      </div>
+    }
+    @if (isParent) {
+      <div class="col-md-1" data-cy="cta-ltp">
+        <img class="img-responsive" src="assets/images/splitIcon.png" style="width: 16px; height: 16px;"
+          title="Split transaction">
+      </div>
+    }
+    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="cta-exb"
+      (click)="expandedView = !expandedView">
+      @if (!expandedView) {
+        <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+          style="width: 16px; height: 16px;">
+      }
+      @if (expandedView) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+          style="width: 16px; height: 16px;">
+      }
+    </button>
+    @if (tranRec.Category && tranRec.TranType && tranRec.TaxCat && !isInDB &&
+      (!isChild || (isChild && locAction === ''))) {
+      <button class="btn btn-primary col-md-1" type="button" data-cy="cta-exb"
+        (click)="onAddRecord()">QA
+      </button>
+    }
+  </div>
+}
+@if (expandedView || (newRow && !isChild) || (isChild && newExpand && newRow)) {
+  <div class="row col-md-12">
+    <form (ngSubmit)="onAddRecord()" #recordForm="ngForm">
+      @if (!isChild) {
+        <div class="row">
+          <div class="col-md-6 border-right">
+            <div class="form-group">
+              <label for="account">Account</label>
+              <select class="form-control" id="account" name="account" data-cy="cta-account"
+                [(ngModel)]="tranRec.Account" required (change)="chgData()" #account="ngModel">
+                <option [value]="''" [selected]="!tranRec.Account">-- select an option --</option>
+                @for (account of accounts; track account) {
+                  <option [value]="account.RKey" data-cy="cta-acctOpt"
+                  [selected]="account.RKey === tranRec.Account">{{ account.RKey }}</option>
+                }
+              </select>
+            </div>
+            <div [hidden]="account.valid || !account.touched"
+            class="alert alert-danger" data-cy="cta-actInv"> Account selection is required </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="date" title="Date transaction recorded">Date</label>
+              <input type="date" class="form-control" [(ngModel)]="tranRec.TranDate" #tranDate="ngModel"
+                name="date" id="date" ngModel placeholder="Date" data-cy="cta-tranDate" (change)="chgData()">
+            </div>
+            <div [hidden]="tranDate.valid || !tranDate.touched"
+            class="alert alert-danger" data-cy="cta-tdInv"> TranDate is required </div>
+          </div>
+        </div>
+      }
+      <div class="row">
+        <div class="col-md-6 border-right">
+          <div class="form-group">
+            <label for="category" title="Classification of type of work">Category</label>
+            <select class="form-control" id="category" name="category" data-cy="cta-category"
+              [(ngModel)]="tranRec.Category" (change)="chgData() ; onPreSetTaxcat()" required
+              #category="ngModel">
+              <option [value]="''" [selected]="!tranRec.Category">-- select an option --</option>
+              @for (category of categoryTaxcat; track category) {
+                <option [value]="category.RKey" data-cy="cta-catOpt"
+                [selected]="category.RKey === tranRec.Category">{{ category.RKey }}</option>
+              }
+            </select>
+          </div>
+          <div [hidden]="category.valid || !category.touched"
+            class="alert alert-danger" data-cy="cta-catInv"> Category selection is required
+          </div>
+        </div>
+        @if (!isParent) {
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="tranType" title="Financial Type of Transaction">Type</label>
+              <select class="form-control" id="tranType" name="tranType" (change)="chgData() ; onCheckValAbs()"
+                [(ngModel)]="tranRec.TranType" required data-cy="cta-tranType" #tranType="ngModel">
+                <option [value]="''" [selected]="!tranRec.TranType">-- select an option --</option>
+                @for (tranType of tranTypes; track tranType) {
+                  <option [value]="tranType" data-cy="cta-ttpOpt">
+                  {{ tranType }}</option>
+                }
+              </select>
+            </div>
+            <div [hidden]="tranType.valid || !tranType.touched"
+            class="alert alert-danger" data-cy="cta-ttpInv"> Transaction type selection is required </div>
+          </div>
+        }
+      </div>
+      <div class="row">
+        <div class="col-md-6 border-right">
+          <div class="form-group">
+            <label for="amount"> Amount </label>
+            <input type="number" class="form-control" [(ngModel)]="tranRec.Amount" #amount="ngModel"
+              name="amount" id="amount" ngModel placeholder="Amount" required data-cy="cta-amount"
+              (change)="chgData() ; onCheckValAbs()">
+          </div>
+          <div [hidden]="amount.valid || !amount.touched"
+          class="alert alert-danger" data-cy="cta-amtInv"> Amount is required </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="extra">Notes</label>
+            <input type="text" class="form-control" [(ngModel)]="tranRec.TranExtra"
+              name="extra" id="extra" ngModel placeholder="Brief description" data-cy="cta-tranExtra"
+              title="ie: Tenant paid March rent early" (change)="chgData()">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 border-right">
+          <div class="form-group">
+            <label for="house" title="House associated with transaction if applicable">House</label>
+            <select class="form-control" id="house" name="house" data-cy="cta-house"
+              [(ngModel)]="tranRec.House" (change)="chgData()">
+              <option [value]="''" [selected]="!tranRec.House">-- select an option --</option>
+              @for (house of houses; track house) {
+                <option [value]="house.name" data-cy="cta-hseOpt"
+                  [disabled]="house.inactiveDt && tranRec.TranDate > house.inactiveDt"
+                [selected]="house.name == tranRec.House">{{ house.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="project" title="Project associated with the transaction">Project</label>
+            <select class="form-control" id="project" name="project" data-cy="cta-project"
+              [(ngModel)]="tranRec.Project" (focus)="onFilterProjects()" (change)="chgData()">
+              <option [value]="''" [selected]="!tranRec.Project">-- select an option --</option>
+              @for (project of filteredProjects; track project) {
+                <option [value]="project.ProjectId"
+                  [selected]="project.ProjectId == tranRec.Project" data-cy="cta-prjOpt">
+                {{ project.House }} {{ project.Description }} </option>
+              }
+            </select>
+            <div class="row">
+              <button class="btn btn-success" type="button" data-cy="cta-newProjBtn"
+              (click)="newProj=true">New Project</button>
+              @if (newProj) {
+                <crefinancials-creprojectedit
+                (projMod)="onProjMod($event.action, $event.project)"></crefinancials-creprojectedit>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        @if (!isParent) {
+          <div class="col-md-6 border-right">
+            <div class="form-group">
+              <label for="taxcat">Tax Category</label>
+              <select class="form-control" id="taxcat" name="taxcat" data-cy="cta-taxCat" required
+                [(ngModel)]="tranRec.TaxCat" (change)="chgData()" #taxcat="ngModel">
+                <!-- (focus)="onPreSetTaxcat()"  -->
+                <option [value]="''" [selected]="!tranRec.TaxCat">-- select an option --</option>
+                @for (taxcat of taxCats; track taxcat) {
+                  <option [value]="taxcat.RKey" data-cy="cta-tCatOpt"
+                  [selected]="taxcat.RKey == tranRec.TaxCat">{{ taxcat.RVal }}</option>
+                }
+              </select>
+            </div>
+            <div [hidden]="taxcat.valid || !taxcat.touched" data-cy="cta-tCatInv"
+            class="alert alert-danger"> Tax category selection is required </div>
+          </div>
+        }
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="annotation">Detailed description</label>
+            <input type="text" class="form-control" [(ngModel)]="tranRec.Annotation"
+              name="annotation" id="annotation" ngModel placeholder="Annotation"
+              (change)="chgData()" data-cy="cta-annot" title="Detailed description/annotation">
+            </div>
+          </div>
+        </div>
+        @if (isParent) {
+          <div class="row col-md-12">
+            <h4 class="col-md-4">Child Transactions</h4>
+            <ul>
+              @for (splitChild of splitChildren; track splitChild; let i2 = $index) {
+                <li data-cy="cta-childRow">
+                  <crefinancials-cretranall [tranRec]="splitChild" [newExpand]="childExpand"
+                    [isChild]="true" [idx]="i2" [locAction]="useSplitChild[i2]"
+                  (tranMod)="onChildMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
+                }
+              </ul>
+              <div class="row col-md12">
+                <div class="col-md-9" data-cy="cta-paa">
+                  {{ allocdAmt }} Allocated of {{ tranRec.Amount }} Leaving {{ deltaAmt }}
+                  {{ savedAmt }} Saved  Leaving {{ tranRec.Amount - savedAmt }}
+                </div>
+              </div>
+            </div>
+          }
+          <div class="row col-md-12">
+            <button class="btn btn-success col-md-2" type="submit" data-cy="cta-dbs"
+         [disabled]="!recordForm.valid || tranRec.TranDate === '' || (isParent && allocdAmt !== tranRec.Amount) ||
+            (tranRec.ReconKey !== '' && !isGlobalAdmin)">
+          {{ isInDB ? 'Update' : 'Add' }}</button>
+          <button class="btn btn-danger col-md-2" type="button" data-cy="cta-delBtn"
+            [disabled]="(!editMode && !isChild) || (tranRec.ReconKey !== '' && !isGlobalAdmin)"
+          (click)="onDeleteRecord()">Delete</button>
+          <button class="btn btn-warning col-md-2" type="button" data-cy="cta-canBtn"
+          (click)="onCancel()">Cancel</button>
+          @if (hideLabel !== '') {
+            <button class="btn btn-secondary col-md-2" type="button" data-cy="cta-hideBtn"
+            (click)="onHideRecord()">{{ hideLabel }}</button>
+          }
+          @if (isParent) {
+            <button class="btn btn-success col-md-2" type="button"
+              [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin" data-cy="cta-addChildBtn"
+            (click)="childExpand = true ; onAddSplitChild()">Add Child</button>
+          }
+          @if (!isChild) {
+            <button class="btn btn-primary col-md-2" type="button"
+              [disabled]="tranRec.ReconKey !== '' && !isGlobalAdmin" data-cy="cta-splitBtn"
+            (click)="parentChange()">{{ isParent ? 'Unsplit Transaction' : 'Split Transaction' }} </button>
+          }
+          <button class="btn btn-secondary col-md-2" type="button" data-cy="cta-addRuleBtn"
+            (click)="onAddRule()" [disabled]="newRule">Create rule for tran</button>
+        </div>
+        @if (newRule) {
+          <div class="row" data-cy="cta-newRule">
+            <crefinancials-admruledata [tranRule]="ruleAdd" [tranTypes]="tranTypes" [taxCats]="taxCats"
+              [newRow]="true" (parmMod)="onRuleMod($event.action, $event.parmType,
+              $event.newVal, $event.oldVal)"
+              [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></crefinancials-admruledata>
+          </div>
+        }
+      </form>
+    </div>
+  }
+  <div>
+    <crefinancials-cremessages [dispMsgs]="dispMsgs" data-cy="cta-msgs"
+    (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
+  </div>

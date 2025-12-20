@@ -1,0 +1,27 @@
+@if (!selectedHouse) {
+  Inside baladj leaselen: {{ leases.length }}, housesLen: {{ houses.length }}
+  <div class="row">
+    <label for="house">House</label>
+    <select class="form-control" id="house" name="house"data-cy="aba-house"
+        [(ngModel)]="selectedHouse" (change)="selHouse()">
+      <option [value]="''" [selected]="!selectedHouse"> -- select an option -- </option>
+      @for (house of houses; track house) {
+        <option [value]="house.name">{{ house.name }}</option>
+      }
+    </select>
+  </div>
+} @else {
+  Yo dude, I have house {{ selectedHouse }}
+  <div class="row">
+    <label for="lease">Lease</label>
+    <select class="form-control" id="lease" name="lease" data-cy="aba-lease"
+        [(ngModel)]="selectedLease" (change)="selLease()">
+      <option [value]="''" [selected]="!selectedLease"> -- select an option -- </option>
+      @for (lease of leases; track lease) {
+        @if (lease.House === selectedHouse) {
+          <option [value]="lease.House">{{ lease.House }}</option>
+        }
+      }
+    </select>
+  </div>
+}

@@ -1,0 +1,13 @@
+<div class="row col-md-12">
+  <div class="col-md-3"> {{ className }}  </div>
+  <div class="col-md-9">
+    <label for="logLevel">LogLevel</label>
+    <select class="form-control" id="logLevel" name="logLevel" [(ngModel)]="level"
+      (change)="editClassLevel()" data-cy="alo-level">
+      <option [value]="''" [selected]="!level">-- select an option --</option>
+      @for (lLevel of logLevels; track lLevel) {
+        <option [value]="lLevel">{{ lLevel }}</option>
+      }
+    </select>
+  </div>
+</div>

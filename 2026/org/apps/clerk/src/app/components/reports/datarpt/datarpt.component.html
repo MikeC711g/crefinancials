@@ -1,0 +1,12 @@
+<div class="row col-md-12">
+  <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeCSVdot"
+    (click)="writeGenericCsv(contentArray, csvFName)">Write CSV</button>
+  <button class="btn btn-success col-md-2" type="button" data-cy="rpt-writeJsondot"
+    (click)="writeGenericJson(contentArray, jsonFName)">Write Json</button>
+  <button class="btn btn-info col-md-2" type="button" data-cy="rpt-screenDispdot"
+    (click)="screenDisplay = true">Display on Screen</button>
+  <div class="col-md-4">{{ contentArray.length }}  Rows to display</div>
+</div>
+@if (screenDisplay) {
+  <div class="row col-md-12" [innerHTML]="jsonArr2Html(contentArray)"> </div>
+}

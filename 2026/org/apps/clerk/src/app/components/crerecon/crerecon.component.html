@@ -1,0 +1,138 @@
+<div class="container">
+  <div class="row col-md-12">
+    <h2>Reconcile a statement</h2>
+    <form (ngSubmit)="onReconcile(startDate.value, endDate.value, beginBal.value, endBal.value)"
+      #reconForm="ngForm">
+      <div class="row form-group">
+        <label for="recAccount">Account</label>
+        <select class="form-control" id="recAccount" name="recAccount" [(ngModel)]="account"
+          (change)="onAcctChange()" data-cy="cre-recAccount" required #recAccount="ngModel">
+          <option [value]="''" [selected]="!account">-- select an option --</option>
+          @for (account of accounts; track account) {
+            <option [value]="account.RKey">{{ account.RKey }}</option>
+          }
+        </select>
+      </div>
+      <div [hidden]="recAccount.valid || !recAccount.touched"
+      class="alert alert-danger"> Account selection is required </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="startDate">Enter Start Date</label>
+          <input class="form-control" type="date" id="startDate" name="startDate"
+            [(ngModel)]="startDt" #startDate="ngModel" data-cy="cre-startDt" required/>
+        </div>
+        <div [hidden]="startDate.valid || !startDate.touched"
+        class="alert alert-danger"> Start Date is required </div>
+        <div class="form-group">
+          <label for="endDate">Enter End Date</label>
+          <input class="form-control" type="date" id="endDate" name="endDate"
+            [(ngModel)]="endDt" #endDate="ngModel" data-cy="cre-endDt" required/>
+        </div>
+        <div [hidden]="endDate.valid || !endDate.touched"
+        class="alert alert-danger"> End Date is required </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="beginBal">Begin Balance</label>
+          <input class="form-control" type="number" id="beginBal" name="beginBal"
+            [(ngModel)]="beginBalStr" #beginBal="ngModel" data-cy="cre-beginBal" required/>
+        </div>
+        <div [hidden]="beginBal.valid || !beginBal.touched"
+        class="alert alert-danger"> Beginning Balance is required </div>
+        <div class="form-group">
+          <label for="endBal">Ending Balance</label>
+          <input class="form-control" type="number" id="endBal" name="endBal"
+            [(ngModel)]="endBalStr" #endBal="ngModel" data-cy="cre-endBal" required/>
+        </div>
+        <div [hidden]="endBal.valid || !endBal.touched"
+        class="alert alert-danger"> Ending Balance is required </div>
+      </div>
+      <div class="row">
+        Debits: {{ debitTotals }}  Credits: {{ creditTotals }} <b>Delta {{ deltaAmt }} </b>
+      </div>
+      <div class="row">
+        <button class="btn btn-primary col-md-2" type="submit" [disabled]="!reconForm.valid"
+        data-cy="cre-sub">Reconcile</button>
+        <button class="btn btn-info col-md-2" type="button" data-cy="cre-refresh"
+        (click)="onRefreshParms(startDate.value, endDate.value)">Refresh Globals</button>
+        <button class="btn btn-success col-md-2"  type="button" data-cy="cre-newrow"
+        (click)="newRow = true" > New </button>
+        <button class="btn btn-primary col-md-4" type="button" [disabled]="!work2Commit"
+          (click)="onSaveReconTran() ; reconForm.resetForm()"
+        data-cy="cre-savrecon">Save Reconciliation</button>
+      </div>
+      <div>
+        <crefinancials-cremessages [dispMsgs]="dispMsgs"
+        (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
+      </div>
+    </form>
+  </div>
+  @if (newRow) {
+    <div class="col-md-12">
+      <hr>
+        <crefinancials-cretranall (tranMod)="onTranMod($event.action, $event.tranRec)" [idx]="1"></crefinancials-cretranall>
+      </div>
+    }
+    <div class="col-md-12">
+      <!-- <div class="row" *ngIf="!!csvTranRecs && csvTranRecs?.length > 0;else noTrans"> -->
+      @if (!!debitTranRecs && debitTranRecs.length > 0) {
+        <div class="row">
+          <button class="btn btn-success btn-toggle col-md-2" type="button"
+            (click)="expandDebits = !expandDebits"
+          data-cy="cre-expdeb"> {{expandDebits ? 'Hide' : 'Show'}} Debits</button>
+          <h5 class="col-md-4">Total Debits: {{ debitTotals }}</h5>
+          @if (expandDebits) {
+            <ul>
+              @for (tran of debitTranRecs; track tran; let i = $index) {
+                <li>
+                  <crefinancials-cretranall [tranRec]="tran" [idx]="i"
+                    [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
+                  (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
+                }
+              </ul>
+            }
+          </div>
+        } @else {
+          <hr>  <h5>There are no Debit transactions to list</h5>
+        }
+        @if (!!creditTranRecs && creditTranRecs.length > 0) {
+          <div class="row">
+            <button class="btn btn-success btn-toggle col-md-2" type="button"
+              (click)="expandCredits = !expandCredits"
+            data-cy="cre-expcred"> {{expandCredits ? 'Hide' : 'Show'}} Credits</button>
+            <h5 class="col-md-4">Total Credits: {{ creditTotals }}</h5>
+            @if (expandCredits) {
+              <ul>
+                @for (tran of creditTranRecs; track tran; let i = $index) {
+                  <li>
+                    <crefinancials-cretranall [tranRec]="tran" [idx]="i"
+                      [isParent]="tran.TranType === 'TPARENT'" [hideLabel]="utilSvc.actionTypes.Hide"
+                    (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
+                  }
+                </ul>
+              }
+            </div>
+          } @else {
+            <hr>  <h5>There are no Credit transactions to list</h5>
+          }
+          @if (!!hiddenTranRecs && hiddenTranRecs.length > 0) {
+            <div class="row">
+              <button class="btn btn-success btn-toggle col-md-2" type="button" data-cy="cre-exphidden"
+              (click)="expandHidden = !expandHidden"> {{expandHidden ? 'Hide' : 'Show'}} Hidden</button>
+              <h5 class="col-md-4">Total Hidden: {{ hiddenTotals }}</h5>
+              @if (expandHidden) {
+                <ul>
+                  @for (tran of hiddenTranRecs; track tran; let i = $index) {
+                    <li>
+                      <crefinancials-cretranall [tranRec]="tran" [idx]="i"
+                        [isParent]="tran.TranType === 'TPARENT'"
+                      (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall></li>
+                    }
+                  </ul>
+                }
+              </div>
+            } @else {
+              <hr>  <h5>There are no Hidden transactions to list</h5>
+            }
+          </div>
+        </div>

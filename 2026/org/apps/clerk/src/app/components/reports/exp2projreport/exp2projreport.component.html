@@ -1,0 +1,38 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="justify-content-center"><h1>Expenses by House and Project</h1></div>
+    @for (tHouse of houseArr; track tHouse) {
+      <div class="row">
+        <div class="col-md-4"><b> {{ tHouse.houseNm }}</b> </div>
+        <div class="col-md-2 offset-md-3"><b> {{ dispFmt(tHouse.houseTot) }}</b> </div>
+        @for (projs of tHouse.projTran; track projs) {
+          <div class="row">
+            <font size="-1">
+              <div class="row col-md-12">
+                <div class="col-md-6 offset-md-1"> {{ projs.projDesc }}</div>
+                <div class="col-md-3 text-end"> {{ dispFmt(projs.projTot) }} </div>
+                @if (reportDetails) {
+                  <div>
+                    @for (trans of projs.tranRecs; track trans) {
+                      <div class="row col-md-12">
+                        <div class="col-md-2 offset-md-2"> {{ trans.TranDate }} </div>
+                        <div class="col-md-3"> {{ trans.Category }} </div>
+                        <div class="col-md-2 text-end"> {{ dispFmt(trans.Amount) }} </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </font>
+          </div>
+        }
+      </div>
+    }
+    <button class="btn btn-success col-md-2" type="button" data-cy="rpt-seldtl"
+    (click)="reportDetails = !reportDetails">{{reportDetails ? 'Show Summary' : 'Show Details'}}</button>
+    <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeRTF"
+    (click)="writeExpHPRtf()">Write RTF</button>
+    <button class="btn btn-secondary col-md-2" type="button" data-cy="rpt-writePDF"
+    (click)="writeExpHPPdf()">Write PDF</button>
+  </div>
+</div>

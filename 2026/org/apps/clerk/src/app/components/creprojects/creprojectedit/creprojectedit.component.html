@@ -1,0 +1,76 @@
+@if (editMode) {
+  <div class="row">
+    <div class="col-3">{{ curProj.StartDt }}</div>
+    <div class="col-2">{{ curProj.House }}</div>
+    <div class="col-4">{{ curProj.Description }}</div>
+    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="cpe-expview"
+      (click)="expandedView = !expandedView">
+      @if (!expandedView) {
+        <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+          style="width: 16px; height: 16px;">
+      }
+      @if (expandedView) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+          style="width: 16px; height: 16px;">
+      }
+    </button>
+  </div>
+}
+@if (expandedView || newRow) {
+  <div class="row col-md-12">
+    <form (ngSubmit)="onAddProject()" #projectForm="ngForm">
+      <div class="row">
+        <div class="form-group col-md-5 border-right">
+          <label for="stDate">Start Date</label>
+          <input type="date" class="form-control" [(ngModel)]="curProj.StartDt" (change)="chgData()"
+            name="stDate" id="stDate" ngModel placeholder="Start Date" required data-cy="cpe-startDt">
+        </div>
+        <div class="form-group col-md-5">
+          <label for="endDate">End Date</label>
+          <input type="date" class="form-control" [(ngModel)]="curProj.EndDt" data-cy="cpe-endDt"
+            name="endDate" id="endDate" ngModel placeholder="End Date" required (change)="chgData()">
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group col-md-12 border-right">
+          <label for="house">House</label>
+          <select class="form-control" id="house" name="house" (change)="chgData()"
+            [(ngModel)]="curProj.House" data-cy="cpe-house" required #house="ngModel">
+            <option [value]="''" [selected]="!curProj.House">
+            -- select an option -- </option>
+            @for (house of houses; track house) {
+              <option [value]="house.name"
+              [selected]="house.name === curProj.House">{{ house.name }}</option>
+            }
+          </select>
+        </div>
+        <div [hidden]="house.valid || !house.touched"
+        class="alert alert-danger"> House selection is required </div>
+      </div>
+      <div class="row">
+        <div class="form-group col-md-12">
+          <label for="description">Tran Description</label>
+          <textarea type="text" id="description" class="form-control" [(ngModel)]="curProj.Description"
+            rows="2" name="description" ngModel placeholder="Project Description" #description="ngModel"
+          (change)="chgData()" data-cy="cpe-description" required></textarea>
+        </div>
+        <div [hidden]="description.valid || !description.touched"
+        class="alert alert-danger"> Description is required </div>
+        <!-- <div *ngIf="description.invalid && (description.dirty || description.touched)" -->
+      <!-- class="alert alert-danger"> Description is required </div> -->
+    </div>
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-3" type="submit" data-cy="cpe-add"
+      [disabled]="!projectForm.valid"> {{ editMode ? 'Update' : 'Add' }}</button>
+      <button class="btn btn-danger col-md-3" type="button" data-cy="cpe-delete"
+      [disabled]="!editMode" (click)="onDeleteProject()">Delete</button>
+      <button class="btn btn-primary col-md-3" type="button" (click)="onCancel()"
+      data-cy="cpe-cancel">Cancel</button>
+    </div>
+  </form>
+</div>
+}
+<div>
+  <crefinancials-cremessages [dispMsgs]="dispMsgs"
+  (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
+</div>

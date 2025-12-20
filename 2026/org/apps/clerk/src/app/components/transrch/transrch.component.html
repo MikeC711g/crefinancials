@@ -1,0 +1,90 @@
+<div class="row">
+  <div class="col-md-6 border-right">
+    <div class="form-group">
+      <label for="category">Category</label>
+      <select class="form-control" multiple id="category" name="category" data-cy="te-dtd"
+        [(ngModel)]="category">
+        <option [value]="''" [selected]="!category">-- select an option --</option>
+        <option *ngFor="let catTaxcat of categoryTaxcat" [value]="catTaxcat.RKey"
+          [selected]="category.includes(catTaxcat.RKey)">{{ catTaxcat.RKey }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="form-group">
+      <label for="tranType">Tran Type</label>
+      <select class="form-control" multiple id="tranType" name="tranType"
+          [(ngModel)]="tranType" data-cy="te-dtt">
+          <option [value]="''" [selected]="!tranType">-- select an option --</option>
+          <option *ngFor="let dTranType of tranTypes" [value]="dTranType"
+            [selected]="tranType.includes(dTranType)">{{ dTranType }}</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 border-right">
+    <div class="form-group">
+      <label for="house">House</label>
+      <select class="form-control" multiple id="house" name="house" data-cy="te-dho"
+        [(ngModel)]="house">
+        <option [value]="''" [selected]="!house">-- select an option --</option>
+        <option *ngFor="let dHouse of houses"[value]="dHouse.name"
+        [selected]="house.includes(dHouse.name)" >{{ dHouse.name }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="form-group">
+      <label for="project">Project</label>
+      <select class="form-control" id="project" name="project" data-cy="te-dpr"
+        [(ngModel)]="project">
+        <option [value]="''" [selected]="!project">-- select an option --</option>
+        <option *ngFor="let dProject of projects" [value]="dProject.ProjectId"
+          [selected]="dProject.ProjectId == project">
+          {{ dProject.House }} {{ dProject.Description }} </option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 border-right">
+    <div class="form-group">
+      <label for="taxcat">Tax Category</label>
+      <select class="form-control" id="taxcat" name="taxcat" data-cy="te-dtc"
+        [(ngModel)]="taxCat" multiple>
+        <option [value]="''" [selected]="!taxCat">-- select an option --</option>
+        <option *ngFor="let dTaxcat of taxCats" [value]="dTaxcat.RKey"
+          [selected]="taxCat.includes(dTaxcat.RKey)">{{ dTaxcat.RVal }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="col-md-6 border-right">
+    <div class="form-group">
+      <label for="annotationre">Annotation search</label>
+      <input type="text" class="form-control" [(ngModel)]="annotationRegEx"
+        name="annotationre" id="annotationre" ngModel placeholder="Search string"
+        data-cy="te-dte">
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 border-right">
+    <div class="form-group">
+      <label for="minamt">Minimum Amount</label>
+      <input type="number" class="form-control" [(ngModel)]="minAmt"
+        name="minamt" id="minamt" ngModel data-cy="te-dte">
+    </div>
+  </div>
+  <div class="col-md-6 border-right">
+    <div class="form-group">
+      <label for="maxamt">Maximum Amount</label>
+      <input type="number" class="form-control" [(ngModel)]="maxAmt"
+        name="maxamt" id="maxamt" ngModel data-cy="te-dte">
+    </div>
+  </div>
+</div>
+<div class="row">
+  <button class="btn btn-success col-md-4" type="button" (click)="onSubmit()"> Submit Search </button>
+  <button class="btn btn-primary col-md-4" type="button" (click)="onCancel()"> Cancel Search </button>
+</div>

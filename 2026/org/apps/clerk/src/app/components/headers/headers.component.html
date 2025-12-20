@@ -1,0 +1,129 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <span class="navbar-brand">
+    <img src="../../../assets/images/ClerkLogoV2.jpg" width="40" height="40">
+    <font size="-1">  Real Estate Books</font>
+  </span>
+  <div class="collapse navbar-collapse" [ngClass]="{ 'show': navbarOpen }">
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <li class="nav-item dropdown">
+        @if (isAuthenticated) {
+          <a class="nav-link dropdown-toggle" role="button" data-cy="hdrTran"
+            data-bs-toggle="dropdown" aria-expanded="false">
+          Transactions/Records</a>
+        }
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/trans/loadfile"
+          data-cy="hdrTrLoad">Load Transaction File</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/trans/createtran"
+          data-cy="hdrTrCre8">Create Transaction</a>
+          <div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/trans/search"
+          data-cy="hdrTrSrch">Search Transactions</a></li>
+        </ul>
+      </li>
+      <li class="nav-item">
+        @if (!isAuthenticated) {
+          <a class="nav-link" routerLinkActive="active" routerLink="/auth" data-cy="hdrAuth"
+          >Login</a>
+        }
+      </li>
+      <li class="nav-item">
+        @if (isAuthenticated) {
+          <a class="nav-link" routerLinkActive="active" routerLink="/projects" data-cy="hdrProj"
+          > Projects</a>
+        }
+      </li>
+      <li class="nav-item">
+        @if (isAuthenticated) {
+          <a class="nav-link" routerLinkActive="active" routerLink="/reconcile" data-cy="hdrRecon"
+          > Reconciliations</a>
+        }
+      </li>
+      <li class="nav-item dropdown">
+        @if (isAuthenticated) {
+          <a class="nav-link dropdown-toggle" role="button" data-cy="hdrRpts"
+            data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
+        }
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/profitnloss"
+            data-cy="hdrRpPnL">Profit and Loss</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/perspnl"
+            data-cy="hdrRpPPnL">Personal Profit and Loss</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/expbyproj"
+            data-cy="hdrRpEBP">Expenses by Project</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/rentstat"
+            data-cy="hdrRpRntStat">Rent Status</a><div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpglobals"
+            data-cy="hdrRpDmpGlob">Dump of Globals</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpprojects"
+            data-cy="hdrRpDmpProj">Dump of Projects</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumprecons"
+            data-cy="hdrRpDmpRecon">Dump of Reconciliations</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumptrans"
+            data-cy="hdrRpDmpTran">Dump of Transactions</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumphouses"
+            data-cy="hdrRpDmpHouse">Dump of Houses</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumprules"
+            data-cy="hdrRpDmpRule">Dump of Rules</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpmortgages"
+            data-cy="hdrRpDmpMtg">Dump of Mortgages</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpleases"
+            data-cy="hdrRpDmpLease">Dump of Leases</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpresidents"
+            data-cy="hdrRpDmpResi">Dump of Residents</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/reports/dumpbaladj"
+            data-cy="hdrRpDmpBalAdj">Dump of Balance Adjustments</a></li>
+        </ul>
+      </li>
+      <li class="nav-item dropdown">
+        @if (isAdmin && isAuthenticated) {
+          <a class="nav-link dropdown-toggle" role="button" data-cy="hdrAdmin"
+            data-bs-toggle="dropdown" aria-expanded="false"> Administration</a>
+        }
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/ruleData"
+            data-cy="hdrAdRule">Rules/Hints</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/accounts"
+            data-cy="hdrAdAcc">Accounts</a><div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/taxCats"
+            data-cy="hdrAdTaxcat">Tax Categories</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/categoryTaxcat"
+            data-cy="hdrAdCateg">Categories</a><div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/houses"
+            data-cy="hdrAdHouse">Houses</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/mortgages"
+            data-cy="hdrAdMtg">Mortgages</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/leases"
+            data-cy="hdrAdLease">Leases</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/residents"
+            data-cy="hdrAdRes">Residents</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/balAdjust"
+            data-cy="hdrAdBal">Balance Adjustments</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/logging"
+            data-cy="hdrAdLog">Logging</a></li>
+        </ul>
+      </li>
+    </ul>
+    @if (isAuthenticated) {
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" role="button" data-cy="hdrProf"
+            data-bs-toggle="dropdown" aria-expanded="false">Profile/User</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" routerLinkActive="active" routerLink="/profile/chgpw"
+              data-cy="hdrPrChgPw">Change Password</a></li>
+            <li><a class="dropdown-item" routerLinkActive="active" routerLink="/auth"
+              (click)="logOut()" data-cy="hdrLogout">Logout</a>
+          </ul>
+        </li>
+      </ul>
+    }
+  </div>
+</nav>
+<dialog #authTOId id="authTOId">
+  <h3>Session has been inactive.  Continue or allow session to time out</h3>
+  <button class="btn btn-primary col-md-2" type="button" data-cy="hdrContSess"
+  (click)="timeoutOpt(true)">Continue Session</button>
+  <button class="btn btn-secondary col-md-2" type="button" data-cy="hdrSessTmout"
+  (click)="timeoutOpt(false)">Allow timeout</button>
+</dialog>

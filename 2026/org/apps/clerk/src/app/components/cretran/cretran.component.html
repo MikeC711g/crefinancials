@@ -1,0 +1,143 @@
+@if (globalsLoaded$ | async) {
+  <div class="container">
+    <div class="col-md-12">
+      <!-- inputs for search -->
+      @if (action === 'search') {
+        <div class="row">
+          <h2>Clerk Transaction Search</h2>
+          <div class="col-md-6"> <hr>
+            <label for="trnAccount" title="Select one or more accounts">Select Account(s)</label>
+            <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountArr"
+              (change)="multiSelAll()" multiple data-cy="ctrn-accounts">
+              <option [value]="'selectAll'">Select All</option>
+              @for (account of accounts; track account) {
+                <option [value]="account.RKey" data-cy="ctrn-acctOpts"
+                [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6"> <hr>
+            <crefinancials-datesel [title]="'Transaction'" [dateOpts]="dateOpts"
+            (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></crefinancials-datesel>
+            <hr>
+            </div>
+            <button class="btn btn-success col-md-3"  type="button" id="advSrch"
+              (click)="advancedSrch.isOn= !advancedSrch.isOn" data-cy="ctrn-advSrchBtn">{{advancedSrch.isOn ?
+            'Standard' : 'Advanced'}} Search</button>
+            @if (!advancedSrch.isOn) {
+              <button class="btn btn-info col-md-3"  type="button" id="submitSearch"
+              (click)="onQueryDates()" data-cy="ctrn-subSrch">Execute Search</button>
+            }
+            @if (advancedSrch.isOn) {
+              <div class="row col-md-12">
+                <crefinancials-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
+                  [houses]="houses" [projects]="projects" [taxCats]="taxCats"
+          (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
+          $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
+                </crefinancials-transrch>
+              </div>
+            }
+          </div>
+        }
+        <!-- inputs for loadfile -->
+        @if (action === 'loadfile') {
+          <div class="row col-md-12">
+            <h2>Load QFX or OFX file of Transactions</h2>
+            <div class="col-md-6">
+              <label for="trnAccount" title="Select account">Select Account</label>
+              <select class="form-control" id="trnAccount" name="trnAccount" [(ngModel)]="accountOne"
+                data-cy="ctrn-account">
+                <option [value]="''" [selected]="accountArr.length === 0">-- select an option --</option>
+                @for (account of accounts; track account) {
+                  <option [value]="account.RKey" data-cy="ctrn-acctOpts"
+                  [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="qfxFile" title="Select a file of transactions in ofx or qfx format.  Only enabled if one and only one account is selected">
+              Upload ofx/qfx file</label>
+              <input type="file" name="qfxFile" id="qfxFile" [disabled]="!accountOne"
+                (change)="qfxRead($event)" accept=".qfx, .ofx" data-cy="ctrn-qfxFile" />
+            </div>
+          </div>
+          }  <!--  note createtran has no inputs to get to details screen -->
+        </div>
+        <br>
+          @if (action === 'createtran') {
+            <div class="col-md-12">
+              <h2 data-cy="ctrn-addTran">Add a Transaction</h2>
+              <hr>
+                <crefinancials-cretranall [modeOp]="action" [idx]="1"
+                (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall>
+              </div>
+            }
+            @if (action !== 'createtran') {
+              <div class="col-md-12">
+                @if (!!debitTranRecs && debitTranRecs.length > 0) {
+                  <div class="row">
+                    <h5 class="col-md-4">{{ debitTranRecs.length }} Total Debits: {{ debitTotals }}</h5>
+                    <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="ctrn-expDebit"
+                      (click)="expandDebits = !expandDebits">
+                      @if (!expandDebits) {
+                        <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+                          style="width: 16px; height: 16px;">
+                      }
+                      @if (expandDebits) {
+                        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+                          style="width: 16px; height: 16px;">
+                      }
+                      </button><p></p>
+                      @if (expandDebits) {
+                        <ul data-cy="ctrn-debits">
+                          @for (tran of debitTranRecs; track tran; let i = $index) {
+                            <li>
+                              <crefinancials-cretranall [tranRec]="tran" [idx]="i"
+                                [isParent]="tran.TranType === 'TPARENT'"
+                              (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall>
+                            </li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  } @else {
+                    <hr>  <h5>There are no Debit transactions to list</h5>
+                  }
+                  @if (!!creditTranRecs && creditTranRecs.length > 0) {
+                    <div class="row">
+                      <h5 class="col-md-4">{{ creditTranRecs.length }} Total Credits: {{ creditTotals }}</h5>
+                      <button class="btn btn-primary btn-toggle col-md-1" type="button" data-cy="ctrn-expCredit"
+                        (click)="expandCredits = !expandCredits">
+                        @if (!expandCredits) {
+                          <img class="img-responsive" src="assets/images/chevron-right-icon.png"
+                            style="width: 16px; height: 16px;">
+                        }
+                        @if (expandCredits) {
+                          <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+                            style="width: 16px; height: 16px;">
+                        }
+                        </button><p></p>
+                        @if (expandCredits) {
+                          <ul>
+                            @for (tran of creditTranRecs; track tran; let i = $index) {
+                              <li data-cy="ctrn-creditRow">
+                                <crefinancials-cretranall [tranRec]="tran" [idx]="i"
+                                  [isParent]="tran.TranType === 'TPARENT'"
+                                (tranMod)="onTranMod($event.action, $event.tranRec)"></crefinancials-cretranall>
+                              </li>
+                            }
+                          </ul>
+                        }
+                      </div>
+                    } @else {
+                      <hr>  <h5 data-cy="ctrn-noCredits">There are no Credit transactions to list</h5>
+                    }
+                    <div>
+                      <crefinancials-cremessages [dispMsgs]="dispMsgs"
+                      (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
+                    </div>
+                  </div>
+                }
+                Code Version: {{ codeVersion }}
+              </div>
+            }

@@ -1,0 +1,208 @@
+@if ((globalsLoaded$ && houseSubj && leaseSubj) | async) {
+  <div class="container">
+  @if (selectedType === 'houses') {
+    <div class="row col-md-12">
+      <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+      Add House</button>
+      @if (newRow) {
+        <div>
+          <h2>Add a new House</h2>
+      <crefinancials-admhouses (parmMod)="onParmMod($event.action,
+      $event.parmType, $event.newVal, $event.oldVal)"></crefinancials-admhouses>
+        </div>
+      }
+      <h2 title="Modify or delete existing houses">Manage Houses</h2>
+      <ul>
+        @for (lHouse of houses; track lHouse) {
+          <li>
+            <crefinancials-admhouses [house]="lHouse"
+          (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)"></crefinancials-admhouses>
+          </li>
+        }
+      </ul>
+    </div>
+  } @else {
+     @if (selectedType === 'accounts') {
+      <div class="col-md-12">
+        <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+        New {{ selectedType }}</button>
+        @if (newRow) {
+          <div>
+            <h2>Add a new Account</h2>
+            <crefinancials-admkv [parmType]="selectedType" [valDomain]="accountTypes"
+        (parmMod)="onParmMod($event.action, $event.parmType,
+          $event.newVal, $event.oldVal)"
+            [keyLabel]="'Account Name:'" [valLabel]="'Account Type:'"></crefinancials-admkv>
+          </div>
+        }
+        <h2>Manage Accounts</h2>
+        <ul>
+          @for (account of accounts; track account) {
+            <li>
+              <crefinancials-admkv [kv]="account" [parmType]="selectedType" [keyLabel]="'Account Name:'"
+          [valLabel]="'Account Type:'" (parmMod)="onParmMod($event.action, $event.parmType,
+            $event.newVal, $event.oldVal)" [valDomain]="accountTypes"></crefinancials-admkv></li>
+            }
+        </ul>
+      </div>
+    } @else {
+      @if (selectedType === 'taxCats') {
+      <div class="col-md-12">
+        <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+        New {{ selectedType }} </button>
+        @if (newRow) {
+          <div>
+            <h2>Add a new Tax Category</h2>
+            <crefinancials-admkv [parmType]="selectedType" (parmMod)="onParmMod($event.action, $event.parmType,
+              $event.newVal, $event.oldVal)" [keyLabel]="'Tax Category:'" [valLabel]="'Taxcat Label:'"></crefinancials-admkv>
+          </div>
+        }
+          <h2>Manage Tax Categories</h2>
+          <ul>
+            @for (taxCat of taxCats; track taxCat) {
+              <li>
+                <crefinancials-admkv [kv]="taxCat" [parmType]="selectedType" [keyLabel]="'Tax Category:'"
+                  [valLabel]="'Taxcat Label:'" (parmMod)="onParmMod($event.action, $event.parmType,
+                  $event.newVal, $event.oldVal)"></crefinancials-admkv></li>
+            }
+          </ul>
+        </div>
+      } @else {
+        @if (selectedType === 'categoryTaxcat') {
+          <div class="col-md-12">
+            <h2>Manage Categories</h2>
+            <crefinancials-admcategory [categoryFolders]="categoryFolders" [categoryTaxcat]="categoryTaxcat"
+              [taxCats]="taxCats" (parmMod)="onParmMod($event.action,
+              $event.parmType, $event.newVal, $event.oldVal)">   </crefinancials-admcategory>
+          </div>
+        }
+        @if (selectedType === 'ruleData') {
+          <div class="col-md-12">
+            <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+              Add Rule Data</button>
+            @if (newRow) {
+              <div>
+                <h2>Add a New Rule</h2>
+                <crefinancials-admruledata (parmMod)="onParmMod($event.action,
+                  $event.parmType, $event.newVal, $event.oldVal)"
+                  [tranTypes]="tranTypes" [taxCats]="taxCats" [accounts]="accounts"
+                  [categoryTaxcat]="categoryTaxcat"></crefinancials-admruledata>
+              </div>
+            }
+            <h2>Manage Rules</h2>
+            <ul>
+              @for (rule of tranRules; track rule) {
+                <li>
+                  <crefinancials-admruledata [tranRule]="rule" [tranTypes]="tranTypes" [taxCats]="taxCats"
+                    (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                    [accounts]="accounts" [categoryTaxcat]="categoryTaxcat"></crefinancials-admruledata>
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          @if (selectedType === 'mortgages') {
+            <div class="col-md-12">
+              <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+                Add Mortgage</button>
+              @if (newRow) {
+                <div>
+                  <h2>Add a New Mortgage</h2>
+                  <crefinancials-admmortgage (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                    [houses]="houses"></crefinancials-admmortgage>
+                </div>
+              }
+              <h2>Manage Mortgages</h2>
+              <ul>
+                @for (mortgage of mortgages; track mortgage) {
+                  <li>
+                    <crefinancials-admmortgage [mortgage]="mortgage" [houses]="houses"
+                      (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"
+                    [mortgage]="mortgage" [houses]="houses"></crefinancials-admmortgage>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            @if (selectedType === 'leases') {
+              <h2>Manage Leases</h2>
+              <ul>
+                <li>
+                  <crefinancials-admlease [leases]="leases" [houses]="houses" [residents]="residents"
+                    (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></crefinancials-admlease>
+                </li>
+              </ul>
+            } @else {
+              @if (selectedType === 'residents') {
+                <div class="col-md-12">
+                  <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+                    Add Resident</button>
+                  @if (newRow) {
+                    <div>
+                      <h2>Add a New Resident</h2>
+                      <crefinancials-admresident (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)">
+                      </crefinancials-admresident>
+                    </div>
+                  }
+                  <h2>Manage Residents</h2>
+                  <ul>
+                    @for (resident of residents; track resident) {
+                      <li>
+                        <crefinancials-admresident [resident]="resident"
+                          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)"></crefinancials-admresident>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              } @else {
+                @if (selectedType === 'balAdjust') {
+                  <div>
+                    <h2>Work with balance adjustments</h2>
+                    leaseLen: {{ leases.length }}, housesLen: {{ houses.length }} <br>
+                    <crefinancials-admbaladj (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                      [houses]="houses" [leases]="leases"></crefinancials-admbaladj>
+                  </div>
+                } @else {
+                  @if (selectedType === 'logging') {
+                    <div class="row col-md-12">
+                      <h2>Log and trace management</h2>
+                      Please only use this section under the guidance of a Clerk support representative<br>
+                      <label for="dfltLevel">Default Level</label>
+                      <select class="form-control" id="dfltLevel" name="dfltLevel"
+                        [(ngModel)]="defaultLevel" (change)="setDfltLogLevel()">
+                        @for (level of logLevels; track level) {
+                          <option [value]="level">{{ level }}</option>
+                        }
+                      </select>
+                      <label for="orideLevel">OverRide Level</label>
+                      <select class="form-control" id="orideLevel" name="orideLevel"
+                        [(ngModel)]="overrideLevel" (change)="setOrideLogLevel()">
+                        <option [value]="''" [selected]="!overrideLevel">-- select an option --</option>
+                        @for (level of logLevels; track level) {
+                          <option [value]="level">{{ level }}</option>
+                        }
+                      </select>
+                      <div class="row col-md-12">
+                        <ul>
+                          @for (lClass of classList; track lClass) {
+                            <li>
+                              <crefinancials-admlogging [logLevels]="logLevels" [className]="lClass.RKey"
+                              (logMod)="onLogMod($event.className, $event.level)"></crefinancials-admlogging>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  <div> {{ statusMsg }} </div>
+  </div>
+}

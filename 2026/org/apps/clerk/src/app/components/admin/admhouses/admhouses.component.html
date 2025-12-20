@@ -1,0 +1,50 @@
+@if (!editMode) {
+  <div class="row">
+    <div class="col-md-5"> {{ house.name }}      </div>
+    <button class="btn btn-success btn-toggle col-md-2" type="button"
+    (click)="editMode = true"> Edit</button>
+    <button class="btn btn-danger col-md-2" type="button"
+    (click)="onDeleteRecord()"> Delete</button>
+  </div>
+}
+<p style="background-color: aqua;">{{ statusMsg }}</p>
+@if (editMode) {
+  <div class="row">
+    <div class="col-md-5">
+      <div class="form-group">
+        @if (newRow) {
+          <div class="row">
+            <label for="houseNm">House Name</label>
+            <input type="text" class="form-control" [(ngModel)]="house.name"
+              name="houseNm" id="houseNm" ngModel required data-cy="aho-name">
+          </div>
+        }
+        @if (!newRow) {
+          <div class="row">{{ house.name }} </div>
+        }
+        <label for="houseAddr">Street Address</label>
+        <input type="text" class="form-control" [(ngModel)]="house.Addr"
+          name="houseAddr" id="houseAddr" ngModel data-cy="aho-addr">
+        <label for="houseCity">City</label>
+        <input type="text" class="form-control" [(ngModel)]="house.City"
+          name="houseCity" id="houseCity" ngModel data-cy="aho-city">
+        <label for="houseState">State</label>
+        <input type="text" class="form-control" [(ngModel)]="house.State"
+          name="houseState" id="houseState" ngModel data-cy="aho-state">
+        <label for="houseZip">Zip Code</label>
+        <input type="text" class="form-control" [(ngModel)]="house.zipCode"
+          name="houseZip" id="houseZip" ngModel data-cy="aho-zip">
+        <label for="activedt">Date Made Active</label>
+        <input type="date" class="form-control" [(ngModel)]="house.activeDt"
+          name="activedt" id="activedt" ngModel data-cy="aho-activeDt">
+        <label for="inactdt">Date Made Inactive</label>
+        <input type="date" class="form-control" [(ngModel)]="house.inactiveDt"
+          name="inactdt" id="inactdt" ngModel data-cy="aho-inactDt">
+        <button class="btn btn-success col-md-3" type="button" data-cy="aho-add" (click)="onAddRecord()">
+        {{ newRow ? 'Add' : 'Update' }}</button>
+        <button class="btn btn-primary col-md-3" type="button" data-cy="aho-cancel"
+        (click)="onCancel()">Cancel</button>
+      </div>
+    </div>
+  </div>
+}

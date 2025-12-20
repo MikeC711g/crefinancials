@@ -1,0 +1,59 @@
+<div class="row col-md-12">
+  <form (ngSubmit)="rentStatus()" #expByProjectForm="ngForm">
+    <div class="row col-md-12">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="rentamt">Rent Amount</label>
+          <input type="number" class="form-control" [(ngModel)]="rentAmt"
+            name="rentamt" id="rentamt" ngModel placeholder="1000" data-cy="crs-rentstat">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="rentdue">Rent Due Day of Month</label>
+          <input type="number" class="form-control" [(ngModel)]="rentDue"
+            name="rentdue" id="rentdue" ngModel placeholder="0" data-cy="crs-rentdue">
+        </div>
+      </div>
+    </div>
+    <div class="row col-md-12">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="latefee">Late Fee</label>
+          <input type="number" class="form-control" [(ngModel)]="lateFee"
+            name="latefee" id="latefee" ngModel placeholder="50" data-cy="crs-latefee">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="latedue">Late Fee Day of Month</label>
+          <input type="number" class="form-control" [(ngModel)]="lateDue"
+            name="latedue" id="latedue" ngModel placeholder="0" data-cy="crs-latedue">
+        </div>
+      </div>
+    </div>
+    <div class="row col-md-12">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="beginbal">Begin Balance</label>
+          <input type="number" class="form-control" [(ngModel)]="beginBal"
+            name="beginbal" id="beginbal" placeholder="0" data-cy="crs-beginbal">
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subRpt">Rent Status</button>
+  </form>
+  @if (reportReady) {
+    <div class="row"> <hr>
+      <div class="justify-content-center"><h1>Rent Summary for House {{ rHouse }}</h1></div>
+      @for (curEvent of rentArr; track curEvent) {
+        <div class="row">
+          <div class="col-md-3">{{ curEvent.tranRec.TranDate }}</div>
+          <div class="col-md-3">{{ curEvent.tranRec.Category }}</div>
+          <div class="col-md-3">{{ curEvent.tranRec.Amount }}</div>
+          <div class="col-md-3">{{ curEvent.runTot }}</div>
+        </div>
+      }
+    </div>
+  }
+</div>

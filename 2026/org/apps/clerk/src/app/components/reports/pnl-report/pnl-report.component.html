@@ -1,0 +1,75 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="justify-content-center"><h1>{{ title }}</h1></div>
+    Start Date: {{ startDt }}   End Date: {{ endDt }}
+    <h3>Income</h3>
+    @for (catFolder of incomeMap | keyvalue; track catFolder) {
+      <div class="row">
+        <div class="col-md-5 offset-md-1"><b> {{ catFolder.key }}</b> </div>
+        @for (pnls of catFolder.value.pnlData; track pnls) {
+          <div class="row col-md-12 offset-md-2 col-2">
+            <div class="col-md-6"> {{ pnls.category }}</div>
+            <div class="col-md-3 text-end"> {{ pnls.totBal }} </div>
+          </div>
+        }
+        <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
+        <div class="row col-md-12 offset-md-2 col-2">
+          <div class="col-md-6"> <b>Total {{ catFolder.key }}</b></div>
+          <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal }}</b> </div>
+        </div>
+      </div>
+    }
+    <hr>
+      <div class="row col-md-12 col-2">
+        <div class="col-md-5 offset-md-1"> <b> Total Income</b></div>
+        <div class="col-md-5 text-end"><b> {{ totIncome }} </b></div>
+      </div>
+      <hr>
+        <h3>Expenses</h3>
+        @for (catFolder of expenseMap | keyvalue; track catFolder) {
+          <div class="row">
+            <div class="col-md-5 offset-md-1"> <b>{{ catFolder.key }}</b> </div>
+            @for (pnls of catFolder.value.pnlData; track pnls) {
+              <div class="row col-md-12 offset-2 col-2">
+                <div class="col-md-6"> {{ pnls.category }}</div>
+                <div class="col-md-3 text-end"> {{ pnls.totBal*-1 }} </div>
+              </div>
+            }
+            <hr style="position: relative;left: 80%;width: 15%;border: 1px solid black;">
+            <div class="row col-md-12 offset-md-2 col-2">
+              <div class="col-md-6"><b> Total {{ catFolder.key }}</b></div>
+              <div class="col-md-3 text-end"> <b>{{ catFolder.value.totBal*-1 }}</b> </div>
+            </div>
+          </div>
+        }
+        <hr>
+          <div class="row col-md-12 col-2">
+            <div class="col-md-5 offset-md-1"> <b> Total Expense</b></div>
+            <div class="col-md-5 text-end"><b> {{ totExpense*-1 }} </b></div>
+          </div>
+          <hr>
+            <div class="row col-md-12 col-2">
+              <div class="col-md-5 offset-md-1"> <b> Net Income</b></div>
+              <div class="col-md-5 text-end"><b> {{ netIncome }} </b></div>
+            </div>
+            <br><hr>
+            <div class="row col-md-12 offset-md-2"><h4>Net Income Summary</h4></div>
+            <div class="row col-md-12 offset-md-3 col-2">
+              <div class="col-md-4">Income</div>
+              <div class="col-md-3 text-end"> {{ totIncome }} </div>
+            </div>
+            <div class="row col-md-12 offset-md-3 col-2">
+              <div class="col-md-4">Expense</div>
+              <div class="col-md-3 text-end"> {{ totExpense }} </div>
+            </div>
+            <hr style="position: relative;left: 70%;width: 15%;border: 1px solid black;">
+            <div class="row col-md-12 offset-md-3 col-2">
+              <div class="col-md-4"><b>NET INCOME</b></div>
+              <div class="col-md-3 text-end"><b> {{ netIncome }} </b></div>
+            </div>
+            <button class="btn btn-primary col-md-2" type="button" data-cy="rpt-writeRTF"
+            (click)="writePnlRtf()">Write RTF</button>
+            <button class="btn btn-secondary col-md-2" type="button" data-cy="rpt-writePDF"
+            (click)="writePnLPDF()">Write PDF</button>
+          </div>
+        </div>

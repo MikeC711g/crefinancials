@@ -1,0 +1,11 @@
+<div> <br>
+  @for (lMsg of dispMsgs; track lMsg; let idx = $index) {
+    <div class="row col-md-12">
+      <div class="col-md-1">
+        <img class="img-responsive" src="assets/images/trash.jpg" (click)="onDelete(idx)"
+          style="width: 24px; height: 24px; cursor:pointer" data-cy="cmsg-msg">
+      </div>
+      <div class="col-md-9">  {{ lMsg }}  </div>
+    </div>
+  }
+</div>

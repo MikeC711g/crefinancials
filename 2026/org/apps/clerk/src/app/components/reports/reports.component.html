@@ -1,0 +1,231 @@
+<div class="container">
+  <div class="row col-md-12">
+    <h2>Run {{ reportInfo.name }} Report</h2>
+    @if (reportInfo.dateList.length > 0) {
+      <div class="row">
+        <crefinancials-datesel [title]="'Report'" [dateOpts]="reportInfo.dateList"
+        (dateMod)="onDateMod($event.numDays, $event.startDt, $event.endDt)"></crefinancials-datesel>
+      </div>
+    }
+    @if (reportInfo.acctMulti) {
+      <div class="row">
+        <label for="account">Accounts</label>
+        <select class="form-control" id="account" name="account" [(ngModel)]="accountArr"
+          (change)="accountSelAll()" multiple required data-cy="rpt-account">
+          <option [value]="'selectAll'">Select All</option>
+          @for (account of accounts; track account) {
+            <option [value]="account.RKey"
+            [selected]="accountArr.includes(account.RKey)">{{ account.RKey }}</option>
+          }
+        </select>
+      </div>
+    }
+    @if (reportInfo.acctOne) {
+      <div class="row">
+        <label for="account1">Account</label>
+        <select class="form-control" id="account1" name="account1" [(ngModel)]="selectedAccount"
+          required data-cy="rpt-account1">
+          <option [value]="''" [selected]="!selectedAccount">-- select an option --</option>
+          <option [value]="'selectAll'">Select All</option>
+          @for (account of accounts; track account) {
+            <option [value]="account.RKey"
+            [selected]="account.RKey === selectedAccount">{{ account.RKey }}</option>
+          }
+        </select>
+      </div>
+    }
+    @if (reportInfo.houseMulti) {
+      <div class="form-group">
+        <label for="house">House</label>
+        <select class="form-control" id="house" name="house"
+          [(ngModel)]="selectedHouseArr" (change)="houseSelAll()" multiple data-cy="rpt-houses">
+          <option [value]="'selectAll'">Select All</option>
+          @for (house of houses; track house) {
+            <option [value]="house.name"
+            [selected]="selectedHouseArr.includes(house.name)">{{ house.name }}</option>
+          }
+        </select>
+      </div>
+    }
+    @if (reportInfo.houseOne) {
+      <div class="form-group">
+        <label for="house1">House</label>
+        <select class="form-control" id="house1" name="house1" data-cy="rpt-house1"
+          [(ngModel)]="selectedHouse">
+          <option [value]="''" [selected]="!selectedHouse">-- select an option --</option>
+          @for (house of houses; track house) {
+            <option [value]="house.name"
+            [selected]="house.name === selectedHouse">{{ house.name }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @if (selectedReport === 'Profit and Loss' || selectedReport === 'Personal Profit and Loss') {
+      <div class="row col-md-12">
+        <form (ngSubmit)="runReport(selectedReport)" #PnLForm="ngForm">
+          <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-sub3"
+          [disabled]="startDt === ''">{{ selectedReport }}</button>
+        </form>
+        @if (reportReady) {
+          <div class="col-md-12"> <hr>
+            <crefinancials-pnl-report [categoryFolders]="categoryFolders" [startDt]="startDt" [endDt]="endDt"
+              [tranRecs]="transactions" [debitTaxCats]="expCats" [creditTaxCats]="incCats"
+              [title]="title" [selectedHouseArr]="selectedHouseArr"> </crefinancials-pnl-report>  <hr>
+          </div>
+        }
+      </div>
+    }
+    <hr><hr>
+  </div>
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Expense By Project') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="runReport(selectedReport)" #expByProjectForm="ngForm">
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subexp"
+        >{{ selectedReport }}</button>
+        @if (reportReady) {
+          <div class="row"> <hr>
+            <crefinancials-exp2projreport [tranRecs]="transactions" [projects]="projects"
+            [startDt]="startDt" [endDt]="endDt"></crefinancials-exp2projreport>  <hr>
+          </div>
+        }
+      </form>
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Rent Status') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="runReport(selectedReport)" #rentStatusForm="ngForm">
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrei"
+        [disabled]="selectedHouse === ''">{{ selectedReport }}</button>
+        @if (reportReady) {
+          <div class="row"> <hr>
+            <crefinancials-rentstatreport [tranRecs]="transactions" [rHouse]="selectedHouse"
+            [startDt]="startDt" [endDt]="endDt"> </crefinancials-rentstatreport>  <hr>
+          </div>
+        }
+      </form>
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Transactions') {
+    <div class="row col-md-12">
+      <form #tranDumpForm="ngForm">
+        <crefinancials-transrch [categoryTaxcat]="categoryTaxcat" [tranTypes]="tranTypes"
+          [houses]="houses" [projects]="projects" [taxCats]="taxCats"
+          (tranSrch)="onTranSrch($event.action, $event.category, $event.tranType, $event.house,
+          $event.project, $event.taxCat, $event.annotationRegEx, $event.minAmt, $event.maxAmt)">
+        </crefinancials-transrch>
+      </form>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="transactions" [fName]="'tranDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Houses') {
+    <div class="row col-md-12">
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="houses" [fName]="'houseDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Rules') {
+    <div class="row col-md-12">
+    @if (reportReady) {
+      <crefinancials-datarpt [contentArray]="tranRules" [fName]="'ruleDump'"></crefinancials-datarpt>
+    }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Mortgages') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-mtgrpt"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="mortgages" [fName]="'mortgageDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Leases') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-mtgrpt"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="leases" [fName]="'leaseDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Residents') {
+    <div class="row col-md-12">
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="residents" [fName]="'residentDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Balance Adjustments') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-baladjrpt"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="balanceAdjustments" [fName]="'balAdjDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Globals') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="runReport(selectedReport)" #globalsDumpForm="ngForm">
+        <div class="row">
+          <div class="col-md-6 border-right">
+            <div class="form-group">
+              <label for="admType">Admin Type</label>
+              <select class="form-control" [(ngModel)]="selectedType" id="admType" name="admType"
+                data-cy="rpt-admtype">
+                <option [value]="''" [selected]="!selectedType">-- select an option --</option>
+                @for (admType of admTypes; track admType) {
+                  <option [value]="admType">{{ admType }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subdog">{{ selectedReport }}</button>
+      </form>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="filtGlob" [fName]="'globalsDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Projects') {
+    <div class="row col-md-12">
+      <button class="btn btn-success col-md-2" type="button" data-cy="rpt-subdop"
+        [disabled]="startDt === ''" (click)="runReport(selectedReport)">{{ selectedReport }}</button>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="filtProj" [fName]="'projectsDump'"></crefinancials-datarpt>
+      }
+    </div>
+  }
+  <!-- **************************************************************************** -->
+  @if (selectedReport === 'Dump of Reconciliations') {
+    <div class="row col-md-12">
+      <form (ngSubmit)="runReport(selectedReport)" #reconDumpForm="ngForm">
+        <button class="btn btn-success col-md-2" type="submit" data-cy="rpt-subrec"
+          [disabled]="startDt === ''">{{ selectedReport }}</button>
+      </form>
+      @if (reportReady) {
+        <crefinancials-datarpt [contentArray]="filtRecon" [fName]="'reconDump'"></crefinancials-datarpt>
+      }
+      <div>
+        <crefinancials-cremessages [dispMsgs]="dispMsgs"
+        (msgDel)="onMsgDel($event.idx, $event.msg)"></crefinancials-cremessages>
+      </div>
+    </div>
+  }
+</div>

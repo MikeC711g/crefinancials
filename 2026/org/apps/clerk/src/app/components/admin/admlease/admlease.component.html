@@ -1,0 +1,34 @@
+@if (!selectedHouse) {
+  <p style="background-color: yellow;">Please select a house to manage leases</p>
+  <div class="row">
+    <label for="house">House</label>
+    <select class="form-control" id="house" name="house" [(ngModel)]="selectedHouse"  (change)="onChgHouse()"
+      data-cy="ale-house">
+      <option [value]="''" [selected]="!selectedHouse"> -- select an option -- </option>
+      @for (house of houses; track house) {
+        <option [value]="house.name">{{ house.name }}</option>
+      }
+    </select>
+  </div>
+} @else {
+  <button class="btn btn-primary col-md-4" type="button" (click)="selectedHouse = ''"> Select different house </button>
+  @if (filtLeases.length === 0) {
+    <p style="background-color: yellow;">No leases found for house {{ selectedHouse }}</p>
+    <crefinancials-admleaseedit [idx]="0" [newRow]="true" [selHouse]="selectedHouse"
+      [residents]="residents" [selectedHouse]="selectedHouse"
+      (parmMod)="onLeaseMod($event)"></crefinancials-admleaseedit>
+  } @else {
+    <h3>Leases for house {{ selectedHouse }} </h3>
+    <button class="btn btn-primary col-md-4" type="button" (click)="createNewLease(selectedHouse, false)"
+      title="Used to add a lease with different residents or somehow different than prior lease"> Add a new lease </button>
+    @if (canRenewLease) {
+      <button class="btn btn-secondary col-md-4" type="button" (click)="createNewLease(selectedHouse, true)"
+        title="Used to renew the current lease, same residents, no major changes"> Renew current lease </button>
+    }
+    @for (lease of filtLeases; track lease; let i = $index) {
+      <crefinancials-admleaseedit [lease]="lease" [idx]="i" [newRow]="false"
+        [residents]="residents" [selHouse]="selectedHouse"
+        (parmMod)="onLeaseMod($event)"></crefinancials-admleaseedit>
+    }
+  }
+}
