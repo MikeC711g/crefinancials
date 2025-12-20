@@ -2,9 +2,14 @@ import { Component } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from './../../services/auth.service';
 import { FirebaseService } from './../../services/firebase.service';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  selector: 'app-headers',
+  selector: 'credbutils-headers',
+  standalone: true,
+  imports: [NgClass, RouterLink, RouterLinkActive],
   templateUrl: './headers.component.html',
   styleUrls: ['./headers.component.css']
 })

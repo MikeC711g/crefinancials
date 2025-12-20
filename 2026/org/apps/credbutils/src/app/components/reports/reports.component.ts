@@ -8,6 +8,7 @@ import { KeyVal } from '../../models/keyval.model';
 import { RuleData } from '../../models/ruledata.model';
 import { House } from '../../models/house.model';
 import { GenutilsService } from '../../services/genutils.service';
+import { FormsModule } from '@angular/forms';
 
 interface DbMeta {
   Cid: string,
@@ -15,7 +16,9 @@ interface DbMeta {
 }
 
 @Component({
-  selector: 'app-reports',
+  selector: 'credbutils-reports',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']
 })

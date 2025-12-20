@@ -1,4 +1,4 @@
-import { NgForm } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from './../../services/auth.service';
 import { Component } from '@angular/core';
 import { UserRec } from './../../models/UserRec.model';
@@ -6,7 +6,9 @@ import { cUser } from './../../models/cUser.model';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-auth',
+  selector: 'credbutils-auth',
+  standalone: true,
+  imports: [FormsModule], 
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
 })

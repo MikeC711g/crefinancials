@@ -11,9 +11,12 @@ import { GenutilsService } from '../../services/genutils.service';
 import { CommonFuncsService } from '../../services/common-funcs.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-useractions',
+  selector: 'credbutils-useractions',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './useractions.component.html',
   styleUrls: ['./useractions.component.css']
 })

@@ -9,6 +9,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { KeyVal } from '../../models/keyval.model';
 import { TranRec } from '../../models/tranRec.model';
+import { FormsModule } from '@angular/forms';
 
 interface KVGlobal {
   curGlob: Globals,
@@ -16,9 +17,11 @@ interface KVGlobal {
 }
 
 @Component({
-  selector: 'crefinancials-repair',
+  selector: 'credbutils-repair',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './repair.component.html',
-  styleUrl: './repair.component.css'
+  styleUrls: ['./repair.component.css']
 })
 export class RepairComponent {
   sourceCid = '' ;  sourceDbPrefix = '' ;  savedCid = '' ;  savedDbP = '' ;

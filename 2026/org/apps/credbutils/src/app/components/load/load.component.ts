@@ -13,11 +13,14 @@ import { House } from '../../models/house.model';
 import { RuleData } from '../../models/ruledata.model';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'crefinancials-load',
+  selector: 'credbutils-load',
+  standalone: true,
+  imports: [FormsModule],
   templateUrl: './load.component.html',
-  styleUrl: './load.component.css'
+  styleUrls: ['./load.component.css']
 })
 export class LoadComponent  implements OnInit {
   loadUnloadActions = ['removedb', 'splitglobals', 'clearglobals', 'cleartrans', 'clearprojects',
