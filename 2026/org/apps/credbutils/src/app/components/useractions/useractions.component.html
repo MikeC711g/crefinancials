@@ -1,0 +1,98 @@
+<div class="container">
+  <div class="row col-md-12">
+    <div class="col-md-6">
+      @if (getSourceCid) {
+        <div class="row">
+          <h2>Source data base information</h2>
+          <div class="row">
+            <label for="dbPrefix">DB Prefix</label>
+            <input type="text" name="dbPrefix" id="dbPrefix" [(ngModel)]="sourceDbPrefix" ngModel>
+          </div>
+          <div class="row">
+            <label for="cid">Customer ID</label>
+            <input type="text" name="cid" id="cid" [(ngModel)]="sourceCid" ngModel (change)="onChgCid()">
+          </div>
+        </div>
+      }
+      @if (getDestCid) {
+        <div class="row">
+          <h2>Destination data base information</h2>
+          <div class="row">
+            <label for="dDbPrefix">DB Prefix</label>
+            <input type="text" name="dDbPrefix" id="dDbPrefix" [(ngModel)]="destDbPrefix" ngModel>
+          </div>
+          <div class="row">
+            <label for="dCid">Customer ID</label>
+            <input type="text" name="dCid" id="dCid" [(ngModel)]="destCid" ngModel>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  @if (getUUidInfo) {
+    <div class="row">
+      <h2>UUID info</h2>
+      <div class="row">
+        <label for="UUID">UUID</label>
+        <input type="text" name="uuid" id="uuid" [(ngModel)]="lUUid" ngModel>
+        <label for="uidrole">User Role</label>
+        <select class="form-control" id="uidrole" name="uidrole" [(ngModel)]="lRole">
+          <option [value]="''">-- select an option --</option>
+          @for (role of roleNames; track role) {
+            <option [value]="role">{{ role }}</option>
+          }
+        </select>
+        <label for="eMail">eMail</label>
+        <input type="email" name="eMail" id="eMail" [(ngModel)]="eMail" ngModel>
+        <label for="pw">password</label>
+        <input type="password" name="pw" id="pw" [(ngModel)]="pw" ngModel>
+        <label for="cname">Company Name</label>
+        <input type="text" name="cname" id="cname" [(ngModel)]="cName" ngModel>
+        <label for="phone">Phone</label>
+        <input type="tel" name="phone" id="phone" [(ngModel)]="phone" ngModel>
+        <label for="globalsfile">Globals JSON file</label>
+      </div>
+    </div>
+  }
+  @if (selectedAction === 'handleuseractions') {
+    <div class="row">
+      <h2>userAction info</h2>
+      <div class="row">
+        <label for="actionItem">Action to Process</label>
+        <select class="form-control" id="actionItem" name="actionItem"
+          [(ngModel)]="lUUid" (change)="selectURec()">
+          @for (uRec of custActions; track uRec) {
+            <option [value]="uRec.uuid"
+            >{{ uRec.action }} {{ uRec.cName }}  {{ uRec.eMail }} </option>
+          }
+        </select>
+      </div>
+      @if (uRecSelected) {
+        <div class="row">
+          <h3>Data for currently selected action</h3>
+          <p><b>UID:</b>{{ uRecSelected.uuid }} <b>Action:</b> {{ uRecSelected.action }}
+          <b>Date Added:</b>{{ uRecSelected.dateAdded }}</p>
+          <p><b>eMail:</b>{{ uRecSelected.eMail }} <b>Phone:</b>{{ uRecSelected.phone }}
+          <b>Role:</b>{{ uRecSelected.role }} </p>
+          <p><b>Company Name:</b>{{ uRecSelected.cName }}</p>
+          <label for="cid">CID</label>
+          <input type="text" name="cid" id="cid" [(ngModel)]="uRecSelected.cid"
+            required ngModel>
+          <label for="dbpref">DB Prefix</label>
+          <input type="text" name="dbpref" id="dbpref" [(ngModel)]="uRecSelected.dbPrefix"
+            required ngModel>
+        </div>
+      }
+    </div>
+  }
+  <div class="row">
+    @if (selectedAction !== '') {
+      <button class="btn btn-primary col-md-2" type="button"
+      (click)="doAction()">{{ selectedAction }}</button>
+    }
+    <div class="col-md-2"></div>
+    <button class="btn btn-secondary col-md-2" type="button"
+    (click)="selectedAction = ''">Cancel</button>
+  </div>
+  <div> {{ statusMsg }} </div>
+</div>

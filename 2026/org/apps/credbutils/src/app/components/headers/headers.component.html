@@ -1,0 +1,89 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="#" (click)="navbarOpen = !navbarOpen"> CRE DB Utilities </a>
+  <button class="navbar-toggler" type="button" (click)="navbarOpen = !navbarOpen">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" [ngClass]="{ 'show': navbarOpen }">
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <li class="nav-item">
+        @if (!isAuthenticated) {
+          <a class="nav-link" routerLinkActive="active" routerLink="/auth"
+          >Login/Security</a>
+        }</li>
+        <li class="nav-item dropdown">
+          @if (isAuthenticated) {
+            <a class="nav-link dropdown-toggle" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+            User Actions</a>
+          }
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" routerLinkActive="active" routerLink="/useractions/adduser"
+            >Add User</a></li>
+            <li><a class="dropdown-item" routerLinkActive="active" routerLink="/useractions/removeuser"
+            >Remove user</a></li>
+            <li><a class="dropdown-item" routerLinkActive="active" routerLink="/useractions/resetpw"
+              >Reset password</a> <div class="dropdown-divider"></div></li>
+              <li><a class="dropdown-item" routerLinkActive="active" routerLink="/useractions/handleuseractions"
+                >Handle User Actions</a>  <div class="dropdown-divider"></div></li>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/useractions/analyzecidbytrans"
+                >Analyze CID by trans</a></li>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/useractions/analyzeciddbbyusers"
+                >Analyze CID DB by Users</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              @if (isAuthenticated) {
+                <a class="nav-link dropdown-toggle" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                DB Maint</a>
+              }
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/removedb"
+                >Remove DB</a></li>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/splitglobals"
+                >Split Globals</a></li>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/clearglobals"
+                >Clear Globals</a></li>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/cleartrans"
+                >Clear Trans</a>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/clearprojects"
+                >Clear Projects</a>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/clearrecons"
+                >Clear Recons</a></li>
+                <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/rmvglobalbytype"
+                  >Rmv Global by type</a>  <div class="dropdown-divider"></div></li>
+                  <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/addglobals"
+                  >Add Globals</a>
+                  <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/loadtranprojrecon"
+                  >Load TranProjRecon</a></li>
+                  <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/cloneglobals"
+                    >Clone Globals</a>  <div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/listtrans"
+                    >List Trans</a></li>
+                    <li><a class="dropdown-item" routerLinkActive="active" routerLink="/dbmaint/listglobals"
+                    >List Globals</a> </li>
+                  </ul>
+                </li>
+                <li class="nav-item dropdown">
+                  @if (isAuthenticated) {
+                    <a class="nav-link dropdown-toggle" role="button"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                    Repairs</a>
+                  }
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" routerLinkActive="active" routerLink="/repairs/addname2rules"
+                    >Add Nm to Rules</a></li>
+                    <li><a class="dropdown-item" routerLinkActive="active" routerLink="/repairs/fixnameinglobals"
+                    >Fix Nm in Globals</a></li>
+                    <li><a class="dropdown-item" routerLinkActive="active" routerLink="/repairs/modcategories"
+                    >Change Category Names</a></li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  @if (isAuthenticated) {
+                    <a class="nav-link" routerLinkActive="active" routerLink="/reports"
+                    >Reports</a>
+                  }</li>
+                </ul>
+              </div>
+            </nav>
