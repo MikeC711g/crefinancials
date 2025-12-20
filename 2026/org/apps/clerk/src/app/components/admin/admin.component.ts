@@ -2,7 +2,7 @@ import { FirebaseService } from './../../services/firebase.service';
 import { FormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { RuleData } from './../../models/ruledata.model';
-import { House, Lease, Mortgage, Resident } from './../../models/house.model';
+import { BalAdjust, House, Lease, Mortgage, Resident } from './../../models/house.model';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AdmhousesComponent } from './admhouses/admhouses.component';
 import { AdmkvComponent } from './admkv/admkv.component';
@@ -36,7 +36,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   classMap: Map<string, string> = new Map<string, string>() ;
     classList: KeyVal[] = new Array<KeyVal>() ;
     defaultLevel = 'log' ;  logLevels = [''] ;  overrideLevel = '' ;
-  houses: House[] = new Array<House>() ;  houseSubj = new Observable<House[]>() ;
+  houses: House[] = new Array<House>() ;
   accounts: KeyVal[] = new Array<KeyVal>() ;  // label: accounts
   accountTypes: string[] = new Array<string>() ; // label: accounttypes
   tranTypes: string[] = new Array<string>() ; // label: trantypes
@@ -47,6 +47,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   mortgages: Mortgage[] = new Array<Mortgage>() ;
   leases: Lease[] = new Array<Lease>() ;  leaseSubj = new Observable<Lease[]>() ;
   residents: Resident[] = new Array<Resident>() ;
+  balAdjust: BalAdjust[] = new Array<BalAdjust>() ;
   selectedType = '' ;   completeActions = 0 ;  newRow = false ;
   newRule = false ;  newHouse = false ;  newAccounts = false ;
   newTranTypes = false ;  newAccountTypes = false ;  newTaxCats = false ;
@@ -75,26 +76,17 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
 
   ngOnInit(): void {
     this.logLevels = Object.values(this.utilSvc.msgLvls) ;
-    const admTypes = Object.values(this.utilSvc.globalTypes) ;
-    this.admTypes = admTypes.filter((admTp) => !this.utilSvc.noAdminGlobalTypes.includes(admTp)) ;
     this.cid = this.fireSvc.getCid() ;
     this.parmLoadCnt = 0 ;
-    const globRtn = this.fireSvc.getGlobals(true) ;
-    if (Array.isArray(globRtn)) {
-      this.fbGlobals = globRtn as Globals [] ;
-      this.globalLoad() ;
-    } else {
-      const global$ = globRtn.subscribe({
-        next: (globals) => {
-          this.fbGlobals = globals as Globals[] ;
-          this.fireSvc.setGlobals(this.fbGlobals) ;
-          this.globalLoad() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving globals: ', error) ;
-        }
-      })
-      setTimeout(() => { global$.unsubscribe() ; }, 30000);
-    }
+    const global$ = this.fireSvc.getGlobals(true).subscribe({
+      next: (globals) => {
+        this.fbGlobals = globals as Globals[] ;
+        this.fireSvc.setGlobals(this.fbGlobals) ;
+        this.globalLoad() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving globals: ', error) ;
+      }
+    })
 
     const rule$ = this.fireSvc.getTranRuleDB().subscribe({
       next: (rules) => {
@@ -102,17 +94,14 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
         this.fireSvc.setTranRules(this.tranRules) ;
       }
     })
-    setTimeout(() => { rule$.unsubscribe() ; }, 30000);
 
-    this.houseSubj = this.fireSvc.getHouseDB() ;
-    const house$ = this.houseSubj.subscribe({
+    const house$ = this.fireSvc.getHouseDB().subscribe({
       next: (houses) => {
         this.houses = this.fireSvc.setHouses(houses as House[]) ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving houses: ', error) ;
       }
     })
-    setTimeout(() => {   house$.unsubscribe() ; }, 30000);
 
     const mortgage$ = this.fireSvc.getMortgageDB().subscribe({
       next: (mortgages) => {
@@ -122,17 +111,22 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
         this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving mortgages: ', error) ;
       }
     })
-    setTimeout(() => { mortgage$.unsubscribe() ; }, 30000);
 
-    this.leaseSubj = this.fireSvc.getLeaseDB() ;
-    const lease$ = this.leaseSubj.subscribe({
+    const lease$ = this.fireSvc.getLeaseDB().subscribe({
       next: (leases) => {
         this.leases = this.fireSvc.setLeases(leases as Lease[]) ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving leases: ', error) ;
       }
     })
-    setTimeout(() => { lease$.unsubscribe() ; }, 30000);
+
+    const balAdj$ = this.fireSvc.getBalAdj4House().subscribe({
+      next: (balAdj) => {
+        this.balAdjust = this.fireSvc.setBalAdj(balAdj as BalAdjust[]) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving balances: ', error) ;
+      }
+    })
 
     const resident$ = this.fireSvc.getResidentDB().subscribe({
       next: (residents) => {
@@ -141,9 +135,12 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
         this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving residents: ', error) ;
       }
     })
-    setTimeout(() => { resident$.unsubscribe() ; }, 30000);
+    setTimeout(() => { 
+      global$.unsubscribe() ;      rule$.unsubscribe() ;    balAdj$.unsubscribe() ;
+      house$.unsubscribe() ;      mortgage$.unsubscribe() ;
+      lease$.unsubscribe() ;      resident$.unsubscribe() ;
+    }, 30000);
 
-    // this.globSvc.tempLoadForLeaseTest() ;
   }
 
   globalLoad() {
@@ -210,6 +207,12 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
           oldVal, anyArr) ;
         this.mortgages = this.fireSvc.setMortgages(this.mortgages) ;  break ;
       case this.utilSvc.globalTypes.Leases:
+        anyArr = this.leases ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;
+        this.leases = this.fireSvc.setLeases(this.leases);    // Don't think I want renew in fb list yet
+        break ;
+      case this.utilSvc.globalTypes.BalAdjust:
         anyArr = this.leases ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;

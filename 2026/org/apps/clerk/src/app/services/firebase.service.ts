@@ -151,12 +151,13 @@ export class FirebaseService {
    * @returns {boolean} or {Subject}. Boolean if data is good (ie: we already have it, you
    * can request component parts), Subject if we have to call FB
    */
-  getGlobals(isForce: boolean): Observable<Globals[]> | Globals [] { 
+  getGlobals(isForce: boolean): Observable<Globals[]> { 
     const curMillis = new Date().getTime() ;  
     this.utilSvc.cDebug(this.CLASSNAME, 'getGlobals loading: %s  force: %s  loaded: %s  Tm: %d',
       this.globalsLoading, isForce, this.globalsLoaded, this.globalLoadTime) ;
     if (!isForce && this.globalsLoaded && this.globalLoadTime + 600000 > curMillis)
-      return this.fbGlobals ;  // If data is good, return it
+      return new BehaviorSubject<Globals[]>(this.fbGlobals) ;
+      // return this.fbGlobals ;  // If data is good, return it
     if (this.globalsLoading) { return this.global$ ; }  // If already loading, return subject
     this.updtTimeStmp() ;
     // Determine if we need to call FB for fresh globals
