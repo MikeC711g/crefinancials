@@ -1,0 +1,69 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "Projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Cid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "EndDt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Reconciliations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Account",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Cid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "EndDt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Account",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Cid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "TranDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Cid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "TranDate",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
