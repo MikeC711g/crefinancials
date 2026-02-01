@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Auth, UserCredential, User, createUserWithEmailAndPassword, deleteUser,
   sendPasswordResetEmail, signInWithEmailAndPassword, signOut, sendEmailVerification, updatePassword,
   EmailAuthProvider, reauthenticateWithCredential} from '@angular/fire/auth' ;
@@ -12,6 +12,8 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
+  private auth = inject(Auth) ;
+  private firestore = inject(Firestore)
   userAny: any = null ;
   user$ = new BehaviorSubject<cUser>(this.userAny) ;
   cUser: cUser = new cUser('', '', '', '', '', '') ;
@@ -19,8 +21,7 @@ export class AuthService {
   CLASSNAME = 'authService' ;
   newCustNm = 'newCustomer'
 
-  constructor(private auth: Auth, private firestore: Firestore,
-    private utilSvc: GenutilsService, private route: Router) {}
+  constructor(private utilSvc: GenutilsService, private route: Router) {}
 
   getCUser() { return this.cUser ; }
   setCUser(user: cUser) {  this.cUser = user ; }

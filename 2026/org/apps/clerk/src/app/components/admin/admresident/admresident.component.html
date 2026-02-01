@@ -1,10 +1,13 @@
-@if (!editMode) {
+@if (!newRow) {
   <div class="row">
     <div class="col-md-5"> {{ resident.LName }}  {{ resident.FName }}      </div>
-    <button class="btn btn-success btn-toggle col-md-2" type="button"
-    (click)="editMode = true"> Edit</button>
-    <button class="btn btn-danger col-md-2" type="button"
-    (click)="onDeleteRecord()"> Delete</button>
+    <button class="btn btn-success btn-toggle col-md-1" type="button"  (click)="editMode = !editMode">
+      @if (!editMode) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
+      } @else {
+        <img class="img-responsive" src="assets/images/chevron-up-icon.png" style="width: 16px; height: 16px;">
+      }
+    </button>
   </div>
 }
 <p style="background-color: aqua;">{{ statusMsg }}</p>
@@ -35,6 +38,8 @@
         {{ newRow ? 'Add' : 'Update' }}</button>
         <button class="btn btn-primary col-md-3" type="button" data-cy="alr-cancel"
         (click)="onCancel()">Cancel</button>
+        <button class="btn btn-danger col-md-3" type="button"
+        (click)="onDeleteRecord()"> Delete</button>
       </div>
     </div>
   </div>

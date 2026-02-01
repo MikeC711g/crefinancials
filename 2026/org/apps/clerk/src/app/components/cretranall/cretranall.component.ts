@@ -113,25 +113,15 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     }
     this.accounts = this.fireSvc.getAccounts() ;
     this.tranTypes = this.fireSvc.getTranTypes() ;
-    const projRtn = this.fireSvc.getProjects(false, 90) ; // Simplest to meet by parent call
-    if (Array.isArray(projRtn)) {
-      this.projects = projRtn ;
-    } else {
       this.utilSvc.cWarn(this.CLASSNAME, 'Odd that tranEdit had to retrieve projects from DB') ;
-      this.projectq$ = projRtn.subscribe({
-        next: (response) => {
-          this.projects = response ;
-          this.fireSvc.project$.next(this.projects) ;
-          this.utilSvc.cDebug(this.CLASSNAME, 'Got %d projects from subscrip', this.projects.length) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'TranEdit Err..FireService: %s', error) ;
-        }
-      }) ;
-    }
-    this.project$ = this.fireSvc.project$.subscribe(proj => {
-      this.projects = proj ;
-      this.onFilterProjects() ;
-    })
+    const project$ = this.fireSvc.getProjects(false, 90).subscribe({
+      next: (response) => {
+        this.projects = response ;
+        this.utilSvc.cDebug(this.CLASSNAME, 'Got %d projects from subscrip', this.projects.length) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'TranEdit Err..FireService: %s', error) ;
+      }
+    }) ;
 
     this.taxCats = this.fireSvc.getTaxCats() ;
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
@@ -254,7 +244,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
           this.utilSvc.cDebug(this.CLASSNAME, 'Added record: %O', locTran ) ;
           this.dispMsgs.push('Successfully added Record: ' + ++this.recordsAdded) ;
           this.tranMod.emit({ action: actTp.Add, tranRec: locTran }) ;
-          if (this.modeOp === this.nmDict.createTran && !this.isChild) this.refreshCreate() 
+          if (this.modeOp === this.nmDict.createTran && !this.isChild) this.refreshCreate()
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error Adding tran: %s', error) ;
         })
@@ -273,7 +263,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
             this.storeChildRows(locTran, this.splitChildren, this.useSplitChild) ;
           }
           this.tranMod.emit({ action: actTp.Update, tranRec: locTran }) ;
-          if (this.modeOp === this.nmDict.createTran && !this.isChild) this.refreshCreate() 
+          if (this.modeOp === this.nmDict.createTran && !this.isChild) this.refreshCreate()
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'UpdtTranErr..RecordService: %s', error) ;
           this.dispMsgs.push('Error updating record') ;
@@ -293,12 +283,12 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     setTimeout(() => {    // If in create mode, set up to hang around
       if (this.isParent) {
         // this.splitChildren.splice(0, this.splitChildren.length)
-        this.isParent = false   
-      } 
+        this.isParent = false
+      }
       this.expandedView = true ;    this.newRow = true ;    this.isInDB = false ;
       this.editMode = false ;
-      this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '', 
-        0.0, '', '', '', '', '', '', '')      
+      this.tranRec = new TranRec( '', this.tranRec.TranDate, this.tranRec.Account, '', '',
+        0.0, '', '', '', '', '', '', '')
     }, 500);   // Wait a second for data to be digested above before mods
   }
 
@@ -425,10 +415,10 @@ export class CretranallComponent  implements OnInit, OnDestroy {
         this.utilSvc.cWarn(this.CLASSNAME, `Failed to add rule with error: ${statusMsg}`) ;
       else {
         this.utilSvc.addRule(newVal) ; this.newRule = false ;
-      } 
+      }
     }
   }
-    
+
   /** **********************************************************************************
    * This is called only on split Trans when a child tran emits event to parent tran.
    * tranRec should match an element of splitChildren array

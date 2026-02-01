@@ -25,7 +25,7 @@ export class KeyVal {   // Representation of a KeyValue pair
 
 export interface  objwCid  {  // Object with Cid which is used in geneeric global processing
   Cid: string,
-  [key: string]: string; } 
+  [key: string]: string; }
 
 export interface genHelpers {  // If handling globals, this is the interface for special processing
   action: string,   // add, update, delete
@@ -33,7 +33,6 @@ export interface genHelpers {  // If handling globals, this is the interface for
   newRow: objwCid,  // Modified row
   oldRow: objwCid,  // Original row
   objArr: objwCid[],  // Array containing row
-  isPreProc?: boolean   // If true, this is a pre-processing step (else post)
 }
 
 export class MsgInfo {    // Allows services to return all info needed

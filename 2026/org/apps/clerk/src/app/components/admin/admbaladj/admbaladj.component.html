@@ -1,27 +1,58 @@
-@if (!selectedHouse) {
-  Inside baladj leaselen: {{ leases.length }}, housesLen: {{ houses.length }}
+@if (!newRow) {
   <div class="row">
-    <label for="house">House</label>
-    <select class="form-control" id="house" name="house"data-cy="aba-house"
-        [(ngModel)]="selectedHouse" (change)="selHouse()">
-      <option [value]="''" [selected]="!selectedHouse"> -- select an option -- </option>
-      @for (house of houses; track house) {
-        <option [value]="house.name">{{ house.name }}</option>
+    <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ balAdj.ADate }}      </div>
+    <div class="col-md-3" [style.backgroundColor]="bgColor"> {{ balAdj.AType }}      </div>
+    <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ balAdj.Amount }}      </div>
+    <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ curBal }}      </div>
+    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="cta-exb"
+      (click)="editMode = !editMode">
+      @if (!editMode) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+          style="width: 16px; height: 16px;">
       }
-    </select>
+      @if (editMode) {
+        <img class="img-responsive" src="assets/images/chevron-up-icon.png"
+          style="width: 16px; height: 16px;">
+      }
+    </button>
   </div>
-} @else {
-  Yo dude, I have house {{ selectedHouse }}
+}
+<p style="background-color: aqua;">{{ statusMsg }}</p>
+@if (editMode) {
   <div class="row">
-    <label for="lease">Lease</label>
-    <select class="form-control" id="lease" name="lease" data-cy="aba-lease"
-        [(ngModel)]="selectedLease" (change)="selLease()">
-      <option [value]="''" [selected]="!selectedLease"> -- select an option -- </option>
-      @for (lease of leases; track lease) {
-        @if (lease.House === selectedHouse) {
-          <option [value]="lease.House">{{ lease.House }}</option>
-        }
-      }
-    </select>
+    <div class="col-md-5">
+      <div class="form-group">
+        <label for="aDate" title="Date of Adjustment">Adjustment Date</label>
+        <input type="date" class="form-control" [(ngModel)]="balAdj.ADate" name="aDate" id="aDate"
+          ngModel [disabled]="virtualRow" data-cy="amo-aDate">
+        <label for="atype">Adjustment Type</label>
+        @if (!virtualRow) {
+          <select [(ngModel)]="balAdj.AType" class="form-control" id="atype" name="atype"
+              (change)="ckAmt()" data-cy="adm-type">
+            <option [value]="''" [selected]="!balAdj.AType"> -- select an option -- </option>
+            @for (type of balAdjTypes; track type) {
+              <option [value]="type" [selected]="type === balAdj.AType">{{ type }}</option>
+            }
+          </select>
+        } @else {
+          <input type="text" class="form-control" [(ngModel)]="balAdj.AType" name="atype" id="atype"
+            ngModel [disabled]="true" data-cy="amo-atype">
+         }
+        <label for="amt" title="Amount of adjustment">Adjustment Amount</label>
+        <input type="number" class="form-control" [(ngModel)]="balAdj.Amount" name="amt" id="amt"
+          ngModel (change)="ckAmt()" [disabled]="virtualRow" data-cy="amo-amt" step="10">
+        <label for="deleteDt" title="Date Deleted/cancelled, blank for active">Delete Date</label>
+        <input type="date" class="form-control" [(ngModel)]="balAdj.deletedDate" name="deleteDt" id="deleteDt"
+          ngModel [disabled]="virtualRow" data-cy="amo-deleteDt">
+        <label for="comment">Annotation</label>
+        <input type="text" class="form-control" [(ngModel)]="balAdj.Comment"
+          name="comment" id="comment" ngModel [disabled]="virtualRow" data-cy="cta-tranExtra"
+          title="Comment or annotation for this adjustment">
+        <button class="btn btn-success col-md-3" type="button" data-cy="amo-add" (click)="onAddRecord()"
+          [disabled]="virtualRow"> {{ newRow ? 'Add' : 'Update' }}</button>
+        <button class="btn btn-primary col-md-3" type="button"  data-cy="amo-cancel"
+        (click)="onCancel()">Cancel</button>
+      </div>
+    </div>
   </div>
 }

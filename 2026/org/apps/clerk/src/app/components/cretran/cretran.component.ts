@@ -27,7 +27,7 @@ import { TransrchComponent } from '../transrch/transrch.component';
 })
 
 export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, DeactivatableComponent {
-  codeVersion = '1.0.0.3' ;   action = '' 
+  codeVersion = '1.0.0.3' ;   action = ''
   accounts: KeyVal[] = new Array<KeyVal>() ;
   tranTypes: string[] = new Array<string>() ;
   categoryTaxcat: KeyVal[] = new Array<KeyVal>() ;
@@ -64,7 +64,7 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
         const urlParts = routeUrl.url.split('/') ;
         const lastPart = urlParts[urlParts.length-1]
         this.action = (['loadfile', 'createtran', 'search'].indexOf(lastPart) > -1) ?
-          lastPart : 'search' 
+          lastPart : 'search'
         this.newRow =  (this.action === 'createtran') ? true : false
         this.reInit() ;  this.dispMsgs.splice(0, this.dispMsgs.length)
         utilSvc.cDebug(this.CLASSNAME, 'Into url chg with action: ', this.action)
@@ -97,20 +97,15 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
    Refresh common files (project list, categories, et al)
   ********************************************************************/
    onRefreshParms(psDate: string, peDate: string): void {
-    const globRtn = this.fireSvc.getGlobals(false) ;
-    if (Array.isArray(globRtn)) {
-      this.globalLoad() ;
-    } else {
-      globRtn.subscribe({
-        next: (globals) => {
-          const globArr = globals as Globals[] ;
-          this.fireSvc.setGlobals(globArr) ;
-          this.globalLoad() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
-        }
-      })
-    }
+    const global$ = this.fireSvc.getGlobals(false).subscribe({
+      next: (globals) => {
+        const globArr = globals as Globals[] ;
+        this.fireSvc.setGlobals(globArr) ;
+        this.globalLoad() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error getting globals: %s', error) ;
+      }
+    })
 
     const house$ = this.fireSvc.getHouseDB().subscribe({
       next: (response) => {
@@ -131,32 +126,26 @@ export class CretranComponent implements OnInit, AfterViewInit, OnDestroy, Deact
     })
     setTimeout(() => { tranRule$.unsubscribe() ; }, 30000);
 
-    const mortgage4 = this.fireSvc.getMortgageDB().subscribe({
+    const mortgage$ = this.fireSvc.getMortgageDB().subscribe({
       next: (response) => {
         this.mortgages = this.fireSvc.setMortgages(response) ;
       }, error: (error) => {
         this.utilSvc.cWarn(this.CLASSNAME, 'MortgageErr..FireService: %s', error) ;
       }
     });
-    setTimeout(() => { mortgage4.unsubscribe() ; }, 30000);
+    setTimeout(() => { mortgage$.unsubscribe() ; }, 30000);
 
-    const projRtn = this.fireSvc.getProjects(false, 180) ;
-    if (Array.isArray(projRtn)) {
-      this.projects = projRtn ;
-    } else {
-      this.project$ = projRtn.subscribe({
-        next: (response) => {
-          this.projects = response ;
-          this.fireSvc.project$.next(this.projects)
-          this.utilSvc.cDebug(this.CLASSNAME, 'Got %d projects', this.projects.length) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'ProjectErr..FireService: %s', error) ;
-        }, complete: () => {
-          this.utilSvc.cDebug(this.CLASSNAME, 'projSubs complete') ;
-          this.completeActions++ ;
-        }
-      }) ;
-    }
+    this.project$ = this.fireSvc.getProjects(false, 180).subscribe({
+      next: (response) => {
+        this.projects = response ;
+        this.utilSvc.cDebug(this.CLASSNAME, 'Got %d projects', this.projects.length) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'ProjectErr..FireService: %s', error) ;
+      }, complete: () => {
+        this.utilSvc.cDebug(this.CLASSNAME, 'projSubs complete') ;
+        this.completeActions++ ;
+      }
+    }) ;
   }
 
   globalLoad() {

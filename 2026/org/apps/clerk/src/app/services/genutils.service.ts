@@ -30,17 +30,23 @@ export class GenutilsService {
     this.globalTypes.RuleData, this.globalTypes.Houses, this.globalTypes.Mortgages,
     this.globalTypes.Leases, this.globalTypes.Residents] ;
   addOnlyGlobalTypes = [this.globalTypes.TaxCats] ;
-  actionTypes = { Add: 'add', Update: 'update', Cancel: 'cancel', Delete: 'delete', 
+  actionTypes = { Add: 'add', Update: 'update', Cancel: 'cancel', Delete: 'delete',
     Hide: 'hide', UnHide: 'unHide',   // For reconcile, some trx not in current statement
     Split: 'split', UnSplit: 'unSplit',   // Split a parent tran into n children or unsplit back to atom
     SplitNew: 'splitNew',             // Split a tran entered but not in data base yet
     // DirtyData: 'dirtyData', CleanData: 'cleanData',
     Renew: 'renew' } ;    // Renew a lease
+  balAdjTypes = ["New bill", "Late Fee", "Rent Change", "Beginning Balance", "Security Deposit",
+    "Payment", "Credit", "Debit" ]
+  balAdjNegTypes = ["New bill", "Late Fee", "Security Deposit", "Debit" ]
   colorTypes = {Parent: 'Magenta', NotInDB: 'Beige', Default: 'White' } ;
   tblNames = { Globals: 'Globals', Transactions: 'Transactions',
-    Projects: 'Projects', Reconciliations: 'Reconciliations', NewCustomer: 'newCustomer' } ;
+    Projects: 'Projects', Reconciliations: 'Reconciliations', NewCustomer: 'newCustomer',
+    BalAdjust: 'BalAdjust', Houses: 'Houses', Leases: 'Leases', Residents: 'Residents',
+    Mortgages: 'Mortgages', RuleData: 'RuleData' } ;
   roleNames = { User: 'User', Admin: 'Admin', GlobalAdmin: 'globalAdmin'}
   accountTypes = {Checking: 'checking', Savings: 'savings', Credit: 'credit'} ;
+  adjustTps = { Security: 'security', LateFee: 'lateFee', Debit: 'debit', Credit: 'credit' } ;
   msgLvls = {Verbose: 'verbose', Debug: 'debug', Log: 'log', Warn: 'warn', Error: 'error'} ;
   authSignoff = false ;
   mlValue: Map<string, number> = new Map<string, number>() ;
@@ -189,9 +195,6 @@ export class GenutilsService {
 
   loadTrans(inTrans: TranRec[]) { this.trans = inTrans ; }
 
-  getProjById(projId: string): Project | undefined {
-    return this.projects.find(proj => proj.ProjectId === projId) ;
-  }
   getTranById(tranId: string): TranRec | undefined {
     return this.trans.find(tran => tran.TranId === tranId) ;
   }
@@ -232,6 +235,9 @@ export class GenutilsService {
     return startBal ;
   }
 
+  /**
+   * Generale all late fee dates for lease
+   */
   getLateFeeDates(lease: Lease): string[] {
     const lateFeeDates: string[] = [] ;
     const dayOfLateFee = (lease.RentDueDom + lease.GracePeriod).toString().padStart(2, '0') ;
@@ -487,8 +493,9 @@ export class GenutilsService {
     }
     mtgTrans.push(new TranRec(tranRec.Cid, tranRec.TranDate, tranRec.Account, 'Mortgage Principal',
       'DEBIT', curPrin, '', 'NT', tranRec.House, '', '', '', '')) ;
+    const taxCat = (curInt > 0) ? 'BI' : 'BE' ;   // Interest income vs interest expense
     mtgTrans.push(new TranRec(tranRec.Cid, tranRec.TranDate, tranRec.Account, 'Mortgage Interest',
-      'DEBIT', curInt, '', 'BE', tranRec.House, '', '', '', '')) ;
+      'DEBIT', curInt, '', taxCat, tranRec.House, '', '', '', '')) ;
     if (escrowPmt !== 0)
       mtgTrans.push(new TranRec(tranRec.Cid, tranRec.TranDate, tranRec.Account, 'Mortgage Escrow',
         'DEBIT', escrowPmt, '', 'NT', tranRec.House, '', '', '', '')) ;
@@ -607,7 +614,7 @@ export class GenutilsService {
     }
     return inArr
   }
-      
+
   /** ************************************************************************
    * Format a number for reporting
    * @param inNo Number
@@ -629,8 +636,8 @@ export class GenutilsService {
 
   /** ************************************************************************
    * HTML file writing
-   * @param encodedData 
-   * @param fileName 
+   * @param encodedData
+   * @param fileName
    ************************************************************************ */
   writeFile(encodedData: string, fileName: string) {
     const dlAnchor = document.createElement('a')

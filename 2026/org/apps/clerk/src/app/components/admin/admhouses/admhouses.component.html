@@ -1,14 +1,18 @@
-@if (!editMode) {
+@if (!newRow) {
   <div class="row">
-    <div class="col-md-5"> {{ house.name }}      </div>
-    <button class="btn btn-success btn-toggle col-md-2" type="button"
-    (click)="editMode = true"> Edit</button>
-    <button class="btn btn-danger col-md-2" type="button"
-    (click)="onDeleteRecord()"> Delete</button>
+    <div class="col-md-3"> {{ house.name }}      </div>
+    <div class="col-md-4"> {{ house.Addr }}      </div>
+    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="lee-exb" (click)="editMode = !editMode">
+      @if (!editMode) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
+      } @else {
+        <img class="img-responsive" src="assets/images/chevron-up-icon.png" style="width: 16px; height: 16px;">
+      }
+    </button>
   </div>
 }
-<p style="background-color: aqua;">{{ statusMsg }}</p>
 @if (editMode) {
+  <p style="background-color: aqua;">{{ statusMsg }}</p>
   <div class="row">
     <div class="col-md-5">
       <div class="form-group">
@@ -18,9 +22,6 @@
             <input type="text" class="form-control" [(ngModel)]="house.name"
               name="houseNm" id="houseNm" ngModel required data-cy="aho-name">
           </div>
-        }
-        @if (!newRow) {
-          <div class="row">{{ house.name }} </div>
         }
         <label for="houseAddr">Street Address</label>
         <input type="text" class="form-control" [(ngModel)]="house.Addr"
@@ -41,9 +42,11 @@
         <input type="date" class="form-control" [(ngModel)]="house.inactiveDt"
           name="inactdt" id="inactdt" ngModel data-cy="aho-inactDt">
         <button class="btn btn-success col-md-3" type="button" data-cy="aho-add" (click)="onAddRecord()">
-        {{ newRow ? 'Add' : 'Update' }}</button>
+          {{ newRow ? 'Add' : 'Update' }}</button>
         <button class="btn btn-primary col-md-3" type="button" data-cy="aho-cancel"
-        (click)="onCancel()">Cancel</button>
+          (click)="onCancel()">Cancel</button>
+        <button class="btn btn-danger col-md-3" type="button"
+          (click)="onDeleteRecord()"> Delete</button>
       </div>
     </div>
   </div>

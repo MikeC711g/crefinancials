@@ -11,12 +11,12 @@ import { House, Mortgage } from '../../../models/house.model';
   styleUrl: './admmortgage.component.css'
 })
 export class AdmmortgageComponent {
-  @Input() mortgage: Mortgage = new Mortgage('', '', 0, 0, 0, "", 0);
-  @Input() houses: House[] = new Array<House>() ;
+  @Input() mortgage: Mortgage = new Mortgage('', '', '', 0, 0, 0, "", 0);
+  @Input() house = '' ;
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,
     newVal: any, oldVal: any }>() ;
   newRow = false ;  editMode = false ;
-  origMortgage: Mortgage = new Mortgage('', '', 0, 0, 0, "", 0);
+  origMortgage: Mortgage = new Mortgage('', '', '', 0, 0, 0, "", 0);
   statusMsg = "" ;
   gType: string ;
   CLASSNAME = 'admmortgage' ;
@@ -27,7 +27,7 @@ export class AdmmortgageComponent {
 
   ngOnInit(): void {
     if (this.mortgage.house === '') {
-      this.newRow = true ;  this.editMode = true ;
+      this.newRow = true ;  this.editMode = true ;  this.mortgage.house = this.house ;
     } else {
       this.origMortgage = { ...this.mortgage } ;
     }

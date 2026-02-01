@@ -70,8 +70,10 @@ export class PnlReportComponent  implements OnInit {
     for (const curTran of filtTrans) {
       if (curTran.Category === '') {
         this.utilSvc.cWarn(this.CLASSNAME, "Tran had no category: %O", curTran)
-        continue 
+        continue
       }
+      if (curTran.Category === 'Mortgage Interest')
+        console.log('MtgInt tran: %O', curTran) ;
       const curPnl: PnlData = pnlData.find((pd) =>
         pd.category === curTran.Category && pd.taxCat === curTran.TaxCat)!
       if (curPnl) {
@@ -151,9 +153,9 @@ export class PnlReportComponent  implements OnInit {
 
   /**
    * Specific logic for each category folder rendering in RTF
-   * @param isExpense 
-   * @param inMap 
-   * @returns 
+   * @param isExpense
+   * @param inMap
+   * @returns
    */
   catGrpRtf(isExpense: boolean, inMap: Map<string, MapVal>): [number, string] {
     let cStr = '' ; let hdrSpce = '' ; let ieTot = 0 ;
@@ -172,10 +174,10 @@ export class PnlReportComponent  implements OnInit {
 
   /** ************************************************************************
    * Write out one category folder in RTF
-   * @param catGrp 
-   * @param mapVal 
-   * @param isExpense 
-   * @returns 
+   * @param catGrp
+   * @param mapVal
+   * @param isExpense
+   * @returns
    ************************************************************************ */
   writeCatGrp(catGrp: string, mapVal: MapVal, isExpense: boolean): [string, number] {
     let locStr = ''
@@ -192,8 +194,8 @@ export class PnlReportComponent  implements OnInit {
 
   /** ************************************************************************
    * Calculate total of an array of PnLData (debit or credit)
-   * @param pnlData 
-   * @returns 
+   * @param pnlData
+   * @returns
    ************************************************************************ */
   totArray(pnlData: PnlData[]): number {
     let totBal = 0
@@ -244,17 +246,17 @@ export class PnlReportComponent  implements OnInit {
     doc.text('---------------', xCoord+128, yCoord, {align: 'right'}) ; yCoord += 4 ;
     doc.setFontSize(14).setFont('Helvetica', 'bold').text('Net Income', xCoord+4, yCoord).
       text(this.utilSvc.dispFmt(netInc), xCoord+128, yCoord, {align: 'right'});
-    
+
     doc.save('PnL.pdf')
   }
 
   /** ************************************************************************
    * Category folder logic for PDF from PnL data
-   * @param doc 
-   * @param xCoord 
-   * @param yCoord 
-   * @param ieMap 
-   * @returns 
+   * @param doc
+   * @param xCoord
+   * @param yCoord
+   * @param ieMap
+   * @returns
    ************************************************************************ */
   catGrpPdf(doc: jsPDF, xCoord: number, yCoord: number, ieMap: Map<string, MapVal> ):
     [number, number, number] {
@@ -275,12 +277,12 @@ export class PnlReportComponent  implements OnInit {
 
   /** ************************************************************************
    * Category group rendering for PDF
-   * @param doc 
-   * @param catVal 
-   * @param xCoord 
-   * @param yCoord 
-   * @param isExpense 
-   * @returns 
+   * @param doc
+   * @param catVal
+   * @param xCoord
+   * @param yCoord
+   * @param isExpense
+   * @returns
    ************************************************************************ */
   catGrpDtls(doc: jsPDF, catVal: MapVal, xCoord: number, yCoord: number, isExpense: boolean):
     [number, number, number] {
@@ -296,9 +298,9 @@ export class PnlReportComponent  implements OnInit {
 
   /** ************************************************************************
    * Start a new page and reset the vertical coordinate
-   * @param doc 
-   * @param yCoord 
-   * @returns 
+   * @param doc
+   * @param yCoord
+   * @returns
    ************************************************************************ */
   pdfAddPg(doc: jsPDF, yCoord: number): number {
     doc.addPage() ;

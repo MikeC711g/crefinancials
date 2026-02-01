@@ -76,35 +76,24 @@ export class CrereconComponent implements OnInit, OnDestroy, DeactivatableCompon
    Refresh common files (project list, categories, et al)
   *******************************************************************/
    onRefreshParms(psDate: string, peDate: string): void {
-    const globRtn = this.fireSvc.getGlobals(false) ;
-    if (Array.isArray(globRtn)) {
-      this.globalLoad() ;
-    } else {
-      globRtn.subscribe({
-        next: (fbGlobals) => {
-          const globArr = fbGlobals as Globals[] ;
-          this.fireSvc.setGlobals(globArr) ;
-          this.globalLoad() ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'Error retrieving globals: %s', error) ;
-        }
-      })
-    }
+    this.global$ = this.fireSvc.getGlobals(false).subscribe({
+      next: (fbGlobals) => {
+        const globArr = fbGlobals as Globals[] ;
+        this.fireSvc.setGlobals(globArr) ;
+        this.globalLoad() ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'Error retrieving globals: %s', error) ;
+      }
+    })
 
-    const projRtn = this.fireSvc.getProjects(false, 180) ;
-    if (Array.isArray(projRtn)) {
-      this.projects = projRtn ;
-    } else {
-      this.project$ = projRtn.subscribe({
-        next: (response) => {
-          this.projects = response ;
-          this.fireSvc.project$.next(this.projects) ;
-          this.utilSvc.cDebug(this.CLASSNAME, 'Got: %d projects', this.projects.length) ;
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'ProjectErr..FireService: %s', error) ;
-        }, complete: () => { this.completeActions++ ; }
-      }) ;
-    }
+    this.project$ = this.fireSvc.getProjects(false, 180).subscribe({
+      next: (response) => {
+        this.projects = response ;
+        this.utilSvc.cDebug(this.CLASSNAME, 'Got: %d projects', this.projects.length) ;
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'ProjectErr..FireService: %s', error) ;
+      }, complete: () => { this.completeActions++ ; }
+    }) ;
   }
 
   globalLoad() {

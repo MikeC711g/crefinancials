@@ -132,7 +132,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
         const urlParts = routeUrl.url.split('/') ;
         const lastPart = urlParts[urlParts.length-1]
         this.selectedReport = (this.reportArr.indexOf(lastPart) > -1) ?
-          lastPart : 'profitnloss' 
+          lastPart : 'profitnloss'
         setTimeout(() => {    // Give html to re-init to blank reportInfo
           this.onSelectRpt() ; this.dispMsgs.splice(0, this.dispMsgs.length)
         }, 250);
@@ -149,7 +149,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
   /** ************************************************************************
    * Start determining what to do for selected report
    ************************************************************************ */
-  onSelectRpt() {   
+  onSelectRpt() {
     this.reportInfo = this.reportList.find((rl) => rl.url === this.selectedReport)! ;
     this.selectedReport = this.reportInfo.name ;    // Go to long version of report
     console.log('selRpt: %s  rptInfo: %O', this.selectedReport, this.reportInfo)
@@ -214,15 +214,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * On advanced tran search, this takes parms and makes call for complex query
-   * @param action 
-   * @param category 
-   * @param tranType 
-   * @param house 
-   * @param project 
-   * @param taxCat 
-   * @param annotationRegEx 
-   * @param minAmt 
-   * @param maxAmt 
+   * @param action
+   * @param category
+   * @param tranType
+   * @param house
+   * @param project
+   * @param taxCat
+   * @param annotationRegEx
+   * @param minAmt
+   * @param maxAmt
    ************************************************************************ */
   onTranSrch(action: string, category: string[], tranType: string[], house: string[],
     project: string, taxCat: string[], annotationRegEx: string, minAmt: number, maxAmt: number) {
@@ -314,7 +314,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.reportReady = false ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Into dumpGlobal selType: %s', this.selectedType)
     this.filtGlob =  (this.selectedType) ?
-      this.globals.filter((glob) => glob.GType === this.selectedType) : 
+      this.globals.filter((glob) => glob.GType === this.selectedType) :
       this.globals.sort((a, b) => {
         const comp1 = a.GType.localeCompare(b.GType) ;
         if (comp1 !== 0) return comp1 ;
@@ -363,7 +363,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Dump transactions for CSV or JSON
-   * @param tranQ 
+   * @param tranQ
    ************************************************************************ */
   dumpTran(tranQ?: TranQ) {
     // Removed re-use logic since tq too complex to make it accurate, just requery
@@ -382,7 +382,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Dump transactions for CSV or JSON
-   * @param tranQ 
+   * @param tranQ
    ************************************************************************ */
   dumpHouse() {
     this.reportReady = false ;
@@ -400,7 +400,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Dump transactions for CSV or JSON
-   * @param tranQ 
+   * @param tranQ
    ************************************************************************ */
   dumpRule() {
     this.reportReady = false ;
@@ -420,7 +420,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
    * Dump Mortgages for CSV or JSON
    ************************************************************************ */
   dumpMortgage(houseArr: string[]) {
-    this.reportReady = false ; 
+    this.reportReady = false ;
     const mortgage$ = this.fireSvc.getMortgageDB().subscribe({
       next: (mortRecs) => {
         this.mortgages = mortRecs.filter(mort => houseArr.length === 0 || houseArr.includes(mort.house)) ;
@@ -500,7 +500,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Write out CSV for the appropriate dump
-   * @param reportNm 
+   * @param reportNm
    ************************************************************************ */
   writeCsv(reportNm: string) {
     switch (reportNm) {
@@ -520,7 +520,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Writing the JSON file for the dump of data base
-   * @param reportNm 
+   * @param reportNm
    ************************************************************************ */
   writeJson(reportNm: string) {
     switch (reportNm) {
@@ -540,8 +540,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Process a CSV file by working thru headers, columns, etc..
-   * @param inArr 
-   * @param fName 
+   * @param inArr
+   * @param fName
    ************************************************************************ */
   writeGenericCsv(inArr: any[], fName: string) {
     let outCsv = this.jsonArr2CsvStr(inArr) ;
@@ -555,8 +555,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Generic processor of JSON for db dumps
-   * @param inArr 
-   * @param fName 
+   * @param inArr
+   * @param fName
    *************************************************************************/
   writeGenericJson(inArr: any[], fName: string) {
     this.utilSvc.cDebug(this.CLASSNAME, 'writeGenericJson w/arr: %O  nm: %s', inArr, fName)
@@ -566,8 +566,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Creating a CSV string from a JSON array
-   * @param inArr 
-   * @returns 
+   * @param inArr
+   * @returns
    ************************************************************************ */
   jsonArr2Html(inArr: any[]): string {
     let outStr = '<table border="1"> <tr> ';
@@ -592,8 +592,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   /** ************************************************************************
    * Creating a CSV string from a JSON array
-   * @param inArr 
-   * @returns 
+   * @param inArr
+   * @returns
    ************************************************************************ */
   jsonArr2CsvStr(inArr: any[]): string {
     let outStr = ''
@@ -672,30 +672,23 @@ export class ReportsComponent implements OnInit, OnDestroy {
    ************************************************************************ */
   getProjects() {
     this.projStrtDt = this.startDt ;  this.projEndDt = this.endDt ;
-    const projRtn = this.fireSvc.getProjects(false, 0, this.startDt, this.endDt) ;
-    if (Array.isArray(projRtn)) {
-      this.projects = projRtn ;
-      this.dispMsgs.push('Got ' + this.projects.length + ' projects')
-    } else {
-      this.project$ = projRtn.subscribe({
-        next: (response) => {
-          this.projects = response ;
-          this.fireSvc.project$.next(this.projects) ;
-          this.dispMsgs.push('Got ' + this.projects.length + ' projects')
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME,'ProjectErr..FireService: %s', error) ;
-        }, complete: () => {
-          this.utilSvc.cDebug(this.CLASSNAME,'projSubs complete') ;
-          this.completedActions++ ;
-        }
-      }) ;
-    }
+    this.project$ = this.fireSvc.getProjects(false, 0, this.startDt, this.endDt).subscribe({
+      next: (response) => {
+        this.projects = response ;
+        this.dispMsgs.push('Got ' + this.projects.length + ' projects')
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME,'ProjectErr..FireService: %s', error) ;
+      }, complete: () => {
+        this.utilSvc.cDebug(this.CLASSNAME,'projSubs complete') ;
+        this.completedActions++ ;
+      }
+    }) ;
   }
 
   /** ************************************************************************
    * Delete a message selected for deletion
-   * @param idx 
-   * @param msg 
+   * @param idx
+   * @param msg
    ************************************************************************ */
   onMsgDel(idx: number, msg: string) {
     this.dispMsgs.splice(idx, 1) ;

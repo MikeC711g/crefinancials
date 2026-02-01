@@ -18,7 +18,6 @@ export class Lease {
     public Cid: string,
     public House: string,
     public official: boolean, // true if the lease is official vs implied (ie: no real lease)
-    public cancelled: boolean, // true if lease is cancelled (early termination)
     public cancelDt: string,   // Date of cancellation if cancelled
     public StartDt: string,
     public EndDt: string,
@@ -30,7 +29,7 @@ export class Lease {
     public SecurityDeposit: number,
     public AdlStartupFees: number,
     public StartBal: number,
-    public Residents: string[],    
+    public Residents: string[],
     public LeaseId?: string) {}
 }
 
@@ -39,6 +38,7 @@ export class Mortgage {
   constructor(
     public Cid: string,
     public house: string,
+    public startDt: string,
     public rate: number,
     public lterm: number,
     public lpmt: number,

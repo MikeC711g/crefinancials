@@ -16,11 +16,10 @@ import { GenutilsService } from './../../../services/genutils.service';
   styleUrls: ['./creprojectedit.component.css']
 })
 export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
-  @Input() projId = ''
+  @Input() curProj: Project = new Project('', '', '', '', '', '') ;
   @Output()  projMod = new EventEmitter<{action: string, project: Project}>() ;
 
   editMode = false ;   dataSaved = true ;  // No chgs yet
-  curProj: Project = new Project('', '', '', '', '', '') ;
   projectForm!: NgForm;
   expandedView = false ; newRow = false ;  isDirty = false ;   // No unsaved changes
   houses: House[] = new Array<House>() ;
@@ -42,9 +41,8 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
     information needed from `record`Service
   ********************************************************************/
   ngOnInit(): void {
-    if (this.projId) {
+    if (this.curProj.ProjectId && this.curProj.ProjectId !== '') {
       this.editMode = true ;
-      this.curProj = this.utilSvc.getProjById(this.projId)! ;
       this.origProject = this.utilSvc.cloneProj(this.curProj)
     } else {    // Create new project
       const curDt = new Date() ;
@@ -75,7 +73,6 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
           this.projMod.emit({action: this.utilSvc.actionTypes.Add, project: this.curProj}) ;
           const projects = this.utilSvc.isrtProjectRow(this.curProj) ;
           console.log('ProjEdit Added project sending calling next w/len: %d', projects.length)
-          this.fireSvc.project$.next(projects)    // Notify listeners of chg
         }).catch(error => {
           this.utilSvc.cWarn(this.CLASSNAME, 'Error adding project: %s', error) ;
           this.dispMsgs.push('Error Adding Project')
@@ -118,7 +115,6 @@ export class CreprojecteditComponent implements OnInit, DeactivatableComponent {
         }
         const projArr = this.utilSvc.deleteProjRow(this.curProj.ProjectId!)
         console.log('projed del, calling next w/ len: %d', projArr.length)
-        this.fireSvc.project$.next(projArr) ;
         this.dispMsgs.push('Successfully Deleted project')
       }).catch(error => {
         this.utilSvc.cWarn(this.CLASSNAME,'Error deleting project: %s', error) ;

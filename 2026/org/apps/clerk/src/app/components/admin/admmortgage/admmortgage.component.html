@@ -1,10 +1,15 @@
-@if (!editMode) {
+@if (!newRow) {
   <div class="row">
-    <div class="col-md-5"> {{ mortgage.house }}      </div>
-    <button class="btn btn-success btn-toggle col-md-2" type="button"
-    (click)="editMode = true"> Edit</button>
-    <button class="btn btn-danger col-md-2" type="button"
-    (click)="onDeleteRecord()"> Delete</button>
+    <div class="col-md-3"> {{ mortgage.startDt }}      </div>
+    <div class="col-md-2"> {{ mortgage.balDate }}      </div>
+    <div class="col-md-3"> {{ mortgage.cBal }}      </div>
+    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="lee-exb" (click)="editMode = !editMode">
+      @if (!editMode) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
+      } @else {
+        <img class="img-responsive" src="assets/images/chevron-up-icon.png" style="width: 16px; height: 16px;">
+      }
+    </button>
   </div>
 }
 <p style="background-color: aqua;">{{ statusMsg }}</p>
@@ -12,20 +17,9 @@
   <div class="row">
     <div class="col-md-5">
       <div class="form-group">
-        @if (newRow) {
-          <div class="row">
-            <label for="house">House</label>
-            <select class="form-control" id="house" name="house" [(ngModel)]="mortgage.house" data-cy="amo-house">
-              <option [value]="''" [selected]="!mortgage.house"> -- select an option -- </option>
-              @for (house of houses; track house) {
-                <option [value]="house.name">{{ house.name }}</option>
-              }
-            </select>
-          </div>
-        }
-        @if (!newRow) {
-          <div class="row">{{ mortgage.house }} </div>
-        }
+        <label for="startDt" title="Closing date on which mortgage started">Start Date</label>
+        <input type="date" class="form-control" [(ngModel)]="mortgage.startDt" name="startDt" id="startDt"
+          ngModel data-cy="amo-startDt">
         <label for="mortRate" title="ie: 5 for 5% annually">Mortgage Rate</label>
         <input type="number" class="form-control" [(ngModel)]="mortgage.rate" name="mortRate" id="mortRate"
           ngModel data-cy="amo-rate">
@@ -45,6 +39,8 @@
         {{ newRow ? 'Add' : 'Update' }}</button>
         <button class="btn btn-primary col-md-3" type="button" data-cy="amo-cancel"
         (click)="onCancel()">Cancel</button>
+        <button class="btn btn-danger col-md-3" type="button"
+        (click)="onDeleteRecord()"> Delete</button>
       </div>
     </div>
   </div>

@@ -37,7 +37,7 @@
             <ul>
               @for (project of projects; track project) {
                 <li>
-                  <crefinancials-creprojectedit [projId]="project.ProjectId!"
+                  <crefinancials-creprojectedit [curProj]="project"
                   (projMod)="onProjMod($event.action, $event.project)"></crefinancials-creprojectedit>
                 </li>
               }

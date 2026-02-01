@@ -1,101 +1,121 @@
-import { Component, EventEmitter, OnInit, Input, Output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Lease, Resident } from '../../../models/house.model';
 import { GenutilsService } from './../../../services/genutils.service';
-import { House, Lease, Resident } from '../../../models/house.model';
-import { AdmleaseeditComponent } from "../admleaseedit/admleaseedit/admleaseedit.component";
-import { GlobalModsService } from '../../../services/globalMods.service';
+import { FormsModule } from '@angular/forms';
+import { GlobalModsService } from './../../../services/globalMods.service';
 
 @Component({
   selector: 'crefinancials-admlease',
   standalone: true,
-  imports: [FormsModule, AdmleaseeditComponent],
+  imports: [FormsModule],
   templateUrl: './admlease.component.html',
   styleUrls: ['./admlease.component.css']
 })
+
 export class AdmleaseComponent implements OnInit {
-  @Input() leases: Lease[] = new Array<Lease>() ;
-  @Input() houses: House[] = new Array<House>() ;
+  @Input() idx = 1 ;
+  @Input() selHouse = '' ;    // If no lease, still house was selected
+  @Input() newRow = false ;     // Row not yet in DB (false = in DB)
   @Input() residents: Resident[] = new Array<Resident>() ;
-  @Input() selectedHouse = '' ;
+  @Input() lease: Lease = new Lease('', '', true, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, []) ;
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,
     newVal: any, oldVal: any }>() ;
-  filtLeases: Lease[] = new Array<Lease>() ;
-  newRow = false ;   canRenewLease = false ;
-  statusMsg = "" ;
-  gType: string ;
+  gType = this.utilSvc.globalTypes.Leases ;
+  origLease: Lease = new Lease('', '', true, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, []) ;
+  newLease: Lease = new Lease('', '', true, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, []) ;
+  editMode = false ;    // true = update and false = add
+  expandedView = false ;   // true = show all fields, false = show key fields
+  residentNm = '' ;  bgColor = 'white' ;  sDtMsg = '' ;  eDtMsg = '' ;
+  isLeaseCurrent = false ;    // Is this lease current within 180 days
+  actTp = this.utilSvc.actionTypes ;  // For shorter refs
   CLASSNAME = 'admlease' ;
 
-  constructor(private utilSvc: GenutilsService, private globSvc : GlobalModsService) {
-    this.gType = utilSvc.globalTypes.Leases ;
+  // editmode for add/update  newRow?  expandedView and chevrons.
+  constructor(private utilSvc: GenutilsService, private globSvc: GlobalModsService) {
   }
 
   ngOnInit(): void {
-    // May need an "edit" subComponent here ... here is the basic idea
-    // Start w/selectedHouse as @Input() but don't feed it in so have basic house key be ''
-    // Template, if selectedHouse is '', show a select for house, else show all leases for house (< 3 yrs old)
-    // NonCurrent leases can be viewed but not edited
-    // If no leases, show a "New Lease" button
-    // View button for old leases (edit maybe later)
-    // Current lease has Edit OR Renew (which is a form of New)
-    // For renew, copy all data but move StartDt and EndDt 12 months forward and calculate balance
-    // For new ... pretty much all just new
-    // Include button for select different house which sets selectedHouse to ''
-    this.newRow = this.leases.length === 0 ;
-    if (this.selectedHouse !== '') this.onChgHouse() ;
-    this.globSvc.setLeases(this.leases) ;
+    if (!this.lease.LeaseId || this.newRow) {    // New, from pressing new or from renew
+      this.expandedView = true ;   this.newRow = true ;  this.editMode = false ;
+      this.lease.House = this.origLease.House = this.selHouse ;
+      this.isLeaseCurrent = false ;   // New row cannot be renewed
+    } else {
+      this.expandedView = false ;   this.newRow = false ;  this.editMode = true ;
+      this.isLeaseCurrent = this.checkLease() ;
+    }
+    this.residentNm = this.setResidentName();
+    this.bgColor = (this.isLeaseCurrent) ? 'aquamarine' : (!this.lease.cancelDt) ? 'white' : 'red' ;
+    this.origLease = {...this.lease} ;
   }
 
-  onChgHouse() {    // Should not be callable with a new value of ''
-    this.filtLeases = this.leases.filter( l => l.House === this.selectedHouse).sort((a, b) => (a.StartDt < b.StartDt) ? 1 : -1) ;
-    if (this.filtLeases.length === 0) {
-      this.statusMsg = 'No existing leases found for house ' + this.selectedHouse ;
-      this.newRow = true ;
-    } else {
-      this.statusMsg = '' ;
-      this.newRow = false ;   this.canRenewLease = false ;
-      const renewableLse = this.filtLeases.filter( l => !l.cancelled) ;
-      this.canRenewLease = this.globSvc.isLeaseCurrent(renewableLse[0]) ;
+  setResidentName(): string {
+    if (this.residents.length > 0 && this.lease.Residents.length > 0) {    // if lease w/res, get resident name
+      const res = this.residents.find( r => r.ResidentId === this.lease.Residents[0]) ;
+      return (res) ? `${res.FName} ${res.LName}` : 'Name not set';
+    }
+    return 'Name not set';
+  }
+
+  onSaveRecord() {
+    this.utilSvc.cLog(this.CLASSNAME, 'Came into add for lease: %O  newRow: %O', this.lease, this.newRow ) ;
+    const action = (this.editMode === false) ? this.actTp.Add : this.actTp.Update ;
+    this.parmMod.emit({action: action, parmType: this.gType, newVal: this.lease, oldVal: this.origLease}) ;
+    this.editMode = true ;   this.newRow = false ;   this.expandedView = false ;
+    this.residentNm = this.setResidentName();
+    this.origLease = {...this.lease} ;
+  }
+
+  onDeleteRecord() {
+    this.utilSvc.cLog(this.CLASSNAME,'Came into delete for name: %s', this.lease.House ) ;
+    this.parmMod.emit({action: this.actTp.Delete,
+      parmType: this.gType, newVal: this.lease, oldVal: this.lease}) ;
+    this.expandedView = false ;
+  }
+
+  onCancelEdit() {
+    this.utilSvc.cDebug(this.CLASSNAME, 'Came into cancel for name: %s', this.lease.House ) ;
+    if (this.newRow) {
+      this.parmMod.emit({action: this.actTp.Cancel,
+        parmType: this.gType, newVal: this.lease, oldVal: this.lease}) ;
+    }
+    this.editMode = true ;    this.newRow = false ;    this.expandedView = false ;
+  }
+
+  onCreateLease(renewal: boolean) {
+    if (renewal)  this.parmMod.emit({action: this.actTp.Renew, parmType: this.gType,
+      newVal: this.lease, oldVal: this.origLease}) ;
+  }
+
+  checkLease(): boolean {  // Is lease endDate current within numDays of today
+    return this.globSvc.isLeaseCurrent(this.lease, this.idx) ;
+  }
+
+  preFillEndDate() {
+    if (this.lease.StartDt && !this.lease.EndDt) {
+      const sDt = new Date(this.lease.StartDt) ;
+      const eYr = sDt.getFullYear() + 1 ;  sDt.setFullYear(eYr) ; // Move 1 year fwd
+      sDt.setDate(sDt.getDate() - 1) ;  // Back up 1 day
+      this.lease.EndDt = sDt.toISOString().substring(0,10) ;
     }
   }
 
-  createNewLease(house: string, renew: boolean) {
-    let newLease: Lease ;
-    if (renew) {
-      const renewableLse = this.filtLeases.filter( l => !l.cancelled) ;
-      const lse = renewableLse[0] ;
-      newLease = { ...lse } ;
-      const eDt = new Date(lse.EndDt) ;
-      newLease.StartDt = this.utilSvc.getDate(eDt, 1) ;
-      const newEndYr = eDt.getFullYear() + 1 ;  eDt.setFullYear(newEndYr) ;
-      newLease.EndDt = eDt.toISOString().substring(0,10) ;
-      newLease.LeaseId = '' ;
-    } else {
-      newLease = new Lease('', house, true, false, '', '', '', 0, 0, 1, 0, 5, 0, 0, 0, [], '') ;
+  // Need to do a confirm(msg) if a date modification will cause an overlap
+  onDateEdit(isStart: boolean) {
+    this.sDtMsg = '' ;  this.eDtMsg = '' ;
+    if (this.lease.StartDt && this.lease.EndDt && (this.lease.StartDt >= this.lease.EndDt)) {
+      if (isStart) {
+        this.lease.StartDt = this.origLease.StartDt ;  this.sDtMsg = ' (change cancelled, start must be before end)' ;
+      } else {
+        this.lease.EndDt = this.origLease.EndDt ;  this.eDtMsg = ' (change cancelled, end must be after start)' ;
+      }
+      return ;
     }
-    this.filtLeases.splice(0, 0, newLease) ;
-    this.canRenewLease = false ;
-  }
-
-  onLeaseMod(event: { action: string; parmType: string; newVal: any; oldVal: any }) {
-    const actTp = this.utilSvc.actionTypes ;  const cLease: Lease = event.newVal as Lease ;
-    if ((event.action === actTp.Delete || event.action === actTp.Cancel) && 
-      !cLease.LeaseId) { // New row being deleted or cancelled before save
-      const idx = this.filtLeases.findIndex( l => l === cLease) ;
-      if (idx >= 0)    this.filtLeases.splice(idx, 1) ;
-      const renewableLse = this.filtLeases.filter( l => !l.cancelled) ;
-      this.canRenewLease = this.globSvc.isLeaseCurrent(renewableLse[0]) ;
-     return ;
-    }
-    this.parmMod.emit({action: event.action, parmType: event.parmType,
-      newVal: event.newVal, oldVal: event.oldVal}) ;
-      // Full array delete can be delayed, so fix this array in the meantime
-    if (event.action === actTp.Delete) {
-      const idx = this.filtLeases.findIndex( l => l.LeaseId === event.newVal.LeaseId) ;
-      if (idx >= 0)    this.filtLeases.splice(idx, 1) ;
-    } else {
-      if (event.action === actTp.Cancel) {
-        const idx = this.filtLeases.findIndex( l => l.LeaseId === event.newVal.LeaseId) ;
-        if (idx >= 0)    this.filtLeases[idx] = event.newVal ;
+    const isOverlapOk = this.globSvc.checkLeaseOverlap(this.lease, isStart, this.idx) ;
+    if (!isOverlapOk) {
+      if (isStart) {
+        this.lease.StartDt = this.origLease.StartDt ;  this.sDtMsg = ' (change cancelled due to date overlap)' ;
+      } else {
+        this.lease.EndDt = this.origLease.EndDt ;  this.eDtMsg = ' (change cancelled due to date overlap)' ;
       }
     }
   }

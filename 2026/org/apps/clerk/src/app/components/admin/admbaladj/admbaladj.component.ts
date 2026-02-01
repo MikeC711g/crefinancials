@@ -12,14 +12,17 @@ import { GlobalModsService } from '../../../services/globalMods.service';
   styleUrls: ['./admbaladj.component.css']
 })
 export class AdmbaladjComponent implements OnInit {
-  @Input() houses: House[] = new Array<House>() ;
-  @Input() leases: Lease[] = new Array<Lease>() ;
+  @Input() lease: Lease = new Lease('', '', false, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, [])
+  @Input() balAdj: BalAdjust = new BalAdjust('', '', '', '', 0) ;
+  @Input() curBal = 0 ;
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,
     newVal: any, oldVal: any }>() ;
-  newRow = false ;  editMode = false ;
-  houseBA: BalAdjust[] = new Array<BalAdjust>() ;  selectedLease = '' ;
-  statusMsg = "" ;  houseSelected = false ;  selectedHouse = '' ;
-  gType: string ;  curDate = '' ;
+  origBa: BalAdjust = new BalAdjust('', '', '', '', 0) ;
+  balAdjTypes: string[] = new Array<string>() ;  negTypes: string[] = new Array<string>() ;
+  newRow = false ;  editMode = false ;  negateAmount = false ;
+  statusMsg = "" ;  gType: string ;  curDate = '' ;
+  virtualRow = false ;    // Is this a row in report, but not physically in BalAdj DB (ie: Rent income)
+  bgColor = 'white' ;
   CLASSNAME = 'admbaladj' ;
 
   constructor(private utilSvc: GenutilsService, private globMods: GlobalModsService) {
@@ -27,34 +30,46 @@ export class AdmbaladjComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const curDt = new Date() ;
-    this.curDate = curDt.toISOString().slice(0, 10)
-    this.selHouse() ;
-    console.log(`Leases: ${this.leases.length}, Houses: ${this.houses.length}`) ;
-    // On startup, get house from select with nothing else viewable (unless house passed in later)
-    // With house, find latest lease in array and retrieve all baladjusts for the house
-    // lease query goes back 5 years, baladj query back 3 years
-    // If no current lease, bail and tell them we need current lease
-    // Grab beginBal from lease
-    // Update late fees: See if needed and if applied for each month.  Apply if not applied
-    // Back in leases, when started, make sure balAdj has all adjustments prior to lease
-    // Do most calcs in genUtils or GlobalMods so core logic doable from elsewhere as well (dashboard/report)
-    // 
-  }
-  onParmMod(action: string, parmType: string, newVal: any, oldVal: any) {
-    console.log(`onParmMod called with action: ${action}, parmType: ${parmType}, newVal: ${newVal}, oldVal: ${oldVal}`) ;
-    this.parmMod.emit({ action, parmType, newVal, oldVal }) ;
+    this.balAdjTypes = this.utilSvc.balAdjTypes ;
+    this.negTypes = this.utilSvc.balAdjNegTypes ;
+    this.curDate = new Date().toISOString().slice(0, 10)
+    if (this.balAdj.BalAdjId || this.balAdj.AType === "Late Fee"){    // Existing doc/row in data base
+      this.origBa = { ...this.balAdj } ;  // Late fees may be adding async and not have BalAdjId yet
+    } else {
+      if (this.balAdj.House) {   // Virtual row, not in Baladj DB
+        this.virtualRow = true ;
+      } else {
+        this.newRow = true ;  this.editMode = true ;  this.balAdj.House = this.lease.House ;
+        this.balAdj.ADate = this.curDate ;
+      }
+    }
+    this.bgColor = (this.virtualRow) ? 'white' : 'aquamarine' ;
   }
 
-  selHouse() {    // House selected
-    console.log(`selected house: ${this.selectedHouse}`) ;
-    console.log(`selHouse: Leases: ${this.leases.length}, Houses: ${this.houses.length}`) ;
-    const curDt = new Date().toISOString().slice(0, 10) ; // todo ... check on need of houseselected boolen
-    const curLease = this.leases.find(lease => lease.House === this.selectedHouse &&
-      lease.StartDt <= curDt && lease.EndDt >= curDt) ;
+  ckAmt() {
+    if ( this.balAdj.AType && this.negTypes.includes(this.balAdj.AType) && this.balAdj.Amount > 0 )
+      this.balAdj.Amount *= -1 ;
   }
 
-  selLease() {
-    console.log(`selected lease: ${this.selectedLease}`) ;
+  onAddRecord() {
+    this.utilSvc.cDebug(this.CLASSNAME, 'Came into add for balAdj: %O  newRow: %s', this.balAdj, this.newRow ) ;
+    if (this.newRow) {
+      this.parmMod.emit({action: this.utilSvc.actionTypes.Add,
+        parmType: this.gType, newVal: this.balAdj, oldVal: this.balAdj}) ;
+      this.newRow = false ;
+    } else {    // If update, send new and original for DB
+      this.parmMod.emit({action: this.utilSvc.actionTypes.Update,
+        parmType: this.gType, newVal: this.balAdj, oldVal: this.origBa}) ;
+    }
+    this.editMode = false ;
+  }
+
+  onCancel() {
+    this.utilSvc.cDebug(this.CLASSNAME, 'Came into cancel for name: %s', this.balAdj.BalAdjId ) ;
+    if (this.newRow) {
+      this.parmMod.emit({action: this.utilSvc.actionTypes.Cancel,
+        parmType: this.gType, newVal: this.balAdj, oldVal: this.balAdj}) ;
+    }
+    this.editMode = false ;    this.newRow = false ;
   }
 }

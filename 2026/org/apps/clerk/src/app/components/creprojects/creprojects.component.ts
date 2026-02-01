@@ -53,18 +53,12 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
     this.onQueryProjects(parseInt(this.dateOpts[2].RVal) ) ;
     const idx = this.utilSvc.dirtyProj.length ;
     if (idx > 0)  this.utilSvc.dirtyProj.splice(0, idx) ;
-
-    this.project$ = this.fireSvc.project$.subscribe(proj => {
-      this.utilSvc.cLog(this.CLASSNAME, 'Got new Proj from subscrip, Pre len: %d', this.projects.length)
-      this.projects = proj ;
-      this.utilSvc.cLog(this.CLASSNAME, 'Got new Proj from subscrip, Post len: %d', this.projects.length)
-    })
   }
 
   /*****************************************************************************
      Handling date select component output
    *****************************************************************************/
-    onDateMod(numDays: number, startDt: string, endDt: string): void {
+  onDateMod(numDays: number, startDt: string, endDt: string): void {
     this.numDays = numDays ;  this.startDt = startDt ;  this.endDt = endDt ;
     // this.onQueryProjects(numDays, startDt, endDt) ;
   }
@@ -87,25 +81,20 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
     Query the project collection for projects between the dates
   ********************************************************************/
   onQueryProjects(numDays: number, startDt?: string, endDt?: string): void {
-    const projRtn = this.fireSvc.getProjects(true, numDays, startDt, endDt) ;
-    if (Array.isArray(projRtn)) {
-      this.projects = projRtn ;   // isForce, so shouldn't really hit this
-      this.utilSvc.cWarn(this.CLASSNAME, 'Odd that we got cached projects in spite of isForce') ;
-    } else {
-      this.projQuery$ = projRtn.subscribe({
-        next: (dbProj) => {
-              // Notify all listeners (including self) of new projects
-          this.fireSvc.project$.next(dbProj) ;
-          this.projects = (this.house.length <= 0) ? dbProj : dbProj.filter(cpro => this.house.includes(cpro.House)) ;
-          this.utilSvc.cLog(this.CLASSNAME, 'Proj Q numD: %d  strt: %s  end: %s w/dtLen: %d  totLen: %d',
-            numDays, startDt, endDt, dbProj.length, this.projects.length)
-          this.dispMsgs.push('Loaded: ' + this.projects.length + ' Projects')
-        }, error: (error) => {
-          this.utilSvc.cWarn(this.CLASSNAME, 'Failed to retrieve projects, error: %s', error) ;
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        }, complete: () => { }
-      })
-    }
+    this.projQuery$ = this.fireSvc.getProjects(true, numDays, startDt, endDt).subscribe({
+      next: (dbProj) => {
+            // Notify all listeners (including self) of new projects
+        this.projects = (this.house.length <= 0) ? dbProj : dbProj.filter(cpro => this.house.includes(cpro.House)) ;
+        console.log('Into querProjects and got array: %O', this.projects)
+        this.utilSvc.loadProjects(this.projects) ;
+        this.utilSvc.cLog(this.CLASSNAME, 'Proj Q numD: %d  strt: %s  end: %s w/dtLen: %d  totLen: %d',
+          numDays, startDt, endDt, dbProj.length, this.projects.length)
+        this.dispMsgs.push('Loaded: ' + this.projects.length + ' Projects')
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Failed to retrieve projects, error: %s', error) ;
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      }, complete: () => { }
+    })
     if (endDt === undefined) {
       const curDt = new Date() ;
       this.endDt = curDt.toISOString().slice(0, 10) ;
@@ -143,7 +132,6 @@ export class CreprojectsComponent implements OnInit, OnDestroy, DeactivatableCom
     this.global$.unsubscribe() ;
     this.projQuery$.unsubscribe() ;
     this.project$.unsubscribe() ;
-    this.fireSvc.project$.next(this.projects) ;    // Update array others will use
     const idx = this.utilSvc.dirtyProj.length ;
     if (idx > 0)  this.utilSvc.dirtyProj.splice(0, idx) ;
   }

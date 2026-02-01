@@ -9,7 +9,7 @@ import { FirebaseService } from './../../services/firebase.service';
 import { Subscription } from 'rxjs';
 import { User, user } from '@angular/fire/auth';
 
-type GuiMode = 'Sign In' | 'Change Password' | 'Reset Password' | 'Sign Up' 
+type GuiMode = 'Sign In' | 'Change Password' | 'Reset Password' | 'Sign Up'
 const successorRt = '/trans/loadfile' ;  // Default route to go to after login
 
 @Component({
@@ -29,7 +29,7 @@ export class AuthComponent implements  AfterViewInit {
   CLASSNAME = 'auth' ;
 
   constructor(private authSvc: AuthService, private utilSvc: GenutilsService,
-    private fireSvc: FirebaseService, private router: Router, private elementRef: ElementRef) {
+    private router: Router, private elementRef: ElementRef) {
     this.action$ = router.events.subscribe((routeUrl) => {
       if (routeUrl instanceof NavigationEnd) {
         const urlParts = routeUrl.url.split('/') ;
@@ -202,7 +202,7 @@ export class AuthComponent implements  AfterViewInit {
     const hasUppercase = /[A-Z]/.test(newPw);
     const hasLowercase = /[a-z]/.test(newPw);
     const hasNumber = /[0-9]/.test(newPw);
-    const hasSpecialChar = /[!@#$%^&*]/.test(newPw); 
+    const hasSpecialChar = /[!@#$%^&*]/.test(newPw);
 
     if (newPw.length >= minLength && hasUppercase && hasLowercase && hasNumber &&
       hasSpecialChar && (!confirmPw || confirmPw === newPw)) {    // All good
