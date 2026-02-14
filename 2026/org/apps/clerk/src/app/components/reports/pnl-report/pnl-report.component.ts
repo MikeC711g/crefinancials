@@ -38,7 +38,7 @@ export class PnlReportComponent  implements OnInit {
         // Structures for P&L report
   totExpense = 0 ;  totIncome = 0 ;  netIncome = 0 ;
   allTaxCats = [''] ;
-  houseList = '' ;
+  houseList = '' ;    houseString = '' ;
   incomeMap: Map<string, MapVal> = new Map<string, MapVal>() ;
   expenseMap: Map<string, MapVal> = new Map<string, MapVal>() ;
   CLASSNAME = 'pnlreport' ;
@@ -50,6 +50,7 @@ export class PnlReportComponent  implements OnInit {
       this.tranRecs, this.startDt, this.endDt, this.categoryFolders)
     this.allTaxCats = this.creditTaxCats.concat(this.debitTaxCats) ;
     if (this.selectedHouseArr.length > 0)    this.houseList = this.selectedHouseArr.join(', ') ;
+    this.houseString = (this.houseList) ? `House:  ${this.houseList}` : '' ;
     this.profitNLoss() ;
   }
 
@@ -217,7 +218,7 @@ export class PnlReportComponent  implements OnInit {
     yCoord += 7 ;
     const dtStr = `Start Date: ${this.startDt}   End Date: ${this.endDt}` ;
     doc.setFontSize(10).text(dtStr, xCenter, yCoord, {align: 'center'}) ;  yCoord += 8 ;
-    if (this.houseList != '') {
+    if (this.houseList !== '') {
       doc.setFontSize(10).text(`Houses: ${this.houseList}`, xCenter, yCoord, {align: 'center'}) ;
       yCoord += 8 ;
     }

@@ -29,12 +29,6 @@
       </li>
       <li class="nav-item">
         @if (isAuthenticated) {
-          <a class="nav-link" routerLinkActive="active" routerLink="/projects" data-cy="hdrProj"
-          > Projects</a>
-        }
-      </li>
-      <li class="nav-item">
-        @if (isAuthenticated) {
           <a class="nav-link" routerLinkActive="active" routerLink="/reconcile" data-cy="hdrRecon"
           > Reconciliations</a>
         }
@@ -99,6 +93,8 @@
             data-cy="hdrAdRes">Residents</a></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/balAdjust"
             data-cy="hdrAdBal">Balance Adjustments</a></li>
+          <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/projects"
+            data-cy="hdrAdProj">Projects</a><div class="dropdown-divider"></div></li>
           <li><a class="dropdown-item" routerLinkActive="active" routerLink="/admin/logging"
             data-cy="hdrAdLog">Logging</a></li>
         </ul>

@@ -2,19 +2,20 @@ import { FirebaseService } from './../../services/firebase.service';
 import { FormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { RuleData } from './../../models/ruledata.model';
-import { BalAdjust, House, Lease, Mortgage, Resident } from './../../models/house.model';
+import { BalAdjust, House, Lease, Mortgage, Project, Resident } from './../../models/house.model';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AdmhousesComponent } from './admhouses/admhouses.component';
 import { AdmkvComponent } from './admkv/admkv.component';
 import { AdmcategoryComponent } from './admcategory/admcategory.component';
 import { AdmruledataComponent } from './admruledata/admruledata.component';
+import { Admproject } from './admproject/admproject';
 import { AdmleaseComponent } from './admlease/admlease.component';
 import { AdmresidentComponent } from './admresident/admresident.component';
 import { AdmmortgageComponent } from './admmortgage/admmortgage.component';
 import { AdmbaladjComponent } from './admbaladj/admbaladj.component';
 import { AdmloggingComponent } from './admlogging/admlogging.component';
 import { GenutilsService } from './../../services/genutils.service';
-import { Globals, objwCid, KeyVal } from './../../models/globals.model';
+import { Globals, KeyVal } from './../../models/globals.model';
 import { DeactivatableComponent } from './../../interfaces/deactivatableComponent.interface';
 import { GlobalModsService } from './../../services/globalMods.service';
 import { NavigationEnd, Router } from '@angular/router';
@@ -28,8 +29,9 @@ import { TranRec } from '../../models/TranRec.model';
 @Component({
   selector: 'crefinancials-admin',
   standalone: true,
-  imports: [AdmhousesComponent, AdmkvComponent, AdmcategoryComponent, AdmruledataComponent, AdmleaseComponent,
-    AdmresidentComponent, AdmmortgageComponent, AdmbaladjComponent, AdmloggingComponent, FormsModule, AsyncPipe],
+  imports: [AdmhousesComponent, AdmkvComponent, AdmcategoryComponent, AdmruledataComponent,
+    Admproject, AdmleaseComponent, AdmresidentComponent, AdmmortgageComponent, AdmbaladjComponent,
+    AdmloggingComponent, FormsModule, AsyncPipe],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -54,6 +56,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   leases: Lease[] = new Array<Lease>() ;            leaseSubj = new Observable<Lease[]>() ;
   curLease: Lease = new Lease('', '', false, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, []) ;
   newLease: Lease = new Lease('', '', false, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, []) ;
+  projects: Project[] = new Array<Project>() ;   projectSubj = new Observable<Project[]>() ;
   residents: Resident[] = new Array<Resident>() ;   residentSubj = new Observable<Resident[]>() ;
   balAdjust: BalAdjust[] = new Array<BalAdjust>() ;
   balAdjProcSub$ = new Subject<BalAdjust[]>() ;    // Processing of balAdjustments done
@@ -83,7 +86,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
         const lastPart = urlParts[urlParts.length-1]
         this.selectedType = (this.admTypes.indexOf(lastPart) > -1) ?
           lastPart : 'ruleData' ;
-        this.needHouse = ([ "leases", "mortgages", "balAdjust"].includes(this.selectedType)) ;
+        this.needHouse = ([ "leases", "projects", "mortgages", "balAdjust"].includes(this.selectedType)) ;
         if (this.needHouse)  this.selectedHouse = '' ;
         if (this.selectedType === 'ruleData') {
           this.getRules() ;
@@ -154,9 +157,10 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     } else if (locType === 'balAdjust') {
       this.getLeases(selectedHouse) ;
       this.getBalAdjust(selectedHouse) ;    // Additional related work here to populate list
+    } if (locType === 'projects') {
+      this.getProjects(selectedHouse) ;
     }
     this.selectedType = locType ;
-    // setTimeout(() => {  this.selectedType = locType ;  }, 100); // reinit html template
   }
 
 /***************************************************************************************
@@ -241,6 +245,21 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
   }
 
 /***************************************************************************************
+ * Retrieve projects for a house
+ ***************************************************************************************/
+  getProjects(house: string) {
+    this.projectSubj = this.fireSvc.getProjects(true, 365, undefined, undefined, house) ;
+    const project$ = this.projectSubj.subscribe({
+      next: (projects) => {
+        this.projects = this.fireSvc.loadProjects(projects as Project[]) ;
+        setTimeout(() => { project$.unsubscribe() ; }, 30000);
+      }, error: (error) => {
+        this.utilSvc.cWarn(this.CLASSNAME, 'Error retrieving projects: ', error) ;
+      }
+    })
+  }
+
+/***************************************************************************************
  * Logging helpers
  ***************************************************************************************/
   onLogMod(className: string, level: string): void {
@@ -257,6 +276,7 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
    *****************************************************************************/
   onParmMod(action: string, gType: string, newVal: any, oldVal: any): void {
     let actionCnt = 0 ;
+    const gTypes = this.utilSvc.globalTypes ;
     let anyArr: any[] ;
     if (action === this.utilSvc.actionTypes.Cancel || action === this.utilSvc.actionTypes.Add) {
       this.newRow = false ;
@@ -265,9 +285,9 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
     let balArrObs: Subscription = new Subscription() ;
       // HereIam ToDo: Async update of firebase may make set of arrays out of sync (too soon)
     switch (gType) {  // All editable globals are rkey/rval pairs
-      case this.utilSvc.globalTypes.Accounts:
-      case this.utilSvc.globalTypes.TaxCats:
-      case this.utilSvc.globalTypes.CategoryTaxcats:
+      case gTypes.Accounts:
+      case gTypes.TaxCats:
+      case gTypes.CategoryTaxcats:
         kval = newVal as KeyVal ;
         globalNewRow = new Globals(this.cid, gType, kval.RKey, kval.RVal) ;
         kval = oldVal as KeyVal ;
@@ -276,22 +296,22 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
           globalOldRow, this.fbGlobals, this.accountTypes, this.tranTypes, this.accounts,
           this.categoryFolders, this.categoryTaxcat, this.taxCats, this.cid)
         break ;
-      case this.utilSvc.globalTypes.RuleData:
+      case gTypes.RuleData:
         anyArr = this.tranRules ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;
         this.tranRules = this.fireSvc.setTranRules(this.tranRules)  ; break ;
-      case this.utilSvc.globalTypes.Houses:
+      case gTypes.Houses:
         anyArr = this.houses ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;
         this.houses = this.fireSvc.setHouses(this.houses);  break ;
-      case this.utilSvc.globalTypes.Mortgages:
+      case gTypes.Mortgages:
         anyArr = this.mortgages ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;
         this.mortgages = this.fireSvc.setMortgages(this.mortgages) ;  break ;
-      case this.utilSvc.globalTypes.Leases:
+      case gTypes.Leases:
         if (action === this.utilSvc.actionTypes.Renew) {
           this.newLease = this.globSvc.renewLease(newVal as Lease) ;
           this.getBalAdjust(this.newLease.House) ;   // Refresh balance adjustments for new lease
@@ -311,18 +331,23 @@ export class AdminComponent implements OnInit, OnDestroy, DeactivatableComponent
           this.leases = this.fireSvc.setLeases(this.leases);    // Don't think I want renew in fb list yet
         }
         break ;
-      case this.utilSvc.globalTypes.BalAdjust:
+      case gTypes.BalAdjust:
         anyArr = this.balAdjust ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;
         this.balAdjust = this.fireSvc.setBalAdj(this.balAdjust);    // Don't think I want renew in fb list yet
         this.balanceList = this.globSvc.getBalanceArray(this.balAdjust) ;    // Refresh balance list
         break ;
-      case this.utilSvc.globalTypes.Residents:
+      case gTypes.Residents:
         anyArr = this.residents ;
         [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
           oldVal, anyArr) ;
         this.residents = this.fireSvc.setResidents(this.residents) ;  break ;
+      case gTypes.Projects:
+        anyArr = this.projects ;
+        [actionCnt, this.statusMsg] = this.globSvc.genGlobMod(action, gType, newVal,
+          oldVal, anyArr) ;
+        this.projects = this.fireSvc.loadProjects(this.projects) ;  break ;
       default:
         this.utilSvc.cWarn(this.CLASSNAME, 'Invalid parm type: %O', newVal) ;
     }

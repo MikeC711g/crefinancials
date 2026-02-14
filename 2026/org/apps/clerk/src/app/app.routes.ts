@@ -2,7 +2,6 @@ import { Route } from '@angular/router';
 import { CretranComponent } from './components/cretran/cretran.component';
 import { canActivate, canDeactivate } from './services/activationguard.service';
 import { AuthComponent } from './components/auth/auth.component';
-import { CreprojectsComponent } from './components/creprojects/creprojects.component';
 import { CrereconComponent } from './components/crerecon/crerecon.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import { AdminComponent } from './components/admin/admin.component';
@@ -19,8 +18,6 @@ export const appRoutes: Route[] = [
       { path: 'search', component: CretranComponent },
     ]},
   { path: 'auth', component: AuthComponent },
-  { path: 'projects', component: CreprojectsComponent, canActivate: [canActivate],
-    canDeactivate: [canDeactivate] },
   { path: 'reconcile', component: CrereconComponent, canActivate: [canActivate],
     canDeactivate: [canDeactivate] },
   { path: 'reports', component: ReportsComponent, canActivate: [canActivate], children: [
@@ -50,6 +47,7 @@ export const appRoutes: Route[] = [
       { path: 'leases', component: AdminComponent },
       { path: 'residents', component: AdminComponent },
       { path: 'balAdjust', component: AdminComponent },
+      { path: 'projects', component: AdminComponent },
       { path: 'logging', component: AdminComponent }
     ] },
   { path: 'globadm', component: GlobadmComponent, canActivate: [canActivate],

@@ -187,7 +187,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
       case 'Dump of Residents':  this.dumpResidents() ; break ;
       case 'Dump of Balance Adjustments':  this.dumpBalAdj(this.startDt, this.endDt, this.selectedHouseArr) ; break ;
     }
-    this.accountArr = [] ; this.selectedAccount = '' ; this.selectedHouseArr = [] ; this.selectedHouse = '' ;
+    setTimeout(() => {
+      this.accountArr = [] ; this.selectedAccount = '' ; this.selectedHouseArr = [] ; this.selectedHouse = '' ;
+    }, 1000);
   }
 
   /** ************************************************************************

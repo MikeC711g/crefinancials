@@ -32,7 +32,7 @@ export class FirebaseService {
     // Array of projects and some load indicators
   projects: Project[] = new Array<Project>() ;  projectsLoaded = false ;
     projectsStarted = false ;  projectLoadTime = 0 ;  projectLoadDays = 0 ;
-    projsDt = '' ; projeDt = '' ;
+    projsDt = '' ; projeDt = '' ; projsHouse = '' ;
     // Arrays of items from globals
   houses: House[] = new Array<House>() ;  houseLoadTime: number ;
   tranRules: RuleData[] = new Array<RuleData>() ;  ruleLoadTime: number ;
@@ -728,27 +728,20 @@ export class FirebaseService {
    * @param {string} numDays Number of days back from current to get
    * @returns {Observable} Observable of array of projects
    */
-  getProjectsFromDB(numDays: number, minDate?: string, maxDate?: string): Observable<Project[]> {
+  getProjectsFromDB(minDate: string, maxDate: string, house?: string): Observable<Project[]> {
+    // hereiam ... need to test this with adding house to cid/EndDt index
     this.updtTimeStmp() ;
-    this.utilSvc.cDebug(this.CLASSNAME, 'proj, days: %d  strt: %s  end: %s',  numDays, minDate, maxDate)
-    if (this.projectsLoaded && minDate && maxDate && minDate >= this.projsDt && maxDate <= this.projeDt)
-      return new BehaviorSubject<Project[]>(this.projects.filter(proj =>
-        proj.StartDt >= minDate && proj.EndDt <= maxDate)) ;    // Have cached data
-    if (!maxDate) {    // If mindate/maxdate not sent
-      this.projectLoadDays = numDays ;    // For future calls
-      const endDate = new Date() ;
-      this.projeDt = endDate.toISOString().slice(0, 10) ;
-      this.projsDt = this.utilSvc.getDate(endDate, numDays * -1) ;
-    } else {
-      this.projsDt = minDate! ;
-      this.projeDt = maxDate ;
-        // Since projectLoadDays implies from to current dt and this may not be, not setting it
-      // this.projectLoadDays = this.utilSvc.getDateDiff(new Date(startDtStr), new Date(endDtStr)) ;
+    this.utilSvc.cDebug(this.CLASSNAME, 'proj, strt: %s  end: %s',  minDate, maxDate)
+    if (!house)  house = '' ;
+    if (this.projectsLoaded && minDate >= this.projsDt && maxDate <= this.projeDt && house === this.projsHouse) {
+      this.projsDt = minDate ; this.projeDt = maxDate ;
+      const filtProj = this.projects.filter(proj => proj.StartDt <= maxDate && proj.EndDt >= minDate) ;
+      return new BehaviorSubject<Project[]>(filtProj) ;    // Have cached data
     }
-    this.utilSvc.cDebug(this.CLASSNAME, 'proj, cid: %s  days: %d  strt: %s  end: %s',
-      this.cid, numDays, this.projsDt, this.projeDt) ;
+    this.projsHouse = house ;  this.projsDt = minDate ; this.projeDt = maxDate ;
     const projQuery: QueryConstraint[] = [where('EndDt', '>=', this.projsDt),
       where('Cid', '==', this.cid)] ;
+    if (house)    projQuery.push(where('House', '==', house)) ;
     const project$: Observable<Project[]> = collectionData<Project>(query(
       collection(this.firestore, this.projNm) as CollectionReference<Project>,
       ...projQuery), {idField: 'ProjectId'}).pipe(map(results => results.filter((proj) => {
@@ -758,10 +751,11 @@ export class FirebaseService {
     return project$ ;
   }
 
-  loadProjects(inProjects: Project[]) {
+  loadProjects(inProjects: Project[]): Project[] {
     this.projects = inProjects.sort((a, b) => a.StartDt.localeCompare(b.StartDt)) ;
     this.projectsLoaded = true ;  this.projectsStarted = false ;
     this.projectLoadTime = new Date().getTime() ;
+    return this.projects ;
   }
 
   /**
@@ -770,21 +764,23 @@ export class FirebaseService {
    * @param {number} numDays # days back to pull projects
    * @returns {Project[]} or {Observable} depending on if we can use existing array vs retrieve
    */
-  getProjects(isForce: boolean, numDays: number, minDate?: string, maxDate?: string): Observable<Project[]> {
-    if (!maxDate) {    // If mindate/maxdate not sent
+  getProjects(isForce: boolean, numDays: number, minDate?: string, maxDate?: string,
+    house?: string ): Observable<Project[]> {
+    if (!maxDate || !minDate) {    // If mindate/maxdate not sent
       this.projectLoadDays = numDays ;    // For future calls
       const endDate = new Date() ;
       maxDate = endDate.toISOString().slice(0, 10) ;
       minDate = this.utilSvc.getDate(endDate, numDays * -1) ;
     }
+    if (!house)  house = '' ;
     let needRefresh = false ;
       // If force refresh, or projects not loaded, or #days in cache too small
-    if (isForce || !this.projectsLoaded || minDate! < this.projsDt ||
-      maxDate > this.projeDt) { needRefresh = true ; }
+    if (isForce || !this.projectsLoaded || minDate < this.projsDt || maxDate > this.projeDt ||
+      house !== this.projsHouse) { needRefresh = true ; }
       // If cache is too old
-    if (this.projectLoadTime + 900000 < new Date().getTime()) { needRefresh = true ; }
-    if (needRefresh)  return this.getProjectsFromDB(numDays, minDate, maxDate) ;
-    else  return new BehaviorSubject(this.projects) ;
+    if (!needRefresh && this.projectLoadTime + 900000 < new Date().getTime()) { needRefresh = true ; }
+    if (needRefresh)  return this.getProjectsFromDB(minDate, maxDate, house) ;
+    else  return new BehaviorSubject(this.projects.filter(proj => proj.StartDt <= maxDate && proj.EndDt >= minDate)) ;
   }
 
   /**

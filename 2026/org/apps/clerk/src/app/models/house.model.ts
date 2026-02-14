@@ -12,6 +12,17 @@ export class House {
     public HouseId?: string) {}
 }
 
+export class Project {
+
+  constructor(
+    public House: string,
+    public Cid: string,
+    public StartDt: string,
+    public EndDt: string,
+    public Description: string,
+    public ProjectId?: string ) {}
+}
+
 export class Lease {
   // future thoughts: Cancel reason/category and/or text for cancel comment
   constructor(

@@ -1,0 +1,46 @@
+@if (!newRow) {
+  <div class="row">
+    <div class="col-md-2"> {{ project.StartDt }}      </div>
+    <div class="col-md-2"> {{ project.EndDt }}      </div>
+    <div class="col-md-5"> {{ project.Description }}      </div>
+    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="lee-exb" (click)="editMode = !editMode">
+      @if (!editMode) {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
+      } @else {
+        <img class="img-responsive" src="assets/images/chevron-up-icon.png" style="width: 16px; height: 16px;">
+      }
+    </button>
+  </div>
+}
+<p style="background-color: aqua;">{{ statusMsg }}</p>
+@if (editMode) {
+  <div class="row">
+    <!-- <div class="col-md-6"> -->
+      <div class="form-group">
+        <label for="startDt" title="Date work on project began">Start Date</label>
+        <input type="date" class="form-control" [(ngModel)]="project.StartDt" name="startDt" id="startDt"
+          ngModel data-cy="amo-startDt">
+      </div>
+      <div class="form-group">
+        <label for="endDt" title="Date work on project ended">End Date</label>
+        <input type="date" class="form-control" [(ngModel)]="project.EndDt" name="endDt" id="endDt"
+          ngModel data-cy="amo-endDt">
+      </div>
+      <div class="form-group">
+        <label for="descrip" title="Description of the project">Description</label>
+        <input type="text" class="form-control" [(ngModel)]="project.Description" name="descrip" id="descrip"
+          ngModel data-cy="amo-descrip">
+      </div>
+      <div class="form-group">
+        <button class="btn btn-success col-md-3" type="button" data-cy="amo-add" (click)="onAddRecord()">
+          {{ newRow ? 'Add' : 'Update' }}</button>
+        <button class="btn btn-primary col-md-3" type="button" data-cy="amo-cancel"
+          (click)="onCancel()">Cancel</button>
+        @if (!newRow) {
+          <button class="btn btn-danger col-md-3" type="button" (click)="onDeleteRecord()"> Delete</button>
+        }
+      </div>
+    <!-- </div> -->
+  </div>
+}
+

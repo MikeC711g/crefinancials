@@ -121,11 +121,46 @@
                 </ul>
               }
             </div>
+          } @else {
+            <!-- ****************************** Projects *************************** -->
+            @if (selectedType === 'projects' && (projectSubj | async)) {
+              <div class="col-md-12">
+                <button class="btn btn-primary col-md-3" type="button" (click)="newRow = !newRow">
+                  Add Project</button>
+                @if (newRow) {
+                  <div>
+                    <h2>Add a New Project</h2>
+                    <crefinancials-admproject (parmMod)="onParmMod($event.action, $event.parmType, $event.newVal, $event.oldVal)"
+                      [house]="selectedHouse"></crefinancials-admproject>
+                  </div>
+                }
+                <h2>Manage Projects</h2>
+                @if (projects.length === 0) {
+                  <p>No projects defined for house {{ selectedHouse }} </p>
+                } @else {
+                  <p>Project information for house {{ selectedHouse }} </p>
+                  <div class="row">
+                    <div class="col-md-3"><b> Start Date </b> </div>
+                    <div class="col-md-2"><b> End Date </b></div>
+                    <div class="col-md-5"><b> Description </b></div>
+                  </div>
+                  <ul>
+                    @for (project of projects; track project) {
+                      <li>
+                        <crefinancials-admproject [project]="project" [house]="selectedHouse"
+                          (parmMod)="onParmMod($event.action, $event.parmType,$event.newVal, $event.oldVal)">
+                        </crefinancials-admproject>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
           }
         }
       }
     }
-  }
+  }   <!-- From here on they do not need a specifically selected house -->
 <!-- ****************************** Houses *************************** -->
   @if (selectedType === 'houses') {
     <div class="row col-md-12">

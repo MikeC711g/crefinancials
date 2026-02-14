@@ -1,22 +1,21 @@
 import { FirebaseService } from './../../services/firebase.service';
 import { FormsModule } from '@angular/forms';
-import { Project } from '../../models/project.model';
 import { TranRec } from './../../models/TranRec.model';
 import { Component, EventEmitter, input, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GenutilsService } from './../../services/genutils.service';
-import { CreprojecteditComponent } from '../creprojects/creprojectedit/creprojectedit.component';
 import { AdmruledataComponent } from '../admin/admruledata/admruledata.component';
+import { Admproject } from '../admin/admproject/admproject';
 import { CremessagesComponent } from '../cremessages/cremessages.component';
 import { KeyVal } from './../../models/globals.model';
-import { House } from './../../models/house.model';
+import { House, Project } from './../../models/house.model';
 import { RuleData } from '../../models/ruledata.model';
 import { GlobalModsService } from '../../services/globalMods.service';
 
 @Component({
   selector: 'crefinancials-cretranall',
   standalone: true,
-  imports: [CreprojecteditComponent, AdmruledataComponent, CremessagesComponent, FormsModule],
+  imports: [AdmruledataComponent, Admproject, CremessagesComponent, FormsModule, Admproject],
   templateUrl: './cretranall.component.html',
   styleUrls: ['./cretranall.component.css']
 })
@@ -125,10 +124,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
 
     this.taxCats = this.fireSvc.getTaxCats() ;
     this.categoryTaxcat = this.fireSvc.getCategoryTaxcat() ;
-    for (const curProj of this.projects) {
-      this.filteredProjects.push(curProj) ;
-    }
-    // this.filteredProjects = this.projects ;
+    this.filteredProjects = [...this.projects] ;    // Shallow copy of entire array
     this.houses = this.fireSvc.getHouses() ;
     this.utilSvc.cDebug(this.CLASSNAME, 'Parent %s editMd: %s  expand: %s  childCnt: %d  tranAmt: %d',
       this.isParent, this.editMode, this.expandedView, this.splitChildren.length, this.tranRec.Amount) ;
@@ -402,21 +398,36 @@ export class CretranallComponent  implements OnInit, OnDestroy {
       See if we can modify the arrays to avoid refreshing from DBs so that while
       admin is occurring.  On exit from admin, will refresh all from DB.
    *****************************************************************************/
-  onRuleMod(action: string, parmType: string, newVal: any, oldVal: any): void {
-    if (action === this.utilSvc.actionTypes.Cancel) {
-      this.newRule = false ;
-    } else {
-      const tranRules = this.fireSvc.getTranRules() ;
-      const anyRuless: any[] = tranRules ;
-
-      const [actionCnt, statusMsg] = this.globSvc.genGlobMod(action, this.utilSvc.globalTypes.RuleData, newVal,
-        oldVal, anyRuless) ;
-      if (actionCnt === 0)
-        this.utilSvc.cWarn(this.CLASSNAME, `Failed to add rule with error: ${statusMsg}`) ;
-      else {
-        this.utilSvc.addRule(newVal) ; this.newRule = false ;
+  onParmMod(action: string, parmType: string, newVal: any, oldVal: any): void {
+    const gTypes = this.utilSvc.globalTypes ;  const aTypes = this.utilSvc.actionTypes ;
+    if (parmType === gTypes.RuleData) {
+      if (action === aTypes.Cancel) {
+        this.newRule = false ;
+      } else {
+        const tranRules = this.fireSvc.getTranRules() ;
+        const anyRuless: any[] = tranRules as any[] ;
+        const [actionCnt, statusMsg] = this.globSvc.genGlobMod(action, gTypes.RuleData, newVal,
+          oldVal, anyRuless) ;
+        if (actionCnt === 0)
+          this.utilSvc.cWarn(this.CLASSNAME, `Failed to add rule with error: ${statusMsg}`) ;
+        else {
+          this.utilSvc.addRule(newVal) ; this.newRule = false ;
+        }
       }
-    }
+    } else if (parmType === gTypes.Projects) {
+        if (action === aTypes.Cancel)  this.newProj = false ;
+        else {
+          const anyArr: any[] = this.projects as any[] ;
+          const [actionCnt, statusMsg] = this.globSvc.genGlobMod(action, gTypes.Projects, newVal,
+            oldVal, anyArr) ;
+          this.projects = this.fireSvc.loadProjects(this.projects) ;
+          this.newProj = false ;
+          setTimeout(() => {  this.tranRec.Project = newVal.ProjectId ;
+            console.log('Project parmMod set tranRec project to %s', this.tranRec.Project)
+          }, 200);
+          this.filteredProjects.push(newVal as Project) ;
+        }
+    } else this.utilSvc.cWarn(this.CLASSNAME, 'Unknown parmType: %s  action: %s', parmType, action) ;
   }
 
   /** **********************************************************************************
@@ -502,7 +513,7 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     if (this.modeOp === this.nmDict.createTran)  this.refreshCreate()
     else {
       this.tranMod.emit({ action: this.utilSvc.actionTypes.Cancel, tranRec: this.tranRec }) ;
-      this.expandedView = false ;
+      this.expandedView = false ;  this.newRow = false ;
      }
   }
 
@@ -540,9 +551,8 @@ export class CretranallComponent  implements OnInit, OnDestroy {
     If select house is modified, reFilter projects for that house only
   ********************************************************************/
   onFilterProjects(): void {
-    let useHouse = true ;
+    const useHouse = (this.tranRec.House !== '') ;
     this.filteredProjects = this.projects.filter((curProj) => {
-      if (this.tranRec.House === '') { useHouse = false ; }
       if (!useHouse || curProj.House === this.tranRec.House) {
         if (curProj.StartDt.localeCompare(this.tranRec.TranDate) <= 0 &&
           curProj.EndDt.localeCompare(this.tranRec.TranDate) >= 0) {
@@ -580,16 +590,6 @@ export class CretranallComponent  implements OnInit, OnDestroy {
 
   onMsgDel(idx: number, msg: string) {
     this.dispMsgs.splice(idx, 1) ;
-  }
-
-  /*****************************************************************************
-     Event occurred to a row in child component for adding project dynamically
-   *****************************************************************************/
-  onProjMod(action: string, project: Project): void {
-    let statusMsg = '' ;
-    [statusMsg, this.newProj] = this.utilSvc.onProjMod(action, project) ;
-    this.tranRec.Project = project.ProjectId! ;
-    if (statusMsg !== '') this.dispMsgs.push(statusMsg)
   }
 
   ngOnDestroy(): void {

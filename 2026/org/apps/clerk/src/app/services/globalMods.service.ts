@@ -3,9 +3,8 @@ import { Globals, KeyVal, globInfo, objwCid } from './../models/globals.model';
 import { Injectable } from '@angular/core';
 import { GenutilsService } from './genutils.service';
 import { FirebaseService } from './firebase.service';
-import { BalAdjust, House, Lease } from '../models/house.model';
+import { BalAdjust, Lease } from '../models/house.model';
 import { TranQ, TranRec } from '../models/TranRec.model';
-import { O } from 'vitest/dist/chunks/reporters.d.BQ0wpUaj';
 
 // TODO: Create interface for function to call for each type. Interface should include
 // action, gtype, newrow, oldrow, locArray, fbglobals. Take as optional and only call if there.
@@ -33,6 +32,7 @@ export class GlobalModsService {
     this.globInfoMap.set(this.utilSvc.globalTypes.Mortgages, new globInfo('Mortgages', 'MortgageId', 'house')) ;
     this.globInfoMap.set(this.utilSvc.globalTypes.Leases, new globInfo('Leases', 'LeaseId', 'House')) ;
     this.globInfoMap.set(this.utilSvc.globalTypes.Residents, new globInfo('Residents', 'ResidentId', 'LName')) ;
+    this.globInfoMap.set(this.utilSvc.globalTypes.Projects, new globInfo('Projects', 'ProjectId', 'StartDt')) ;
     this.globInfoMap.set(this.utilSvc.globalTypes.BalAdjust, new globInfo('BalAdjust', 'BalAdjId', 'ADate',
       ['deletedDate','Comment'] )) ;
   }

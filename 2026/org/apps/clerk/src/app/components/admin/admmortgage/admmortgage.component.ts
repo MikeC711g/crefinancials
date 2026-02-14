@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GenutilsService } from './../../../services/genutils.service';
-import { House, Mortgage } from '../../../models/house.model';
+import { Mortgage } from '../../../models/house.model';
 
 @Component({
   selector: 'crefinancials-admmortgage',
@@ -10,7 +10,7 @@ import { House, Mortgage } from '../../../models/house.model';
   templateUrl: './admmortgage.component.html',
   styleUrl: './admmortgage.component.css'
 })
-export class AdmmortgageComponent {
+export class AdmmortgageComponent implements OnInit {
   @Input() mortgage: Mortgage = new Mortgage('', '', '', 0, 0, 0, "", 0);
   @Input() house = '' ;
   @Output() parmMod = new EventEmitter<{ action: string, parmType: string,

@@ -22,7 +22,8 @@ export class GenutilsService {
   globalTypes = { TaxCats: 'taxCats', CategoryTaxcats: 'categoryTaxcat',
     TranTypes: 'tranType', Accounts: 'accounts', AccountTypes: 'accountType',
     CategoryFolders: 'categoryFolders', Logging: 'logging', RuleData: 'tranRule', Houses: 'houses',
-    Mortgages: 'mortgages', Leases: 'leases', Residents: 'residents', BalAdjust: 'balAdjust' } ;
+    Mortgages: 'mortgages', Leases: 'leases', Residents: 'residents', BalAdjust: 'balAdjust',
+    Projects: 'projects' } ;
   noAdminGlobalTypes = [this.globalTypes.TranTypes, this.globalTypes.AccountTypes,
     this.globalTypes.CategoryFolders] ;
   adminGlobalTypes = [this.globalTypes.TaxCats, this.globalTypes.CategoryTaxcats,
