@@ -1,20 +1,26 @@
 @if (!newRow) {
   <div class="row">
-    <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ balAdj.ADate }}      </div>
-    <div class="col-md-3" [style.backgroundColor]="bgColor"> {{ balAdj.AType }}      </div>
-    <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ balAdj.Amount }}      </div>
-    <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ curBal }}      </div>
-    <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="cta-exb"
-      (click)="editMode = !editMode">
-      @if (!editMode) {
-        <img class="img-responsive" src="assets/images/chevron-down-icon.png"
-          style="width: 16px; height: 16px;">
-      }
-      @if (editMode) {
-        <img class="img-responsive" src="assets/images/chevron-up-icon.png"
-          style="width: 16px; height: 16px;">
-      }
-    </button>
+    @if (balAdj.deletedDate) {
+      <div class="col-md-2" [style.backgroundColor]="bgColor"> <del>{{ balAdj.ADate }} </del> </div>
+      <div class="col-md-3" [style.backgroundColor]="bgColor"> <del>{{ balAdj.AType }} </del> </div>
+      <div class="col-md-2" [style.backgroundColor]="bgColor"> <del>{{ balAdj.Amount }} </del> </div>
+      <div class="col-md-2" [style.backgroundColor]="bgColor"> <del>{{ curBal }} </del> </div>
+    } @else {
+      <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ balAdj.ADate }}      </div>
+      <div class="col-md-3" [style.backgroundColor]="bgColor"> {{ balAdj.AType }}      </div>
+      <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ balAdj.Amount }}      </div>
+      <div class="col-md-2" [style.backgroundColor]="bgColor"> {{ curBal }}      </div>
+      <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="cta-exb"
+        (click)="editMode = !editMode">
+        @if (editMode) {
+          <img class="img-responsive" src="assets/images/chevron-up-icon.png"
+            style="width: 16px; height: 16px;">
+        } @else {
+          <img class="img-responsive" src="assets/images/chevron-down-icon.png"
+            style="width: 16px; height: 16px;">
+        }
+      </button>
+    }
   </div>
 }
 <p style="background-color: aqua;">{{ statusMsg }}</p>

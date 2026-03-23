@@ -500,12 +500,13 @@ export class FirebaseService {
   }
 
   bldQuery(tranQ: TranQ): QueryConstraint[] {    // Build tran query
-    const tranQuery: QueryConstraint[] = (tranQ.MinDate === tranQ.MaxDate) ?
-      [where('TranDate', '==', tranQ.MinDate)] :
-      [where('TranDate', '>=', tranQ.MinDate), where('TranDate', '<=', tranQ.MaxDate)]
-    tranQuery.push(where('Cid', '==', this.cid)) ;
+    const tranQuery: QueryConstraint[] = [where('Cid', '==', this.cid)] ;
+    if (tranQ.MinDate === tranQ.MaxDate) tranQuery.push(where('TranDate', '==', tranQ.MinDate));
+    else tranQuery.push(...
+      [where('TranDate', '>=', tranQ.MinDate), where('TranDate', '<=', tranQ.MaxDate)]) ;
     if (tranQ.AccountArr && tranQ.AccountArr.length > 0) tranQuery.push(where('Account', 'in', tranQ.AccountArr))
-    if (tranQ.House && tranQ.House.length > 0) tranQuery.push(where('House', 'in', tranQ.House))
+    // if (tranQ.House && tranQ.House.length > 0) tranQuery.push(where('House', 'in', tranQ.House))
+    console.log('bldQuery tranQ: %O  tranQuery: %O', tranQ, tranQuery) ;
     return tranQuery
   }
 
@@ -516,6 +517,7 @@ export class FirebaseService {
         new RegExp(tranQ.AnnotationRegEx, 'i') : new RegExp(tranQ.AnnotationRegEx)
     }   // If all lower case, then ignore case, otherwise respect case (smart-case)
     return tranRecs.filter((tr) => {
+      if (tranQ.House && tranQ.House.length > 0 && !tranQ.House.includes(tr.House)) return false ;
       if (tranQ.Category && tranQ.Category.length > 0 &&
         !tranQ.Category.includes(tr.Category)) return false ;
       if (tranQ.TranType && tranQ.TranType.length > 0 &&

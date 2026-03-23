@@ -3,10 +3,10 @@
     <div class="col-md-3"> {{ kv.RKey }}      </div>
     <div class="col-md-3"> {{ kv.RVal }}      </div>
     <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="lee-exb" (click)="editMode = !editMode">
-      @if (!editMode) {
-        <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
-      } @else {
+      @if (editMode) {
         <img class="img-responsive" src="assets/images/chevron-up-icon.png" style="width: 16px; height: 16px;">
+      } @else {
+        <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
       }
     </button>
   </div>

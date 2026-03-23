@@ -207,11 +207,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
         this.projects.length, this.projStrtDt, this.projEndDt) ;
       this.getProjects()
     }
-    if ((!this.reportInfo.acctMulti || this.accountArr.length > 0) && !this.reportInfo.moreData
+/*  if ((!this.reportInfo.acctMulti || this.accountArr.length > 0) && !this.reportInfo.moreData
       && (!this.reportInfo.acctOne || this.selectedAccount) &&
       (!this.reportInfo.houseMulti || this.houses.length > 0) &&
       (!this.reportInfo.houseOne || this.selectedHouse))
-     {  this.runReport(this.selectedReport) ;  }
+     {  this.runReport(this.selectedReport) ;  }  */
   }
 
   /** ************************************************************************
@@ -258,14 +258,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
       this.selectedHouseArr = [] ;
       for (const curHouse of this.houses) { this.selectedHouseArr.push(curHouse.name ) }
     }   // If we need date and have it AND we have accounts AND we don't need more, run report
-    if ((this.reportInfo.dateList.length < 1 || (this.startDt && this.endDt) &&
+/*    if ((this.reportInfo.dateList.length < 1 || (this.startDt && this.endDt) &&
       this.selectedHouseArr.length > 0 && !this.reportInfo.moreData)) {
         this.runReport(this.selectedReport) ;
-      }
+      } */
   }
 
   profitNLoss(startDt: string, endDt: string, houseArr: string[]) {
     this.utilSvc.cLog(this.CLASSNAME,'P&L startDt: %s  endDt: %s  houseArr: %O', startDt, endDt, houseArr) ;
+    this.reportReady = false ;
     const tranQ = new TranQ(startDt, endDt, '', [], [], [], 0, 0, [], houseArr)
     this.fireSvc.getTransFromDB(tranQ, false).subscribe({
       next: (tranRecs) => {

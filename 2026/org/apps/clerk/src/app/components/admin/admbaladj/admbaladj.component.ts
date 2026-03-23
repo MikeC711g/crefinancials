@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BalAdjust, House, Lease } from '../../../models/house.model';
+import { BalAdjust, Lease } from '../../../models/house.model';
 import { GenutilsService } from '../../../services/genutils.service';
 import { GlobalModsService } from '../../../services/globalMods.service';
 

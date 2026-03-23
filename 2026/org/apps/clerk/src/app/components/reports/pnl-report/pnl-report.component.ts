@@ -62,19 +62,16 @@ export class PnlReportComponent  implements OnInit {
     this.utilSvc.cLog(this.CLASSNAME,'tranRecs %O', this.tranRecs) ;
       // Need object key to map which recognizes exact equality, so cluging an array
     const pnlData: PnlData[] = [] ;
+    let testRentInc = 0 ; let testBuildSupply = 0 ;
     // let pnlMap: Map<KeyVal, number> = new Map<KeyVal, number>() ;
     // Filter out parent trans and keep only business taxcats.  Filter here to avoid
     //  bringing back and re-uniting split trans.
     const filtTrans = this.tranRecs.filter(tr =>
-      tr.TranType !== 'TPARENT' && this.allTaxCats.indexOf(tr.TaxCat) > -1)
+      tr.TranType !== 'TPARENT' && this.allTaxCats.indexOf(tr.TaxCat) > -1 && tr.Category !== '') ;
       // (this.selectedHouseArr.length === 0 || this.selectedHouseArr.indexOf(tr.House) > -1))
     for (const curTran of filtTrans) {
-      if (curTran.Category === '') {
-        this.utilSvc.cWarn(this.CLASSNAME, "Tran had no category: %O", curTran)
-        continue
-      }
-      if (curTran.Category === 'Mortgage Interest')
-        console.log('MtgInt tran: %O', curTran) ;
+      if (curTran.Category === 'Rent Income') testRentInc += curTran.Amount ;
+      if (curTran.Category === 'Building Supplies') testBuildSupply += curTran.Amount ;
       const curPnl: PnlData = pnlData.find((pd) =>
         pd.category === curTran.Category && pd.taxCat === curTran.TaxCat)!
       if (curPnl) {
@@ -85,6 +82,7 @@ export class PnlReportComponent  implements OnInit {
           totBal: curTran.Amount})
       }
     }
+    console.log('RentIncomes: %d  Building Supplies: %d', testRentInc, testBuildSupply) ;
     this.utilSvc.cDebug(this.CLASSNAME,'pnlData %O', pnlData) ;
     this.incomeMap.clear() ;    this.expenseMap.clear() ;
     const incomes: PnlData[] = pnlData.filter((pd) => this.creditTaxCats.indexOf(pd.taxCat) > -1) ;

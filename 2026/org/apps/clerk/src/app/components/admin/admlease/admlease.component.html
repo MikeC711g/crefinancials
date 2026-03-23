@@ -3,10 +3,10 @@
   <div class="col-md-3" [style.backgroundColor]="bgColor">{{ lease.StartDt }}</div>
   <div class="col-md-4" [style.backgroundColor]="bgColor">{{ residentNm }}</div>
   <button class="btn btn-success btn-toggle col-md-1" type="button" data-cy="lee-exb" (click)="expandedView = !expandedView">
-    @if (!expandedView) {
-      <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
-    } @else {
+    @if (expandedView) {
       <img class="img-responsive" src="assets/images/chevron-up-icon.png" style="width: 16px; height: 16px;">
+    } @else {
+      <img class="img-responsive" src="assets/images/chevron-down-icon.png" style="width: 16px; height: 16px;">
     }
   </button>
 }
